@@ -1,0 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Inter:wght@400;500;600;700&display=swap');
+
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-marquee-bg text-marquee-cream font-body antialiased;
+  background-image: radial-gradient(circle at 1px 1px, rgba(230,199,115,0.05) 1px, transparent 0);
+  background-size: 22px 22px;
+}
+
+::selection {
+  background: #C6A15B;
+  color: #15130F;
+}
+
+:focus-visible {
+  outline: 2px solid #E8C773;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.ticket-edge {
+  position: relative;
+}
+.ticket-edge::before,
+.ticket-edge::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background: #15130F;
+  border-radius: 50%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.ticket-edge::before { left: -9px; }
+.ticket-edge::after { right: -9px; }
