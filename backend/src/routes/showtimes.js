@@ -14,7 +14,7 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
 
     const [movie, screen, statusMap] = await Promise.all([
       Movie.findById(showtime.movie),
-      Screen.findById(showtime.screen),
+      Screen.findById(showtime.screen).populate('seats'),
       getAvailability(showtime),
     ]);
 
