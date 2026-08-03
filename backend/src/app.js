@@ -16,13 +16,37 @@ const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
-app.use(helmet());
+// 1. Helmet configuration (allow cross-origin requests & credential sharing)
 app.use(
-  cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:3000',
-    credentials: true,
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
   })
 );
+
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  process.env.CLIENT_URL ? process.env.CLIENT_URL.replace(/\/$/, '') : null,
+  process.env.FRONTEND_URL ? process.env.FRONTEND_URL.replace(/\/$/, '') : null,
+].filter(Boolean);
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS error: Origin ${origin} is not allowed`));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+};
+
+app.use(cors(corsOptions));
+
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
 app.use('/api/payments/stripe/webhook', express.raw({ type: 'application/json' }));
@@ -42,7 +66,6 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Mount router under /api/admin
 app.use('/api/auth', authRoutes);
 app.use('/api/movies', movieRoutes);
 app.use('/api/showtimes', showtimeRoutes);
