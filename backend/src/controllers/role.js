@@ -1,4 +1,4 @@
-import Role from '../models/Role.js';
+import Role from '../models/role.js';
 
 // GET /api/roles
 export const getRoles = async (req, res, next) => {

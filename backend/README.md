@@ -30,12 +30,3 @@ All routes are prefixed with `/api`. Authenticated routes expect `Authorization:
 | POST | `/payments/stripe/webhook` | - (Stripe-signed) | Canonical payment confirmation for production |
 | POST | `/payments/paypal/create-order` | ✓ | `{ bookingId }` → `{ orderID }` |
 | POST | `/payments/paypal/capture-order` | ✓ | `{ bookingId, orderID }` → finalizes booking |
-
-## Data model (data/db.json)
-
-- `users`: `{ id, name, email, password (hashed), createdAt }`
-- `movies`: `{ id, title, genre, rating, duration, synopsis, poster, price }`
-- `showtimes`: `{ id, movieId, date, time, hall, seats: [{ id, status, holdExpiresAt?, heldBy? }] }`
-  — seat `status` is one of `available | held | booked`
-- `bookings`: `{ id, userId, showtimeId, movieId, seatIds[], amount, currency, status, paymentProvider, paymentReference, createdAt, holdExpiresAt, paidAt? }`
-  — `status` is one of `pending | paid | expired | cancelled`

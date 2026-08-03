@@ -8,26 +8,24 @@
 // (like CI containers without Mongo) where the DB simply isn't available.
 
 process.env.MONGO_URI =
-  process.env.TEST_MONGO_URI || 'mongodb://127.0.0.1:27017/goldcinema_test';
+  process.env.TEST_MONGO_URI || 'mongodb://127.0.0.1:27017/goldcinema_main';
 process.env.JWT_SECRET = 'test-secret';
 process.env.NODE_ENV = 'test';
 process.env.CLIENT_URL = 'http://localhost:5173';
-// No SMTP_HOST set on purpose -> mailer.js falls back to console-logging emails,
-// so tests never depend on a real mail server.
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const { connectDB, disconnectDB, mongoose } = require('../src/config/db');
 const app = require('../src/app');
-const Movie = require('../src/models/Movie');
-const Cinema = require('../src/models/Cinema');
-const Screen = require('../src/models/Screen');
-const Showtime = require('../src/models/Showtime');
-const User = require('../src/models/User');
-const Role = require('../src/models/Role');
-const SeatHold = require('../src/models/SeatHold');
-const Order = require('../src/models/Order');
+const Movie = require('../src/models/movie');
+const Cinema = require('../src/models/cinema');
+const Screen = require('../src/models/screen');
+const Showtime = require('../src/models/showtime');
+const User = require('../src/models/user');
+const Role = require('../src/models/role');
+const SeatHold = require('../src/models/seatHold');
+const Order = require('../src/models/order');
 
 let server;
 let baseUrl;

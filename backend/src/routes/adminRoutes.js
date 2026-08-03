@@ -4,16 +4,16 @@ const factory = require('../controllers/adminFactory');
 
 const { protect, authorize } = require('../middleware/auth');
 
-const User = require('../models/User');
-const Role = require('../models/Role');
-const Movie = require('../models/Movie');
-const Cinema = require('../models/Cinema');
-const Screen = require('../models/Screen');
+const User = require('../models/user');
+const Role = require('../models/role');
+const Movie = require('../models/movie');
+const Cinema = require('../models/cinema');
+const Screen = require('../models/screen');
 const Seat = require('../models/Seat');
-const Showtime = require('../models/Showtime');
-const SeatHold = require('../models/SeatHold');
-const Snack = require('../models/Snack');
-const Order = require('../models/Order');
+const Showtime = require('../models/showtime');
+const SeatHold = require('../models/seatHold');
+const Snack = require('../models/snack');
+const Order = require('../models/order');
 
 const registerAdminResource = (path, Model, populateOpts = '') => {
     router.get(`/${path}`, factory.getAll(Model, populateOpts));

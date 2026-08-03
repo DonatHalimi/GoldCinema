@@ -1,8 +1,8 @@
 const express = require('express');
-const SeatHold = require('../models/SeatHold');
-const Showtime = require('../models/Showtime');
-const Movie = require('../models/Movie');
-const Order = require('../models/Order');
+const SeatHold = require('../models/seatHold');
+const Showtime = require('../models/showtime');
+const Movie = require('../models/movie');
+const Order = require('../models/order');
 const { requireAuth } = require('../middleware/auth');
 const stripe = require('../utils/stripeClient');
 const paypal = require('../utils/paypalClient');

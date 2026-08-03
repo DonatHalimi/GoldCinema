@@ -85,8 +85,16 @@ const MODULE_CONFIGS = [
         key: 'snacks',
         label: 'Snacks',
         fields: [
+            { name: 'image', label: 'Image', type: 'image' },
             { name: 'name', label: 'Snack Name' },
-            { name: 'price', label: 'Price', type: 'number' }
+            {
+                name: 'category',
+                label: 'Category',
+                type: 'select',
+                options: ['popcorn', 'drink', 'candy', 'combo', 'other']
+            },
+            { name: 'price', label: 'Price ($)', type: 'number' },
+            { name: 'available', label: 'Available', type: 'checkbox' }
         ]
     },
     {
@@ -107,9 +115,7 @@ export default function AdminDashboard() {
     const { moduleName } = useParams();
     const navigate = useNavigate();
 
-    if (!moduleName) {
-        return <Navigate to="/admin/users" replace />;
-    }
+    if (!moduleName) return <Navigate to="/admin/users" replace />;
 
     const activeModule = MODULE_CONFIGS.find((mod) => mod.key === moduleName) || MODULE_CONFIGS[0];
 
@@ -120,7 +126,7 @@ export default function AdminDashboard() {
                     <div className="flex items-center gap-2 mb-8 px-2">
                         <span className="h-3 w-3 rounded-full bg-amber-500 animate-pulse"></span>
                         <h2 className="font-display text-xl font-bold tracking-wider text-marquee-goldBright">
-                            Admin Portal
+                            Admin Dashboard
                         </h2>
                     </div>
 

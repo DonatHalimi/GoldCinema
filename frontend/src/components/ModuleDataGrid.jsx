@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Pencil, Trash2, X, Plus, ChevronLeft, ChevronRight, Trash } from 'lucide-react';
+import { Pencil, Trash2, X, Plus, ChevronLeft, ChevronRight, Trash, Check } from 'lucide-react';
 import { getItems, createItem, updateItem, deleteItem, bulkDeleteItems } from '../api/client';
 import CrudModal from './CrudModal';
 
@@ -11,14 +11,11 @@ export default function ModuleDataGrid({ moduleConfig }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
 
-    // Selection state for bulk delete
     const [selectedIds, setSelectedIds] = useState([]);
 
-    // Delete Modal state (can hold single ID or array of IDs)
-    const [deleteTarget, setDeleteTarget] = useState(null); // string | string[] | null
+    const [deleteTarget, setDeleteTarget] = useState(null);
     const [deleting, setDeleting] = useState(false);
 
-    // ESC key listener for Delete Modal
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === 'Escape' && deleteTarget && !deleting) {
@@ -35,7 +32,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
             const res = await getItems(moduleConfig.key, page, 10);
             setData(res.data || []);
             setTotalPages(res.pages || 1);
-            setSelectedIds([]); // Clear selection on fetch/page change
+            setSelectedIds([]);
         } catch (err) {
             console.error(err);
             alert(`Error fetching ${moduleConfig.label}: ` + (err.response?.data?.message || err.message));
@@ -48,12 +45,11 @@ export default function ModuleDataGrid({ moduleConfig }) {
         fetchModuleData();
     }, [moduleConfig.key, page]);
 
-    // Selection handlers
-    const handleSelectAll = (e) => {
-        if (e.target.checked) {
-            setSelectedIds(data.map((item) => item._id));
-        } else {
+    const handleSelectAll = () => {
+        if (isAllSelected) {
             setSelectedIds([]);
+        } else {
+            setSelectedIds(data.map((item) => item._id));
         }
     };
 
@@ -73,7 +69,6 @@ export default function ModuleDataGrid({ moduleConfig }) {
         setIsModalOpen(true);
     };
 
-    // Confirm execution (Single or Bulk)
     const confirmDelete = async () => {
         if (!deleteTarget) return;
 
@@ -97,13 +92,13 @@ export default function ModuleDataGrid({ moduleConfig }) {
 
     const fields = moduleConfig?.fields || [];
     const isAllSelected = data.length > 0 && selectedIds.length === data.length;
+    const isSomeSelected = selectedIds.length > 0 && !isAllSelected;
 
     return (
         <div className="flex-1 p-8 bg-marquee-bg text-zinc-100 min-h-screen">
-            {/* Header */}
-            <div className="flex items-center justify-between pb-6 mb-6 border-b border-marquee-line">
+            <div className="flex items-center justify-between pb-6 mb-6 border-b border-zinc-800">
                 <div>
-                    <h1 className="font-display text-3xl font-bold text-marquee-goldBright tracking-tight">
+                    <h1 className="font-display text-3xl font-bold text-amber-400 tracking-tight">
                         {moduleConfig.label}
                     </h1>
                     <p className="text-xs text-zinc-400 mt-1">
@@ -112,11 +107,10 @@ export default function ModuleDataGrid({ moduleConfig }) {
                 </div>
 
                 <div className="flex items-center gap-3">
-                    {/* Bulk Delete Trigger Button */}
                     {selectedIds.length > 0 && (
                         <button
                             onClick={() => setDeleteTarget(selectedIds)}
-                            className="flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm font-semibold text-red-400 hover:bg-red-500/20 transition-all"
+                            className="flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm font-semibold text-red-400 hover:bg-red-500/20 shadow-[0_0_12px_rgba(239,68,68,0.15)] transition-all"
                         >
                             <Trash className="h-4 w-4" /> Delete Selected ({selectedIds.length})
                         </button>
@@ -124,7 +118,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
 
                     <button
                         onClick={handleCreate}
-                        className="flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-amber-400 transition-all shadow-md shadow-amber-500/10"
+                        className="flex items-center gap-2 rounded-lg bg-amber-500 hover:bg-amber-400 px-4 py-2.5 text-sm font-semibold text-zinc-950 transition-all shadow-[0_0_15px_rgba(245,158,11,0.2)]"
                     >
                         <Plus className="h-4 w-4 stroke-[2.5]" /> Add {moduleConfig.label}
                     </button>
@@ -136,19 +130,27 @@ export default function ModuleDataGrid({ moduleConfig }) {
                     <p className="animate-pulse text-sm">Loading {moduleConfig.label} records...</p>
                 </div>
             ) : (
-                <div className="rounded-xl border border-marquee-line bg-zinc-900/60 overflow-hidden shadow-xl">
+                <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 overflow-hidden shadow-2xl">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm text-zinc-300">
-                            <thead className="bg-zinc-900 border-b border-marquee-line uppercase text-[11px] font-semibold text-zinc-400 tracking-wider">
+                            <thead className="bg-zinc-900/90 border-b border-zinc-800 uppercase text-[11px] font-semibold text-zinc-400 tracking-wider">
                                 <tr>
-                                    {/* Select All Checkbox */}
-                                    <th className="px-4 py-4 w-10">
-                                        <input
-                                            type="checkbox"
-                                            checked={isAllSelected}
-                                            onChange={handleSelectAll}
-                                            className="rounded border-zinc-700 bg-zinc-800 text-amber-500 focus:ring-amber-500 h-4 w-4 cursor-pointer"
-                                        />
+                                    {/* Select All Custom Checkbox */}
+                                    <th className="px-4 py-4 w-12 text-center">
+                                        <button
+                                            type="button"
+                                            onClick={handleSelectAll}
+                                            aria-label="Select all rows"
+                                            className={`inline-flex h-4 w-4 items-center justify-center rounded border transition-all ${isAllSelected
+                                                    ? 'bg-amber-500 border-amber-500 text-zinc-950 shadow-[0_0_8px_rgba(245,158,11,0.4)]'
+                                                    : isSomeSelected
+                                                        ? 'bg-amber-500/20 border-amber-500/60 text-amber-400'
+                                                        : 'border-zinc-700 bg-zinc-800/80 hover:border-zinc-500'
+                                                }`}
+                                        >
+                                            {isAllSelected && <Check className="h-3 w-3 stroke-[3]" />}
+                                            {isSomeSelected && <span className="h-1.5 w-1.5 rounded-sm bg-amber-400"></span>}
+                                        </button>
                                     </th>
                                     <th className="px-6 py-4">ID</th>
                                     {fields.map((col) => (
@@ -165,49 +167,63 @@ export default function ModuleDataGrid({ moduleConfig }) {
                                         </td>
                                     </tr>
                                 ) : (
-                                    data.map((row) => (
-                                        <tr key={row._id} className={`hover:bg-zinc-800/40 transition-colors ${selectedIds.includes(row._id) ? 'bg-amber-500/5' : ''}`}>
-                                            {/* Row Checkbox */}
-                                            <td className="px-4 py-4 w-10">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedIds.includes(row._id)}
-                                                    onChange={() => handleSelectRow(row._id)}
-                                                    className="rounded border-zinc-700 bg-zinc-800 text-amber-500 focus:ring-amber-500 h-4 w-4 cursor-pointer"
-                                                />
-                                            </td>
-                                            <td className="px-6 py-4 font-mono text-xs text-zinc-500">{row._id}</td>
-                                            {fields.map((col) => (
-                                                <td key={col.name} className="px-6 py-4 text-zinc-200">
-                                                    {String(row[col.name] ?? '-')}
+                                    data.map((row) => {
+                                        const isSelected = selectedIds.includes(row._id);
+                                        return (
+                                            <tr
+                                                key={row._id}
+                                                className={`transition-colors ${isSelected
+                                                        ? 'bg-amber-500/10 hover:bg-amber-500/15'
+                                                        : 'hover:bg-zinc-800/40'
+                                                    }`}
+                                            >
+                                                {/* Single Row Custom Checkbox */}
+                                                <td className="px-4 py-4 w-12 text-center">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleSelectRow(row._id)}
+                                                        aria-label={`Select row ${row._id}`}
+                                                        className={`inline-flex h-4 w-4 items-center justify-center rounded border transition-all ${isSelected
+                                                                ? 'bg-amber-500 border-amber-500 text-zinc-950 shadow-[0_0_8px_rgba(245,158,11,0.4)]'
+                                                                : 'border-zinc-700 bg-zinc-800/80 hover:border-zinc-500'
+                                                            }`}
+                                                    >
+                                                        {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
+                                                    </button>
                                                 </td>
-                                            ))}
-                                            <td className="px-6 py-4 text-right space-x-1">
-                                                <button
-                                                    onClick={() => handleEdit(row)}
-                                                    title="Edit"
-                                                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-all"
-                                                >
-                                                    <Pencil className="h-4 w-4" />
-                                                </button>
+                                                <td className="px-6 py-4 font-mono text-xs text-zinc-500">{row._id}</td>
+                                                {fields.map((col) => (
+                                                    <td key={col.name} className="px-6 py-4 text-zinc-200">
+                                                        {String(row[col.name] ?? '-')}
+                                                    </td>
+                                                ))}
+                                                <td className="px-6 py-4 text-right space-x-2">
+                                                    <button
+                                                        onClick={() => handleEdit(row)}
+                                                        title="Edit"
+                                                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-all"
+                                                    >
+                                                        <Pencil className="h-4 w-4" />
+                                                    </button>
 
-                                                <button
-                                                    onClick={() => setDeleteTarget(row._id)}
-                                                    title="Delete"
-                                                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all"
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))
+                                                    <button
+                                                        onClick={() => setDeleteTarget(row._id)}
+                                                        title="Delete"
+                                                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
                                 )}
                             </tbody>
                         </table>
                     </div>
 
                     {/* Pagination */}
-                    <div className="flex items-center justify-between border-t border-marquee-line bg-zinc-900/80 px-6 py-4 text-xs text-zinc-400">
+                    <div className="flex items-center justify-between border-t border-zinc-800 bg-zinc-900/80 px-6 py-4 text-xs text-zinc-400">
                         <span>
                             Page <strong className="text-zinc-200">{page}</strong> of <strong className="text-zinc-200">{totalPages}</strong>
                         </span>
@@ -215,14 +231,14 @@ export default function ModuleDataGrid({ moduleConfig }) {
                             <button
                                 disabled={page === 1}
                                 onClick={() => setPage((p) => p - 1)}
-                                className="flex items-center gap-1 rounded border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-zinc-300 disabled:opacity-40 hover:bg-zinc-700 transition-all"
+                                className="flex items-center gap-1 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-zinc-300 disabled:opacity-40 hover:bg-zinc-800 hover:border-zinc-700 transition-all"
                             >
                                 <ChevronLeft className="h-3.5 w-3.5" /> Previous
                             </button>
                             <button
                                 disabled={page === totalPages || totalPages === 0}
                                 onClick={() => setPage((p) => p + 1)}
-                                className="flex items-center gap-1 rounded border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-zinc-300 disabled:opacity-40 hover:bg-zinc-700 transition-all"
+                                className="flex items-center gap-1 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-zinc-300 disabled:opacity-40 hover:bg-zinc-800 hover:border-zinc-700 transition-all"
                             >
                                 Next <ChevronRight className="h-3.5 w-3.5" />
                             </button>
@@ -240,18 +256,15 @@ export default function ModuleDataGrid({ moduleConfig }) {
                 title={`${selectedItem ? 'Edit' : 'Create'} ${moduleConfig.label}`}
             />
 
-            {/* UNIFIED DELETE MODAL (Handles Single & Bulk) */}
+            {/* Modal for Deletion */}
             {deleteTarget && (
                 <div
                     onClick={() => !deleting && setDeleteTarget(null)}
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
                 >
-                    <div
-                        onClick={(e) => e.stopPropagation()}
-                        className="relative w-full max-w-md rounded-xl border border-marquee-line bg-zinc-900 p-6 shadow-2xl"
-                    >
-                        <div className="flex items-center justify-between pb-3 border-b border-marquee-line/50">
-                            <h2 className="font-display text-2xl text-marquee-goldBright">
+                    <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-md rounded-xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl">
+                        <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
+                            <h2 className="font-display text-2xl text-amber-400">
                                 {Array.isArray(deleteTarget)
                                     ? `Delete ${deleteTarget.length} Records`
                                     : `Delete ${moduleConfig.label.slice(0, -1)}`}
@@ -283,7 +296,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
                             <button
                                 onClick={confirmDelete}
                                 disabled={deleting}
-                                className="rounded-lg bg-red-600 px-4 py-2 font-semibold text-white hover:bg-red-500 disabled:opacity-50 transition-colors"
+                                className="rounded-lg bg-red-600 px-4 py-2 font-semibold text-white hover:bg-red-500 disabled:opacity-50 transition-colors shadow-[0_0_12px_rgba(220,38,38,0.2)]"
                             >
                                 {deleting ? 'Deleting...' : 'Delete'}
                             </button>

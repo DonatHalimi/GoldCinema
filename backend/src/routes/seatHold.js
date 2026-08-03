@@ -1,8 +1,8 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const Showtime = require('../models/Showtime');
-const Movie = require('../models/Movie');
-const SeatHold = require('../models/SeatHold');
+const Showtime = require('../models/showtime');
+const Movie = require('../models/movie');
+const SeatHold = require('../models/seatHold');
 const { requireAuth } = require('../middleware/auth');
 const { requireVerified } = require('../middleware/auth');
 const { getAvailability } = require('../utils/seatAvailability');

@@ -1,6 +1,6 @@
 const express = require('express');
-const Movie = require('../models/Movie');
-const Showtime = require('../models/Showtime');
+const Movie = require('../models/movie');
+const Showtime = require('../models/showtime');
 const { getAvailability } = require('../utils/seatAvailability');
 
 const router = express.Router();

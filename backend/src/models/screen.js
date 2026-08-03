@@ -1,6 +1,5 @@
-const { Schema, model } = require('mongoose');
-const seatSchema = require('./seat');
 const mongoose = require('mongoose');
+const { Schema } = mongoose;
 
 const screenSchema = new Schema(
     {
