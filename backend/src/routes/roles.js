@@ -1,13 +1,24 @@
-import express from 'express';
-import { getRoles, createRole, updateRole, deleteRole, bulkDeleteRoles, } from '../controllers/roleController.js';
+const express = require('express');
+const {
+    getRoles,
+    createRole,
+    updateRole,
+    deleteRole,
+    bulkDeleteRoles,
+} = require('../controllers/role');
+const {
+    validateBody,
+    validateParams,
+    role: { roleCreateSchema, roleUpdateSchema, roleIdSchema },
+} = require('../validations');
 
 const router = express.Router();
 
 router.delete('/bulk-delete', bulkDeleteRoles);
 
 router.get('/', getRoles);
-router.post('/', createRole);
-router.put('/:id', updateRole);
-router.delete('/:id', deleteRole);
+router.post('/', validateBody(roleCreateSchema), createRole);
+router.put('/:id', validateParams(roleIdSchema), validateBody(roleUpdateSchema), updateRole);
+router.delete('/:id', validateParams(roleIdSchema), deleteRole);
 
-export default router;
+module.exports = router;

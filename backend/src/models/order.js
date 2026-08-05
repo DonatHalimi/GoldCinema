@@ -18,6 +18,7 @@ const orderSchema = new Schema(
         seats: { type: [String], required: true },
         snacks: { type: [orderSnackSchema], default: [] },
 
+        ticketAmount: { type: Number, required: true },
         snackAmount: { type: Number, default: 0 },
         totalAmount: { type: Number, required: true },
         currency: { type: String, default: 'USD' },

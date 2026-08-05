@@ -1,7 +1,6 @@
-import Role from '../models/role.js';
+const Role = require('../models/role');
 
-// GET /api/roles
-export const getRoles = async (req, res, next) => {
+async function getRoles(req, res, next) {
     try {
         const page = parseInt(req.query.page, 10) || 1;
         const limit = parseInt(req.query.limit, 10) || 10;
@@ -21,41 +20,39 @@ export const getRoles = async (req, res, next) => {
     } catch (err) {
         next(err);
     }
-};
+}
 
-// POST /api/roles
-export const createRole = async (req, res, next) => {
+async function createRole(req, res, next) {
     try {
-        const { name, description, permissions } = req.body;
+        const { name, description } = req.body;
 
         const existingRole = await Role.findOne({ name: name.toLowerCase() });
-        if (existingRole) return res.status(400).json({ error: 'Role with this name already exists' });
+        if (existingRole) {
+            return res.status(400).json({ error: 'Role with this name already exists' });
+        }
 
         const role = await Role.create({
             name: name.toLowerCase(),
             description,
-            permissions: permissions || ['read'],
         });
 
-        console.log('Created Role:', role);
-
-        res.status(201).json({ message: 'Role created successfully', role, });
+        res.status(201).json({ message: 'Role created successfully', role });
     } catch (err) {
         next(err);
     }
-};
+}
 
-// PUT /api/roles/:id
-export const updateRole = async (req, res, next) => {
+async function updateRole(req, res, next) {
     try {
         const { id } = req.params;
-        const { name, description, permissions } = req.body;
+        const { name, description } = req.body;
 
         if (name) {
             const existingRole = await Role.findOne({
                 name: name.toLowerCase(),
                 _id: { $ne: id },
             });
+
             if (existingRole) {
                 return res.status(400).json({ error: 'Role with this name already exists' });
             }
@@ -66,7 +63,6 @@ export const updateRole = async (req, res, next) => {
             {
                 ...(name && { name: name.toLowerCase() }),
                 ...(description !== undefined && { description }),
-                ...(permissions && { permissions }),
             },
             { new: true, runValidators: true }
         );
@@ -82,10 +78,9 @@ export const updateRole = async (req, res, next) => {
     } catch (err) {
         next(err);
     }
-};
+}
 
-// DELETE /api/roles/:id
-export const deleteRole = async (req, res, next) => {
+async function deleteRole(req, res, next) {
     try {
         const { id } = req.params;
 
@@ -101,10 +96,9 @@ export const deleteRole = async (req, res, next) => {
     } catch (err) {
         next(err);
     }
-};
+}
 
-// DELETE /api/roles/bulk-delete
-export const bulkDeleteRoles = async (req, res, next) => {
+async function bulkDeleteRoles(req, res, next) {
     try {
         const { ids } = req.body;
 
@@ -121,4 +115,12 @@ export const bulkDeleteRoles = async (req, res, next) => {
     } catch (err) {
         next(err);
     }
+}
+
+module.exports = {
+    getRoles,
+    createRole,
+    updateRole,
+    deleteRole,
+    bulkDeleteRoles,
 };

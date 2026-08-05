@@ -1,4 +1,11 @@
-const MAX_SEATS = 8;
+import {
+  Armchair,
+  Sofa,
+  Accessibility,
+  User,
+} from 'lucide-react';
+
+const MAX_SEATS = 10;
 
 const STATUS_STYLES = {
   available:
@@ -9,6 +16,13 @@ const STATUS_STYLES = {
     'cursor-not-allowed border-red-800/60 bg-red-950/40 text-red-500/60',
   selected:
     'border-marquee-goldBright bg-marquee-gold text-marquee-bg shadow-glow scale-105',
+};
+
+const SEAT_ICONS = {
+  standard: User,
+  recliner: Armchair,
+  wheelchair: Accessibility,
+  'love-seat': Sofa,
 };
 
 export default function SeatMap({ seats, selected, onToggle }) {
@@ -42,28 +56,26 @@ export default function SeatMap({ seats, selected, onToggle }) {
 
                 const visualStatus = isSelected ? 'selected' : seat.status;
 
+                const SeatIcon = SEAT_ICONS[seat.type] || User;
+
                 return (
                   <button
                     key={seat.id}
                     type="button"
                     disabled={isDisabled || disableNewSelection}
                     onClick={() => onToggle(seat.id)}
-                    title={
-                      seat.status === 'booked'
-                        ? `${seat.id} - booked`
-                        : seat.status === 'held' && !isSelected
-                          ? `${seat.id} - held by another guest`
-                          : seat.id
-                    }
-                    aria-pressed={isSelected}
-                    aria-label={`Seat ${seat.id}, ${isSelected ? 'selected' : seat.status}`}
                     className={[
-                      'flex h-10 w-10 items-center justify-center rounded-t-lg border-2 text-xs font-semibold transition-all',
+                      'flex h-10 w-10 items-center justify-center rounded-t-lg border-2 transition-all',
                       STATUS_STYLES[visualStatus],
-                      disableNewSelection && !isDisabled ? 'cursor-not-allowed opacity-40' : '',
+                      disableNewSelection && !isDisabled
+                        ? 'cursor-not-allowed opacity-40'
+                        : '',
                     ].join(' ')}
                   >
-                    {seat.id.replace(rowLetter, '')}
+                    <div className="flex flex-col items-center leading-none">
+                      <SeatIcon size={14} />
+                      <span className="text-[9px]">{seat.number}</span>
+                    </div>
                   </button>
                 );
               })}
@@ -77,6 +89,12 @@ export default function SeatMap({ seats, selected, onToggle }) {
         <Legend swatchClass="border-marquee-goldBright bg-marquee-gold" label="Selected" />
         <Legend swatchClass="border-amber-700/60 bg-amber-950/40" label="Held" />
         <Legend swatchClass="border-red-800/60 bg-red-950/40" label="Booked" />
+      </div>
+      <div className="mt-6 flex flex-wrap justify-center gap-8 text-xs text-marquee-muted pt-3">
+        <SeatTypeLegend icon={User} label="Standard Seat" />
+        <SeatTypeLegend icon={Armchair} label="Recliner" />
+        <SeatTypeLegend icon={Sofa} label="Love Seat" />
+        <SeatTypeLegend icon={Accessibility} label="Wheelchair Accessible" />
       </div>
       {selected.length >= MAX_SEATS && (
         <p className="mt-4 text-center text-xs text-marquee-goldDim">
@@ -92,6 +110,15 @@ function Legend({ swatchClass, label }) {
     <div className="flex items-center gap-2">
       <span className={`h-5 w-5 rounded-t border-2 ${swatchClass}`} />
       {label}
+    </div>
+  );
+}
+
+function SeatTypeLegend({ icon: Icon, label }) {
+  return (
+    <div className="flex items-center gap-2">
+      <Icon size={18} className="text-marquee-gold" />
+      <span>{label}</span>
     </div>
   );
 }

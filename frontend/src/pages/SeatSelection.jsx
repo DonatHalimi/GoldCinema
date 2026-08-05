@@ -174,7 +174,7 @@ export default function SeatSelection() {
           seats: selected,
           ticketAmount: total,
           totalAmount: total,
-          holdId: hold.id,
+          holdId: hold._id || hold.id || null,
           holdExpiresAt: hold.expiresAt
         }
       );

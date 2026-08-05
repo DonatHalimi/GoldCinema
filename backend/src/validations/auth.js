@@ -1,0 +1,37 @@
+const yup = require('yup');
+
+const registerSchema = yup.object({
+    name: yup.string().trim().required('Name is required.').min(2, 'Name is too short.'),
+    email: yup.string().trim().required('Email is required.').email('A valid email is required.'),
+    password: yup.string().required('Password is required.').min(8, 'Password must be at least 8 characters.'),
+}).noUnknown(true);
+
+const loginSchema = yup.object({
+    email: yup.string().trim().required('Email is required.').email('A valid email is required.'),
+    password: yup.string().required('Password is required.'),
+}).noUnknown(true);
+
+const refreshTokenSchema = yup.object({
+    refreshToken: yup.string().required('Refresh token is required.'),
+}).noUnknown(true);
+
+const verifyEmailQuerySchema = yup.object({
+    token: yup.string().required('Verification token is required.'),
+}).noUnknown(true);
+
+const googleLoginSchema = yup.object({
+    credential: yup.string().required('Google credential is required.'),
+}).noUnknown(true);
+
+const facebookLoginSchema = yup.object({
+    accessToken: yup.string().required('Facebook access token is required.'),
+}).noUnknown(true);
+
+module.exports = {
+    registerSchema,
+    loginSchema,
+    refreshTokenSchema,
+    verifyEmailQuerySchema,
+    googleLoginSchema,
+    facebookLoginSchema,
+};

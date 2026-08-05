@@ -10,8 +10,36 @@ html {
 
 body {
   @apply bg-marquee-bg text-marquee-cream font-body antialiased;
-  background-image: radial-gradient(circle at 1px 1px, rgba(230,199,115,0.05) 1px, transparent 0);
+  background-image: radial-gradient(circle at 1px 1px, rgba(230, 199, 115, 0.05) 1px, transparent 0);
   background-size: 22px 22px;
+}
+
+*::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+*::-webkit-scrollbar-track {
+  background-color: #15130F;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #3A331F;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: #8A713C;
+}
+
+*::-webkit-scrollbar-corner {
+  background-color: #15130F;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #3A331F #15130F;
 }
 
 ::selection {
@@ -35,6 +63,7 @@ body {
 .ticket-edge {
   position: relative;
 }
+
 .ticket-edge::before,
 .ticket-edge::after {
   content: '';
@@ -46,5 +75,11 @@ body {
   top: 50%;
   transform: translateY(-50%);
 }
-.ticket-edge::before { left: -9px; }
-.ticket-edge::after { right: -9px; }
+
+.ticket-edge::before {
+  left: -9px;
+}
+
+.ticket-edge::after {
+  right: -9px;
+}

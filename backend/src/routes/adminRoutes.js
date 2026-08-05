@@ -1,8 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const factory = require('../controllers/adminFactory');
-
-const { protect, authorize } = require('../middleware/auth');
+const {
+    getAll,
+    getOne,
+    createOne,
+    updateOne,
+    deleteOne,
+    deleteMany,
+} = require('../controllers/adminFactory');
 
 const User = require('../models/user');
 const Role = require('../models/role');
@@ -16,12 +21,12 @@ const Snack = require('../models/snack');
 const Order = require('../models/order');
 
 const registerAdminResource = (path, Model, populateOpts = '') => {
-    router.get(`/${path}`, factory.getAll(Model, populateOpts));
-    router.get(`/${path}/:id`, factory.getOne(Model, populateOpts));
-    router.post(`/${path}`, factory.createOne(Model));
-    router.put(`/${path}/:id`, factory.updateOne(Model));
-    router.delete(`/${path}/:id`, factory.deleteOne(Model));
-    router.delete(`/${path}`, factory.deleteMany(Model));
+    router.get(`/${path}`, getAll(Model, populateOpts));
+    router.get(`/${path}/:id`, getOne(Model, populateOpts));
+    router.post(`/${path}`, createOne(Model));
+    router.put(`/${path}/:id`, updateOne(Model));
+    router.delete(`/${path}/:id`, deleteOne(Model));
+    router.delete(`/${path}`, deleteMany(Model));
 };
 
 registerAdminResource('users', User, 'role');

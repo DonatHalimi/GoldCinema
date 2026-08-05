@@ -1,94 +1,120 @@
-// src/controllers/adminFactory.js
+function getAll(Model, populateOpts = '') {
+    return async function getAllResource(req, res, next) {
+        try {
+            const page = parseInt(req.query.page, 10) || 1;
+            const limit = parseInt(req.query.limit, 10) || 10;
+            const skip = (page - 1) * limit;
 
-exports.getAll = (Model, populateOpts = '') => async (req, res) => {
-    try {
-        const page = parseInt(req.query.page, 10) || 1;
-        const limit = parseInt(req.query.limit, 10) || 10;
-        const skip = (page - 1) * limit;
+            const query = Model.find().skip(skip).limit(limit);
+            if (populateOpts) query.populate(populateOpts);
 
-        const query = Model.find().skip(skip).limit(limit);
-        if (populateOpts) query.populate(populateOpts);
+            const [data, total] = await Promise.all([
+                query.exec(),
+                Model.countDocuments(),
+            ]);
 
-        const [data, total] = await Promise.all([
-            query.exec(),
-            Model.countDocuments()
-        ]);
-
-        res.status(200).json({
-            success: true,
-            total,
-            page,
-            pages: Math.ceil(total / limit),
-            data
-        });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
-
-exports.getOne = (Model, populateOpts = '') => async (req, res) => {
-    try {
-        const query = Model.findById(req.params.id);
-        if (populateOpts) query.populate(populateOpts);
-
-        const doc = await query.exec();
-        if (!doc) return res.status(404).json({ success: false, message: 'Resource not found' });
-
-        res.status(200).json({ success: true, data: doc });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
-
-exports.createOne = (Model) => async (req, res) => {
-    try {
-        const doc = await Model.create(req.body);
-        res.status(201).json({ success: true, data: doc });
-    } catch (error) {
-        res.status(400).json({ success: false, message: error.message });
-    }
-};
-
-exports.updateOne = (Model) => async (req, res) => {
-    try {
-        const doc = await Model.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
-            runValidators: true
-        });
-        if (!doc) return res.status(404).json({ success: false, message: 'Resource not found' });
-
-        res.status(200).json({ success: true, data: doc });
-    } catch (error) {
-        res.status(400).json({ success: false, message: error.message });
-    }
-};
-
-exports.deleteOne = (Model) => async (req, res) => {
-    try {
-        const doc = await Model.findByIdAndDelete(req.params.id);
-        if (!doc) return res.status(404).json({ success: false, message: 'Resource not found' });
-
-        res.status(200).json({ success: true, data: null });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
-
-exports.deleteMany = (Model) => async (req, res, next) => {
-    try {
-        const { ids } = req.body;
-
-        if (!Array.isArray(ids) || ids.length === 0) {
-            return res.status(400).json({ error: 'Please provide an array of IDs to delete' });
+            res.status(200).json({
+                success: true,
+                total,
+                page,
+                pages: Math.ceil(total / limit),
+                data,
+            });
+        } catch (error) {
+            next(error);
         }
+    };
+}
 
-        const result = await Model.deleteMany({ _id: { $in: ids } });
+function getOne(Model, populateOpts = '') {
+    return async function getOneResource(req, res, next) {
+        try {
+            const query = Model.findById(req.params.id);
+            if (populateOpts) query.populate(populateOpts);
 
-        res.status(200).json({
-            message: `Successfully deleted ${result.deletedCount} items`,
-            deletedCount: result.deletedCount,
-        });
-    } catch (err) {
-        next(err);
-    }
+            const doc = await query.exec();
+            if (!doc) {
+                return res.status(404).json({ success: false, message: 'Resource not found' });
+            }
+
+            res.status(200).json({ success: true, data: doc });
+        } catch (error) {
+            next(error);
+        }
+    };
+}
+
+function createOne(Model) {
+    return async function createOneResource(req, res, next) {
+        try {
+            const doc = await Model.create(req.body);
+            res.status(201).json({ success: true, data: doc });
+        } catch (error) {
+            next(error);
+        }
+    };
+}
+
+function updateOne(Model) {
+    return async function updateOneResource(req, res, next) {
+        try {
+            const doc = await Model.findByIdAndUpdate(req.params.id, req.body, {
+                new: true,
+                runValidators: true,
+            });
+
+            if (!doc) {
+                return res.status(404).json({ success: false, message: 'Resource not found' });
+            }
+
+            res.status(200).json({ success: true, data: doc });
+        } catch (error) {
+            next(error);
+        }
+    };
+}
+
+function deleteOne(Model) {
+    return async function deleteOneResource(req, res, next) {
+        try {
+            const doc = await Model.findByIdAndDelete(req.params.id);
+            if (!doc) {
+                return res.status(404).json({ success: false, message: 'Resource not found' });
+            }
+
+            res.status(200).json({ success: true, data: null });
+        } catch (error) {
+            next(error);
+        }
+    };
+}
+
+function deleteMany(Model) {
+    return async function deleteManyResource(req, res, next) {
+        try {
+            const { ids } = req.body;
+
+            if (!Array.isArray(ids) || ids.length === 0) {
+                return res.status(400).json({ error: 'Please provide an array of IDs to delete' });
+            }
+
+            const result = await Model.deleteMany({ _id: { $in: ids } });
+
+            res.status(200).json({
+                message: `Successfully deleted ${result.deletedCount} items`,
+                deletedCount: result.deletedCount,
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+}
+
+module.exports = {
+    getAll,
+    getOne,
+    createOne,
+    updateOne,
+    deleteOne,
+    deleteMany,
 };
