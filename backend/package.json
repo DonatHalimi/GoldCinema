@@ -26,6 +26,7 @@
     "lowdb": "^1.0.0",
     "mongoose": "^9.8.1",
     "morgan": "^1.11.0",
+    "multer": "^2.2.0",
     "nodemailer": "^9.0.3",
     "qrcode": "^1.5.4",
     "stripe": "^22.3.2",

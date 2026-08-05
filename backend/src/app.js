@@ -11,6 +11,7 @@ const seatHoldRoutes = require('./routes/seatHold');
 const orderRoutes = require('./routes/orders');
 const paymentRoutes = require('./routes/payments');
 const adminRoutes = require('./routes/adminRoutes');
+const slideshowRoutes = require('./routes/slideshow');
 
 const errorHandler = require('./middleware/errorHandler');
 
@@ -72,6 +73,7 @@ app.use('/api', seatHoldRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/slideshows', slideshowRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found.' });

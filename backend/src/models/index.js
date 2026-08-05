@@ -8,4 +8,5 @@ module.exports = {
     SeatHold: require('./seatHold'),
     Snack: require('./snack'),
     Order: require('./order'),
+    LoginAttempt: require('./loginAttempt'),
 };

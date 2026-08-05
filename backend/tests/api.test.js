@@ -11,7 +11,7 @@ process.env.MONGO_URI =
   process.env.TEST_MONGO_URI || 'mongodb://127.0.0.1:27017/goldcinema_main';
 process.env.JWT_SECRET = 'test-secret';
 process.env.NODE_ENV = 'test';
-process.env.CLIENT_URL = 'http://localhost:5173';
+process.env.CLIENT_URL = 'http://localhost:3000';
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -158,6 +158,56 @@ test('register creates an unverified user; login works either way', async (t) =>
     body: JSON.stringify({ email, password: 'password123' }),
   });
   assert.equal(loginRes.status, 200); // login itself doesn't require verification
+});
+
+test('forgot-password and reset-password issue a secure token and allow password change', async (t) => {
+  if (!dbAvailable) return t.skip('MongoDB not reachable');
+
+  const email = `reset-${Date.now()}@example.com`;
+  const registerRes = await fetch(`${baseUrl}/api/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: 'Resetter', email, password: 'password123' }),
+  });
+  assert.equal(registerRes.status, 201);
+
+  await User.findOneAndUpdate({ email }, { emailVerified: true });
+
+  const forgotRes = await fetch(`${baseUrl}/api/auth/forgot-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  assert.equal(forgotRes.status, 200);
+
+  const userAfterForgot = await User.findOne({ email });
+  assert.ok(userAfterForgot.passwordResetToken, 'a reset token should have been generated');
+  assert.ok(userAfterForgot.passwordResetExpiresAt > new Date(), 'reset token should still be valid');
+
+  const resetRes = await fetch(`${baseUrl}/api/auth/reset-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: userAfterForgot.passwordResetToken, password: 'newpassword456' }),
+  });
+  assert.equal(resetRes.status, 200);
+
+  const userAfterReset = await User.findOne({ email });
+  assert.equal(userAfterReset.passwordResetToken, null);
+  assert.equal(userAfterReset.passwordResetExpiresAt, null);
+
+  const oldLoginRes = await fetch(`${baseUrl}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password: 'password123' }),
+  });
+  assert.equal(oldLoginRes.status, 401);
+
+  const newLoginRes = await fetch(`${baseUrl}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password: 'newpassword456' }),
+  });
+  assert.equal(newLoginRes.status, 200);
 });
 
 test('email verification: valid token verifies, wrong password still rejected', async (t) => {

@@ -30,10 +30,21 @@ export function AuthProvider({ children }) {
     return data;
   }
 
-  const login = async (email, password) => {
+  const forgotPassword = async (email) => {
+    const { data } = await api.post('/auth/forgot-password', { email });
+    return data;
+  };
+
+  const resetPassword = async (token, password) => {
+    const { data } = await api.post('/auth/reset-password', { token, password });
+    return data;
+  };
+
+  const login = async (email, password, rememberMe = false) => {
     const { data } = await api.post('/auth/login', {
       email,
       password,
+      rememberMe,
     });
 
     setUser(data.user);
@@ -49,6 +60,18 @@ export function AuthProvider({ children }) {
   const loginWithFacebook = async (accessToken) => {
     const { data } = await api.post('/auth/facebook', { accessToken });
     setUser(data.user);
+    return data;
+  };
+
+  const changePassword = async (currentPassword, newPassword) => {
+    const { data } = await api.post('/auth/change-password', { currentPassword, newPassword });
+    setUser(null);
+    return data;
+  };
+
+  const deleteAccount = async (password) => {
+    const { data } = await api.delete('/auth/account', { data: { password } });
+    setUser(null);
     return data;
   };
 
@@ -69,7 +92,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, setUser, register, login, loginWithGoogle, loginWithFacebook, logout, loading }}>
+    <AuthContext.Provider value={{ user, setUser, register, forgotPassword, resetPassword, login, loginWithGoogle, loginWithFacebook, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

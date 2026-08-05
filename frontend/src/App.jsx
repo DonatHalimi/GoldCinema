@@ -10,8 +10,10 @@ import MyTickets from './pages/MyTickets';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import VerifyEmail from './pages/VerifyEmail';
+import ResetPassword from './pages/ResetPassword';
 import AdminDashboard from './pages/AdminDashboard';
 import RequireAdmin from './components/RequireAdmin';
+import { ToastContainer } from 'react-toastify';
 
 export default function App() {
   return (
@@ -59,8 +61,18 @@ export default function App() {
           />
 
           <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+
+        <ToastContainer
+          position="top-right"
+          autoClose={4000}
+          newestOnTop
+          stacked
+          limit={5}
+          theme="dark"
+        />
       </main>
       <footer className="border-t border-marquee-line py-8 text-center text-xs text-marquee-muted">
         &copy; {new Date().getFullYear()} GoldCinema. All rights reserved. |{' '}

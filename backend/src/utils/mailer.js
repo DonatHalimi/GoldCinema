@@ -45,7 +45,7 @@ async function sendVerificationEmail({ to, name, verificationUrl }) {
     if (!to) {
         throw new Error('No email recipient provided');
     }
-    
+
     const transporter = getTransporter();
     await transporter.sendMail({
         from: process.env.SMTP_FROM || 'GoldCinema <no-reply@goldcinema.example>',
@@ -57,6 +57,27 @@ async function sendVerificationEmail({ to, name, verificationUrl }) {
       <p>Please verify your email to start booking tickets on GoldCinema:</p>
       <p><a href="${verificationUrl}">${verificationUrl}</a></p>
       <p>This link expires in 24 hours.</p>
+    `,
+    });
+}
+
+async function sendPasswordResetEmail({ to, name, resetUrl }) {
+    if (!to) {
+        throw new Error('No email recipient provided');
+    }
+
+    const transporter = getTransporter();
+    await transporter.sendMail({
+        from: process.env.SMTP_FROM || 'GoldCinema <no-reply@goldcinema.example>',
+        to,
+        subject: 'Reset your GoldCinema password',
+        text: `Hi ${name},\n\nWe received a request to reset your GoldCinema password.\n\nUse this secure link to choose a new password:\n${resetUrl}\n\nThis link expires in 1 hour. If you did not request this, you can ignore this email.`,
+        html: `
+      <p>Hi ${escapeHtml(name)},</p>
+      <p>We received a request to reset your GoldCinema password.</p>
+      <p>Use the secure link below to choose a new password:</p>
+      <p><a href="${resetUrl}">${resetUrl}</a></p>
+      <p>This link expires in 1 hour. If you did not request this, you can ignore this email.</p>
     `,
     });
 }
@@ -238,4 +259,10 @@ async function sendTicketEmail(to, order, qrDataUrl) {
     });
 }
 
-module.exports = { getTransporter, sendVerificationEmail, sendOrderEmail, sendTicketEmail };
+module.exports = {
+    getTransporter,
+    sendVerificationEmail,
+    sendPasswordResetEmail,
+    sendOrderEmail,
+    sendTicketEmail,
+};

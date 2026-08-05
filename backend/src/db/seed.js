@@ -71,7 +71,7 @@ async function seed() {
           'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=600&q=80',
         trailerUrl: 'https://www.youtube.com/watch?v=example1',
         rating: 'PG-13',
-        releaseDate: new Date('2026-01-10'),
+        releaseDate: new Date('2026-09-10'),
         price: 12.5,
         active: true,
       },
@@ -86,7 +86,7 @@ async function seed() {
           'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=600&q=80',
         trailerUrl: 'https://www.youtube.com/watch?v=example2',
         rating: 'PG',
-        releaseDate: new Date('2026-02-14'),
+        releaseDate: new Date('2026-09-14'),
         price: 11,
         active: true,
       },
@@ -101,7 +101,7 @@ async function seed() {
           'https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=600&q=80',
         trailerUrl: 'https://www.youtube.com/watch?v=example3',
         rating: 'R',
-        releaseDate: new Date('2026-03-20'),
+        releaseDate: new Date('2026-09-20'),
         price: 13,
         active: true,
       },
@@ -116,7 +116,7 @@ async function seed() {
           'https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=600&q=80',
         trailerUrl: 'https://www.youtube.com/watch?v=example4',
         rating: 'G',
-        releaseDate: new Date('2026-04-05'),
+        releaseDate: new Date('2026-09-25'),
         price: 10,
         active: true,
       },
@@ -229,11 +229,13 @@ async function seed() {
     const showtimes = [];
     const times = ['12:00', '15:00', '18:00', '21:00'];
 
+    const startDate = new Date('2026-09-06');
+
     movies.forEach((movie) => {
       let count = 0;
 
       for (let day = 0; day < 3 && count < 10; day++) {
-        const date = new Date();
+        const date = new Date(startDate);
         date.setDate(date.getDate() + day);
 
         for (const time of times) {

@@ -3,7 +3,12 @@ const { objectId } = require('./common');
 
 const holdSeatSchema = yup.object({
     showtimeId: objectId,
-    seatIds: yup.array().of(yup.string().trim()).required('Seat IDs are required.').min(1, 'Select at least one seat.').max(10, 'Select between 1 and 10 seats.'),
+    seatIds: yup
+        .array()
+        .of(yup.string().trim())
+        .required('Seat IDs are required.')
+        .min(1, 'Select at least one seat.')
+        .max(10, 'Select between 1 and 10 seats.'),
 }).noUnknown(true);
 
 const extendHoldSchema = yup.object({

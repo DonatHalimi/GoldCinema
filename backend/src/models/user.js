@@ -26,7 +26,15 @@ const userSchema = new Schema(
         emailVerified: { type: Boolean, default: false },
         verificationToken: { type: String, default: null },
         verificationTokenExpiresAt: { type: Date, default: null },
+        passwordResetToken: { type: String, default: null },
+        passwordResetExpiresAt: { type: Date, default: null },
 
+        failedLoginAttempts: { type: Number, default: 0 },
+        lockUntil: { type: Date, default: null },
+        lockStage: { type: Number, default: 0 },
+
+        isActive: { type: Boolean, default: true },
+        deletedAt: { type: Date, default: null },
         refreshTokens: { type: [refreshTokenSchema], default: [] },
 
         orderHistory: [{ type: Schema.Types.ObjectId, ref: 'Order' }],

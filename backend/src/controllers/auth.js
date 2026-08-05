@@ -3,12 +3,18 @@ const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/user');
 const Role = require('../models/role');
-const { generateVerificationToken } = require('../utils/tokens');
-const { sendVerificationEmail } = require('../utils/mailer');
+const { generateVerificationToken, generatePasswordResetToken } = require('../utils/tokens');
+const { sendVerificationEmail, sendPasswordResetEmail } = require('../utils/mailer');
+const LoginAttempt = require('../models/loginAttempt');
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-const generateTokens = (userId) => {
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCK_STAGES_MIN = [1, 5, 15, 60];
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+
+const generateTokens = (userId, refreshExpiresIn = process.env.JWT_REFRESH_EXPIRES_IN) => {
     const accessToken = jwt.sign(
         { id: userId },
         process.env.JWT_SECRET,
@@ -18,13 +24,13 @@ const generateTokens = (userId) => {
     const refreshToken = jwt.sign(
         { id: userId },
         process.env.JWT_REFRESH_SECRET,
-        { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN }
+        { expiresIn: refreshExpiresIn }
     );
 
     return { accessToken, refreshToken };
 };
 
-const setCookies = (res, accessToken, refreshToken) => {
+const setCookies = (res, accessToken, refreshToken, refreshMaxAgeMs = 7 * 24 * 60 * 60 * 1000) => {
     res.cookie('accessToken', accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -36,7 +42,7 @@ const setCookies = (res, accessToken, refreshToken) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000,
+        maxAge: refreshMaxAgeMs,
     });
 };
 
@@ -118,30 +124,214 @@ async function register(req, res, next) {
     }
 }
 
-async function login(req, res) {
+async function forgotPassword(req, res, next) {
     try {
-        const { email, password } = req.body;
+        const { email } = req.body;
+        const normalizedEmail = String(email || '').trim().toLowerCase();
+
+        const user = await User.findOne({ email: normalizedEmail });
+        if (!user) {
+            return res.status(200).json({
+                message: 'If that account exists, a password reset link has been sent to the email address on file.',
+            });
+        }
+
+        const { token, expiresAt } = generatePasswordResetToken();
+        user.passwordResetToken = token;
+        user.passwordResetExpiresAt = expiresAt;
+        await user.save();
+
+        const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/reset-password?token=${token}`;
+        await sendPasswordResetEmail({
+            to: user.email,
+            name: user.name,
+            resetUrl,
+        });
+
+        return res.json({
+            message: 'If that account exists, a password reset link has been sent to the email address on file.',
+        });
+    } catch (err) {
+        return next(err);
+    }
+}
+
+async function resetPassword(req, res, next) {
+    try {
+        const { token, password } = req.body;
+
+        const user = await User.findOne({ passwordResetToken: token });
+        if (!user) {
+            return res.status(400).json({ error: 'This password reset link is invalid.' });
+        }
+
+        if (user.passwordResetExpiresAt && user.passwordResetExpiresAt < new Date()) {
+            user.passwordResetToken = null;
+            user.passwordResetExpiresAt = null;
+            await user.save();
+            return res.status(400).json({
+                error: 'This password reset link has expired. Please request a new one.',
+                code: 'TOKEN_EXPIRED',
+            });
+        }
+
+        const passwordHash = await bcrypt.hash(password, 10);
+        user.passwordHash = passwordHash;
+        user.passwordResetToken = null;
+        user.passwordResetExpiresAt = null;
+        user.refreshTokens = [];
+        await user.save();
+
+        return res.json({ message: 'Password updated successfully.' });
+    } catch (err) {
+        return next(err);
+    }
+}
+
+async function changePassword(req, res, next) {
+    try {
+        const { currentPassword, newPassword } = req.body;
+
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found.' });
+        }
+
+        const match = await bcrypt.compare(currentPassword, user.passwordHash);
+        if (!match) {
+            return res.status(401).json({ error: 'Current password is incorrect.' });
+        }
+
+        if (currentPassword === newPassword) {
+            return res.status(400).json({ error: 'New password must be different from your current password.' });
+        }
+
+        user.passwordHash = await bcrypt.hash(newPassword, 10);
+        user.refreshTokens = []; // invalidate other sessions
+        await user.save();
+
+        res.clearCookie('accessToken');
+        res.clearCookie('refreshToken');
+
+        res.json({ message: 'Password updated successfully. Please log in again.' });
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function deleteAccount(req, res, next) {
+    try {
+        const { password } = req.body;
+
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found.' });
+        }
+
+        const match = await bcrypt.compare(password, user.passwordHash);
+        if (!match) {
+            return res.status(401).json({ error: 'Incorrect password.' });
+        }
+
+        user.isActive = false;
+        user.deletedAt = new Date();
+        user.refreshTokens = [];
+        await user.save();
+
+        res.clearCookie('accessToken');
+        res.clearCookie('refreshToken');
+
+        res.json({ message: 'Your account has been deactivated and will be permanently deleted after the grace period.' });
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function recordAttempt({ email, user, req, success, reason }) {
+    try {
+        await LoginAttempt.create({
+            email: String(email || '').toLowerCase().trim(),
+            user: user?._id || null,
+            ip: req.ip,
+            userAgent: req.headers['user-agent'],
+            success,
+            reason,
+        });
+    } catch (err) {
+        console.error('Failed to record login attempt:', err);
+    }
+}
+
+async function login(req, res) {
+    const { email, password, rememberMe } = req.body;
+
+    try {
         const user = await User.findOne({ email }).populate('role');
 
-        if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
+        if (user?.isActive === false) {
+            await recordAttempt({ email, user, req, success: false, reason: 'inactive_account' });
+            return res.status(403).json({ message: 'This account has been deactivated.' });
+        }
+
+        if (user?.lockUntil && user.lockUntil > new Date()) {
+            await recordAttempt({ email, user, req, success: false, reason: 'locked' });
+            const waitMinutes = Math.ceil((user.lockUntil - Date.now()) / 60000);
+            return res.status(423).json({
+                message: `Too many failed attempts. Try again in ${waitMinutes} minute(s).`,
+            });
+        }
+
+        const passwordValid = user && (await bcrypt.compare(password, user.passwordHash));
+
+        if (!passwordValid) {
+            if (user) {
+                user.failedLoginAttempts += 1;
+
+                if (user.failedLoginAttempts >= MAX_FAILED_ATTEMPTS) {
+                    const stageIdx = Math.min(user.lockStage, LOCK_STAGES_MIN.length - 1);
+                    const minutes = LOCK_STAGES_MIN[stageIdx];
+                    user.lockUntil = new Date(Date.now() + minutes * 60 * 1000);
+                    user.lockStage += 1;
+                    user.failedLoginAttempts = 0;
+                }
+
+                await user.save();
+            }
+
+            await recordAttempt({ email, user, req, success: false, reason: 'invalid_credentials' });
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        const { accessToken, refreshToken } = generateTokens(user._id);
+        user.failedLoginAttempts = 0;
+        user.lockUntil = null;
+        user.lockStage = 0;
+
+        const refreshExpiresIn = rememberMe ? '30d' : '7d';
+        const refreshMaxAgeMs = rememberMe ? 30 * DAY_MS : 7 * DAY_MS;
+
+        const { accessToken, refreshToken } = generateTokens(
+            user._id,
+            refreshExpiresIn
+        );
 
         user.refreshTokens.push({
             token: refreshToken,
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            expiresAt: new Date(Date.now() + refreshMaxAgeMs),
+            createdAt: new Date(),
+            rememberMe
         });
 
         await user.save();
 
-        setCookies(res, accessToken, refreshToken);
+        setCookies(res, accessToken, refreshToken, refreshMaxAgeMs);
+        await recordAttempt({ email, user, req, success: true, reason: 'success' });
+
         res.json({
             message: 'Logged in successfully',
             user: { id: user._id, name: user.name, email: user.email, role: user.role },
         });
     } catch (error) {
+        await recordAttempt({ email, user: null, req, success: false, reason: 'server_error' });
         res.status(500).json({ error: error.message });
     }
 }
@@ -177,15 +367,34 @@ async function refreshToken(req, res) {
         }
 
         const now = new Date();
+        const currentTokenData = user.refreshTokens.find(
+            (rt) => rt.token === currentRefreshToken
+        );
+
+        if (!currentTokenData) {
+            return res.status(403).json({ message: 'Invalid refresh token' });
+        }
+
         const updatedRefreshTokens = user.refreshTokens.filter(
             (rt) => rt.token !== currentRefreshToken && rt.expiresAt > now
         );
 
-        const newTokens = generateTokens(user._id);
+        const remainingMs = currentTokenData.expiresAt - Date.now();
+
+        const remainingDays = Math.ceil(
+            remainingMs / DAY_MS
+        );
+
+        const newTokens = generateTokens(
+            user._id,
+            `${remainingDays}d`
+        );
 
         updatedRefreshTokens.push({
             token: newTokens.refreshToken,
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            expiresAt: currentTokenData.expiresAt,
+            createdAt: new Date(),
+            rememberMe: currentTokenData.rememberMe,
         });
 
         user.refreshTokens = updatedRefreshTokens;
@@ -435,6 +644,10 @@ module.exports = {
     refreshToken,
     verifyEmail,
     resendVerification,
+    forgotPassword,
+    resetPassword,
+    changePassword,
+    deleteAccount,
     googleLogin,
     facebookLogin,
     me,

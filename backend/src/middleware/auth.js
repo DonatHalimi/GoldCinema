@@ -20,6 +20,9 @@ const requireAuth = async (req, res, next) => {
     if (!user) {
       return res.status(401).json({ error: 'User no longer exists.' });
     }
+    if (user.isActive === false) {
+      return res.status(403).json({ error: 'This account has been deactivated.' });
+    }
 
     req.user = user;
     next();

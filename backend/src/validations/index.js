@@ -9,6 +9,7 @@ const seatHold = require('./seatHold');
 const showtime = require('./showtime');
 const snack = require('./snack');
 const user = require('./user');
+const slideshow = require('./slideshow');
 const { validateBody, validateQuery, validateParams } = require('./common');
 
 module.exports = {
@@ -23,6 +24,7 @@ module.exports = {
     showtime,
     snack,
     user,
+    slideshow,
     validateBody,
     validateQuery,
     validateParams,

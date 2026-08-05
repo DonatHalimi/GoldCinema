@@ -6,15 +6,19 @@ const {
   refreshToken,
   verifyEmail,
   resendVerification,
+  forgotPassword,
+  resetPassword,
   googleLogin,
   facebookLogin,
   me,
   logout,
+  changePassword,
+  deleteAccount,
 } = require('../controllers/auth');
 const {
   validateBody,
   validateQuery,
-  auth: { registerSchema, loginSchema, googleLoginSchema, facebookLoginSchema, verifyEmailQuerySchema },
+  auth: { registerSchema, loginSchema, googleLoginSchema, facebookLoginSchema, verifyEmailQuerySchema, forgotPasswordSchema, resetPasswordSchema, changePasswordSchema, deleteAccountSchema },
 } = require('../validations');
 
 const router = express.Router();
@@ -25,8 +29,14 @@ router.post('/google', validateBody(googleLoginSchema), googleLogin);
 router.post('/facebook', validateBody(facebookLoginSchema), facebookLogin);
 router.post('/refresh-token', refreshToken);
 router.get('/verify-email', validateQuery(verifyEmailQuerySchema), verifyEmail);
+router.post('/forgot-password', validateBody(forgotPasswordSchema), forgotPassword);
+router.post('/reset-password', validateBody(resetPasswordSchema), resetPassword);
 router.post('/resend-verification', requireAuth, resendVerification);
 router.get('/me', requireAuth, me);
 router.post('/logout', logout);
+
+router.post('/change-password', requireAuth, validateBody(changePasswordSchema), changePassword);
+
+router.delete('/account', requireAuth, validateBody(deleteAccountSchema), deleteAccount);
 
 module.exports = router;
