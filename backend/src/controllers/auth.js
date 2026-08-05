@@ -166,19 +166,31 @@ async function refreshToken(req, res) {
         const user = await User.findOne({ 'refreshTokens.token': currentRefreshToken });
 
         if (!user) {
+            await User.updateOne(
+                { _id: decoded.id },
+                { $set: { refreshTokens: [] } }
+            );
+
             res.clearCookie('accessToken');
             res.clearCookie('refreshToken');
-            return res.status(403).json({ message: 'Invalid refresh token' });
+            return res.status(403).json({ message: 'Invalid refresh token. All sessions revoked for security.' });
         }
 
+        const now = new Date();
+        const updatedRefreshTokens = user.refreshTokens.filter(
+            (rt) => rt.token !== currentRefreshToken && rt.expiresAt > now
+        );
+
         const newTokens = generateTokens(user._id);
-        user.refreshTokens = user.refreshTokens.filter((rt) => rt.token !== currentRefreshToken);
-        user.refreshTokens.push({
+
+        updatedRefreshTokens.push({
             token: newTokens.refreshToken,
             expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         });
 
+        user.refreshTokens = updatedRefreshTokens;
         await user.save();
+
         setCookies(res, newTokens.accessToken, newTokens.refreshToken);
 
         return res.json({ message: 'Token refreshed successfully' });

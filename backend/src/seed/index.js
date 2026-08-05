@@ -61,7 +61,7 @@ async function seed() {
                 email: 'admin@goldcinema.example',
                 passwordHash: adminPasswordHash,
                 role: adminRole._id,
-                emailVerified: true, // seeded admin skips the email verification step
+                emailVerified: true,
             },
         },
         { upsert: true, new: true }

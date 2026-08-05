@@ -16,7 +16,6 @@ const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
-// 1. Helmet configuration (allow cross-origin requests & credential sharing)
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },

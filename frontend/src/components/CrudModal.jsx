@@ -8,7 +8,6 @@ export default function CrudModal({ isOpen, onClose, onSubmit, initialData, fiel
         if (initialData) {
             setFormData(initialData);
         } else {
-            // Set defaults for new record
             const defaultData = {};
             fields.forEach((field) => {
                 defaultData[field.name] = field.defaultValue || (field.options ? field.options[0] : '');

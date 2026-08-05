@@ -18,7 +18,6 @@ api.interceptors.response.use(
     ) {
       originalRequest._retry = true;
       try {
-        // Use raw axios here to avoid triggering this interceptor again
         await axios.post(
           `${api.defaults.baseURL}/auth/refresh-token`,
           {},

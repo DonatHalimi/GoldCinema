@@ -36,7 +36,7 @@ export default function Home() {
         <h1 className="font-display text-5xl tracking-wide text-marquee-goldBright sm:text-6xl">
           NOW SHOWING
         </h1>
-        <p className="mx-auto mt-4 max-w-xl font-serif text-marquee-muted">
+        <p className="mx-auto mt-4 max-w-xxl font-serif text-marquee-muted">
           Pick a film, choose your seats, and step into the dark. Doors open every day, all day.
         </p>
       </section>
