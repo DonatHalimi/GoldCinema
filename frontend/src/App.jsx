@@ -17,10 +17,11 @@ import { ToastContainer } from 'react-toastify';
 import Account from './pages/Account';
 import ProfileSettings from './components/account/ProfileSettings';
 import SecuritySettings from './components/account/SecuritySettings';
-import Notifications from './pages/Notifications';
-import Sessions from './pages/Sessions';
+import Notifications from './components/account/Notifications';
+import Sessions from './components/account/Sessions';
 import DangerZone from './pages/DangerZone';
 import { Navigate } from 'react-router-dom';
+import { Footer } from './components/layout/Footer';
 
 export default function App() {
   return (
@@ -77,7 +78,7 @@ export default function App() {
             <Route path="sessions" element={<Sessions />} />
             <Route path="danger" element={<DangerZone />} />
           </Route>
-          
+
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
@@ -91,17 +92,7 @@ export default function App() {
           theme="dark"
         />
       </main>
-      <footer className="border-t border-marquee-line py-8 text-center text-xs text-marquee-muted">
-        &copy; {new Date().getFullYear()} GoldCinema. All rights reserved. |{' '}
-        <a
-          href="https://github.com/DonatHalimi"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline"
-        >
-          Donat Halimi
-        </a>
-      </footer>
+      <Footer />
     </div>
   );
 }

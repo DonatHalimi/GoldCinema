@@ -1,6 +1,5 @@
 import StripeCheckout from './StripeCheckout';
 import PaypalCheckout from './PaypalCheckout';
-import ApplePayCheckout from './ApplePayCheckout';
 import PaymentTabs from './PaymentTabs';
 
 export default function PaymentSection({
@@ -27,12 +26,6 @@ export default function PaymentSection({
 
             {provider === 'stripe' ? (
                 <StripeCheckout
-                    order={order}
-                    onSuccess={onSuccess}
-                    onError={onError}
-                />
-            ) : provider === 'applepay' ? (
-                <ApplePayCheckout
                     order={order}
                     onSuccess={onSuccess}
                     onError={onError}

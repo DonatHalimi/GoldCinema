@@ -14,6 +14,7 @@ const {
   logout,
   changePassword,
   deleteAccount,
+  updateProfile,
 } = require('../controllers/auth');
 const {
   validateBody,
@@ -33,9 +34,9 @@ router.post('/forgot-password', validateBody(forgotPasswordSchema), forgotPasswo
 router.post('/reset-password', validateBody(resetPasswordSchema), resetPassword);
 router.post('/resend-verification', requireAuth, resendVerification);
 router.get('/me', requireAuth, me);
+router.put('/profile', requireAuth, updateProfile);
 router.post('/logout', logout);
-
-router.post('/change-password', requireAuth, validateBody(changePasswordSchema), changePassword);
+router.put('/change-password', requireAuth, validateBody(changePasswordSchema), changePassword);
 
 router.delete('/account', requireAuth, validateBody(deleteAccountSchema), deleteAccount);
 

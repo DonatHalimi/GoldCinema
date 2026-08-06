@@ -3,9 +3,9 @@ import { ShieldCheck } from 'lucide-react';
 export default function SecuritySettings() {
     return (
         <div>
-            <h1 className="font-display text-2xl text-marquee-goldBright">
+            <h2 className="font-display text-2xl font-semibold tracking-wide text-marquee-goldBright">
                 Security
-            </h1>
+            </h2>
 
             <div className="mt-6 rounded-xl border border-marquee-line bg-marquee-bg p-5">
 

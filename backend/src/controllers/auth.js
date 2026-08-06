@@ -207,7 +207,7 @@ async function changePassword(req, res, next) {
         }
 
         user.passwordHash = await bcrypt.hash(newPassword, 10);
-        user.refreshTokens = []; // invalidate other sessions
+        user.refreshTokens = [];
         await user.save();
 
         res.clearCookie('accessToken');
@@ -616,10 +616,61 @@ async function me(req, res) {
                 email: user.email,
                 name: user.name,
                 role: roleName,
+                emailVerified: user.emailVerified,
             },
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
+    }
+}
+
+async function updateProfile(req, res, next) {
+    try {
+        const { name, email } = req.body;
+
+        const user = await User.findById(req.user.id);
+
+        if (!user) {
+            return res.status(404).json({
+                error: 'User not found.',
+            });
+        }
+
+        if (email && email.toLowerCase() !== user.email) {
+            const exists = await User.findOne({
+                email: email.toLowerCase(),
+                _id: { $ne: user._id },
+            });
+
+            if (exists) {
+                return res.status(400).json({
+                    error: 'Email already in use.',
+                });
+            }
+
+            user.email = email.toLowerCase();
+            user.emailVerified = false;
+
+            await issueVerificationEmail(user);
+        }
+
+        if (name) {
+            user.name = name;
+        }
+
+        await user.save();
+
+        res.json({
+            message: 'Profile updated successfully.',
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                emailVerified: user.emailVerified,
+            },
+        });
+    } catch (err) {
+        next(err);
     }
 }
 
@@ -651,5 +702,6 @@ module.exports = {
     googleLogin,
     facebookLogin,
     me,
+    updateProfile,
     logout,
 };

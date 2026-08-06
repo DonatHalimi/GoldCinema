@@ -102,7 +102,6 @@ function StripeForm({ order, onSuccess, onError }) {
             ? 'Processing payment...'
             : `Pay $${order.totalAmount.toFixed(2)} with card`
         }
-
       </button>
     </form>
   );

@@ -237,87 +237,46 @@ export default function Login() {
 
           <div className="mt-4 flex items-center justify-between">
             <RememberMeCheckbox
-
               checked={rememberMe}
-
               onChange={() => setRememberMe(prev => !prev)}
-
             />
 
-
-
             <button
-
               type="button"
-
               onClick={() => setIsForgotModalOpen(true)}
-
               className="text-sm text-marquee-gold hover:text-marquee-goldBright"
-
             >
-
               Forgot password?
-
             </button>
           </div>
 
-
           <button
-
             type="submit"
-
             disabled={submitting || !isFormValid}
-
             className="w-full rounded-full bg-marquee-gold px-6 py-3 font-semibold text-marquee-bg transition hover:bg-marquee-goldBright disabled:cursor-not-allowed disabled:opacity-40"
-
           >
-
             {submitting ? 'Logging in...' : 'Login'}
-
           </button>
 
-
-
           <SocialLoginButtons
-
             submitting={submitting}
-
             googleBtnRef={googleBtnRef}
-
             onGoogle={handleGoogleLogin}
-
             onFacebook={handleFacebookLogin}
-
           />
-
         </form>
 
-
-
         <p className="mt-6 text-left text-sm text-marquee-muted">
-
           Don't have an account?{' '}
-
           <Link to="/register" className="text-marquee-gold hover:text-marquee-goldBright">
-
             Create an account
-
           </Link>
-
         </p>
 
-
-
         {isForgotModalOpen && (
-
           <ForgotPasswordModal isOpen={isForgotModalOpen} onClose={() => setIsForgotModalOpen(false)} />
-
         )}
-
       </div>
-
     </div>
-
   );
-
 }
