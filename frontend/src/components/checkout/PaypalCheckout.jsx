@@ -1,5 +1,5 @@
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
-import api from '../api/client';
+import api from '../../api/client';
 
 const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID;
 

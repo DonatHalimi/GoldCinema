@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import api from '../api/client'; ``
-import StripeCheckout from '../components/StripeCheckout';
-import PaypalCheckout from '../components/PaypalCheckout';
+import api from '../api/client';
+import StripeCheckout from '../components/checkout/StripeCheckout';
+import PaypalCheckout from '../components/checkout/PaypalCheckout';
+import PaymentSection from '../components/checkout/PaymentSelection';
+import ExpiredHold from '../components/checkout/ExpiredHold';
+import SeatHoldTimer from '../components/checkout/SeatHoldTimer';
+import CheckoutSummary from '../components/checkout/CheckoutSummary';
 
 export default function Checkout() {
   const { orderId } = useParams();
@@ -120,174 +124,32 @@ export default function Checkout() {
         Complete your purchase
       </h1>
 
-      <div className="mb-8 rounded-xl border border-marquee-line bg-marquee-panel p-6">
-        <div className="flex justify-between gap-4">
-          <div className="flex gap-5">
-            {movie?.posterUrl && (
-              <img
-                src={movie.posterUrl}
-                alt={`${movie.title} poster`}
-                className="h-52 w-36 rounded-lg border border-marquee-line object-cover shadow-glow"
-              />
-            )}
+      <CheckoutSummary
+        movie={movie}
+        showtime={showtime}
+        order={order}
+      />
 
-            <div className="flex-1">
-              <p className="text-xs uppercase tracking-widest text-marquee-goldDim">
-                {movie?.title}
-              </p>
+      <SeatHoldTimer
+        secondsLeft={secondsLeft}
+        expired={expired}
+        extending={extending}
+        onExtend={extendHold}
+      />
 
-              <p className="mt-1 text-sm text-marquee-muted">
-                {movie?.genres?.join(', ')}
-                {" · "}
-                {movie?.rating}
-                {" · "}
-                {movie?.duration} min
-              </p>
+      {expired ? (
+        <ExpiredHold onBack={() => navigate(-1)} />
+      ) : (
+        <PaymentSection
+          provider={provider}
+          setProvider={setProvider}
+          order={order}
+          onSuccess={handleSuccess}
+          onError={setPayError}
+          payError={payError}
+        />
+      )}
 
-              {showtime && (
-                <p className="mt-1 text-sm text-marquee-muted">
-                  {new Date(showtime.startTime).toLocaleDateString()}
-                  {" · "}
-                  {new Date(showtime.startTime).toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </p>
-              )}
-
-              <p className="mt-2 font-mono text-sm text-marquee-muted">
-                Seats: {order.seats?.join(', ')}
-              </p>
-            </div>
-          </div>
-
-          <p className="font-display text-3xl tracking-wide text-marquee-gold">
-            ${order.totalAmount.toFixed(2)}
-          </p>
-        </div>
-
-        {secondsLeft !== null && (
-          <div className="mt-5 text-center">
-            <p
-              className={
-                `text-sm ${secondsLeft < 60
-                  ?
-                  'text-marquee-marquee'
-                  :
-                  'text-marquee-muted'
-                }`
-              }
-            >
-              {expired
-                ?
-                "Your seat hold has expired."
-                :
-                `Seats reserved for ${Math.floor(secondsLeft / 60)}:${String(secondsLeft % 60).padStart(2, '0')}`
-              }
-            </p>
-
-            {!expired && (
-              <button
-                onClick={extendHold}
-                disabled={extending}
-                className="mt-3 rounded-full border border-marquee-gold px-5 py-2 text-sm text-marquee-gold hover:bg-marquee-gold hover:text-marquee-bg disabled:opacity-40"
-              >
-                {extending ?
-                  "Extending..."
-                  :
-                  "Extend time"
-                }
-              </button>
-            )
-            }
-          </div>
-        )}
-      </div>
-
-      {expired ?
-        (
-          <div className="rounded-xl border border-marquee-marquee/40 bg-marquee-marquee/10 p-6 text-center">
-            <p className="mb-4 text-marquee-cream">
-              Your seats are no longer reserved.
-            </p>
-
-            <button
-              onClick={() => navigate(-1)}
-              className="rounded-full bg-marquee-gold px-6 py-2 font-semibold text-marquee-bg"
-            >
-              Choose seats again
-            </button>
-          </div>
-        )
-        :
-        (
-          <div className="rounded-xl border border-marquee-line bg-marquee-panel p-6">
-            <div className="mb-6 flex gap-2">
-              <TabButton
-                active={provider === "stripe"}
-                onClick={() => setProvider("stripe")}
-              >
-                Card (Stripe)
-              </TabButton>
-
-              <TabButton
-                active={provider === "paypal"}
-                onClick={() => setProvider("paypal")}
-              >
-                PayPal
-              </TabButton>
-
-            </div>
-            {payError && (
-              <p className="mb-4 rounded-md border border-marquee-marquee/40 bg-marquee-marquee/10 px-4 py-2 text-sm text-marquee-marquee">
-                {payError}
-              </p>
-            )
-            }
-            {provider === "stripe"
-              ?
-              <StripeCheckout
-                order={order}
-                onSuccess={handleSuccess}
-                onError={setPayError}
-                onReady={() => setPaymentReady(true)}
-              />
-              :
-              <PaypalCheckout
-                order={order}
-                onSuccess={handleSuccess}
-                onError={setPayError}
-              />
-            }
-            <p className="mt-6 text-center text-xs text-marquee-muted">
-              🔒 Payments are processed securely by Stripe and PayPal.
-            </p>
-          </div>
-        )
-      }
     </div>
-  );
-}
-
-function TabButton({
-  active,
-  onClick,
-  children
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`
-        flex-1 rounded-full border px-4 py-2 text-sm font-semibold transition
-        ${active
-          ?
-          'border-marquee-gold bg-marquee-gold text-marquee-bg'
-          :
-          'border-marquee-line text-marquee-muted hover:border-marquee-gold hover:text-marquee-gold'
-        }
-      `}
-    >
-      {children}
-    </button>
   );
 }

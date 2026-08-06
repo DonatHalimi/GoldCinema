@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, useNavigate, Navigate } from 'react-router-dom';
-import ModuleDataGrid from '../components/ModuleDataGrid';
+import ModuleDataGrid from '../components/auth/ModuleDataGrid';
 
 const MODULE_CONFIGS = [
     {

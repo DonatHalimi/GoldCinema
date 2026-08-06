@@ -1,31 +1,36 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+
 import api from '../api/client';
+
+import ConfirmationHeader from '../components/confirmation/ConfirmationHeader';
+import TicketDetails from '../components/confirmation/TicketDetails';
+import QRTicket from '../components/confirmation/QRTicket';
+import UnpaidOrder from '../components/confirmation/UnpaidOrder';
 
 export default function Confirmation() {
   const { orderId } = useParams();
 
   const [order, setOrder] = useState(null);
-  const [movie, setMovie] = useState(null);
-  const [showtime, setShowtime] = useState(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    api
-      .get(`/orders/${orderId}`)
-      .then(({ data }) => {
+    async function fetchOrder() {
+      try {
+        const { data } = await api.get(`/orders/${orderId}`);
         setOrder(data.order);
-        setMovie(data.order.movie);
-        setShowtime(data.order.showtime);
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error(err);
+
         setError(
           err.response?.data?.error ||
           err.message ||
           'Something went wrong'
         );
-      });
+      }
+    }
+
+    fetchOrder();
   }, [orderId]);
 
   if (error) {
@@ -45,39 +50,21 @@ export default function Confirmation() {
   }
 
   if (order.paymentStatus !== 'paid') {
-    return (
-      <div className="mx-auto max-w-lg px-6 py-20 text-center">
-        <p className="text-marquee-cream">
-          This order has not been paid yet.
-        </p>
-
-        <Link
-          to={`/checkout/${order._id}`}
-          className="mt-4 inline-block rounded-full bg-marquee-gold px-6 py-2 font-semibold text-marquee-bg"
-        >
-          Go to checkout
-        </Link>
-      </div>
-    );
+    return <UnpaidOrder orderId={order._id} />;
   }
 
-  const startTime = showtime?.startTime
-    ? new Date(showtime.startTime)
+  const movie = order.movie;
+
+  const startTime = order.showtime?.startTime
+    ? new Date(order.showtime.startTime)
     : null;
 
   return (
     <div className="mx-auto max-w-lg px-6 py-16">
-      <div className="mb-6 text-center">
-        <p className="font-display text-4xl tracking-wide text-marquee-goldBright">
-          YOU'RE ALL SET 🎉
-        </p>
-
-        <p className="mt-2 text-marquee-muted">
-          Your tickets have been booked. Enjoy the show!
-        </p>
-      </div>
+      <ConfirmationHeader />
 
       <div className="ticket-edge overflow-hidden rounded-xl border border-marquee-line bg-marquee-panel shadow-glow">
+
         <div className="flex gap-4 p-6">
           <img
             src={movie?.posterUrl}
@@ -106,71 +93,10 @@ export default function Confirmation() {
           </div>
         </div>
 
-        <div className="border-t border-dashed border-marquee-line px-6 py-4">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-marquee-muted">
-              Seats
-            </span>
+        <TicketDetails order={order} />
 
-            <span className="font-mono text-marquee-cream">
-              {order.seats.join(', ')}
-            </span>
-          </div>
+        <QRTicket qrTicket={order.qrTicket} />
 
-          <div className="mt-2 flex items-center justify-between text-sm">
-            <span className="text-marquee-muted">
-              Paid via
-            </span>
-
-            <span className="capitalize text-marquee-cream">
-              {order.paymentProvider}
-            </span>
-          </div>
-
-          <div className="mt-2 flex items-center justify-between text-sm">
-            <span className="text-marquee-muted">
-              Total
-            </span>
-
-            <span className="font-display text-xl text-marquee-gold">
-              ${order.totalAmount.toFixed(2)}
-            </span>
-          </div>
-
-          <div className="mt-2 flex items-center justify-between text-xs text-marquee-muted">
-            <span>
-              Confirmation
-            </span>
-
-            <span className="font-mono">
-              {order._id.slice(0, 8).toUpperCase()}
-            </span>
-          </div>
-        </div>
-
-        <div className="border-t border-dashed border-marquee-line px-6 py-6 text-center">
-          {order.qrTicket?.dataUrl ? (
-            <>
-              <p className="mb-4 text-xs uppercase tracking-widest text-marquee-goldDim">
-                Entry QR Ticket
-              </p>
-
-              <img
-                src={order.qrTicket.dataUrl}
-                alt="QR Ticket"
-                className="mx-auto h-48 w-48 rounded-lg bg-white p-3"
-              />
-
-              <p className="mt-4 text-xs text-marquee-muted">
-                Scan this QR code at the cinema entrance
-              </p>
-            </>
-          ) : (
-            <p className="text-sm text-marquee-muted">
-              QR ticket is being generated...
-            </p>
-          )}
-        </div>
       </div>
 
       <div className="mt-8 text-center">

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
-import SeatMap from '../components/SeatMap';
+import SeatMap from '../components/order/SeatMap';
 
 export default function SeatSelection() {
   const { id } = useParams();

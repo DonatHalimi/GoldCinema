@@ -1,13 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import api from '../api/client';
 
-const STATUS_STYLES = {
-  paid: 'text-marquee-gold border-marquee-gold/40',
-  pending: 'text-marquee-muted border-marquee-line',
-  failed: 'text-marquee-marquee border-marquee-marquee/40',
-  refunded: 'text-marquee-muted/60 border-marquee-line/60',
-};
+import TicketCard from '../components/tickets/TicketCard';
+import EmptyTickets from '../components/tickets/EmptyTickets';
 
 export default function MyTickets() {
   const [orders, setOrders] = useState([]);
@@ -15,12 +10,11 @@ export default function MyTickets() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    api
-      .get('/orders/mine')
-      .then(({ data }) => {
+    async function loadTickets() {
+      try {
+        const { data } = await api.get('/orders/mine');
         setOrders(data.orders || []);
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error('ORDERS LOAD ERROR:', err);
 
         setError(
@@ -28,10 +22,12 @@ export default function MyTickets() {
           err.message ||
           'Failed to load tickets'
         );
-      })
-      .finally(() => {
+      } finally {
         setLoading(false);
-      });
+      }
+    }
+
+    loadTickets();
   }, []);
 
   return (
@@ -53,69 +49,15 @@ export default function MyTickets() {
       )}
 
       {!loading && orders.length === 0 && (
-        <div className="rounded-xl border border-dashed border-marquee-line p-10 text-center">
-          <p className="text-marquee-muted">
-            You haven't booked any tickets yet.
-          </p>
-
-          <Link
-            to="/"
-            className="mt-4 inline-block rounded-full bg-marquee-gold px-6 py-2 font-semibold text-marquee-bg"
-          >
-            Browse movies
-          </Link>
-        </div>
+        <EmptyTickets />
       )}
 
       <div className="space-y-4">
         {orders.map((order) => (
-          <Link
+          <TicketCard
             key={order._id}
-            to={
-              order.paymentStatus === 'paid'
-                ? `/confirmation/${order._id}`
-                : `/checkout/${order._id}`
-            }
-            className="flex items-center gap-4 rounded-lg border border-marquee-line bg-marquee-panel p-4 transition hover:border-marquee-gold"
-          >
-            {order.movie?.posterUrl && (
-              <img
-                src={order.movie.posterUrl}
-                alt=""
-                className="h-16 w-12 rounded object-cover"
-              />
-            )}
-
-            <div className="flex-1">
-              <p className="font-serif font-semibold text-marquee-cream">
-                {order.movie?.title}
-              </p>
-
-              <p className="text-sm text-marquee-muted">
-                {order.showtime?.startTime &&
-                  new Date(order.showtime.startTime).toLocaleString(
-                    'en-US',
-                    {
-                      dateStyle: 'medium',
-                      timeStyle: 'short',
-                    }
-                  )
-                }
-                {' · '}
-                Seats {order.seats?.join(', ')}
-              </p>
-            </div>
-
-            <div className="text-right">
-              <p className="font-display text-lg text-marquee-gold">
-                ${order.totalAmount?.toFixed(2)}
-              </p>
-
-              <span className={`inline-block rounded-full border px-2 py-0.5 text-xs uppercase tracking-wide ${STATUS_STYLES[order.paymentStatus] || ''}`}>
-                {order.paymentStatus}
-              </span>
-            </div>
-          </Link>
+            order={order}
+          />
         ))}
       </div>
     </div>

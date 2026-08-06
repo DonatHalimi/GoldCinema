@@ -1,9 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FacebookIcon, Field, GoogleIcon, PasswordStrength } from './Login';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { validateForm, registerSchema } from '../validations';
+import { Field, PasswordField, PasswordStrength, SocialLoginButton } from '../components/ui/FormUI';
+import { FacebookIcon, GoogleIcon } from '../components/ui/Icons';
+import SocialLoginButtons from '../components/auth/SocialLoginButtons';
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const facebookAppId = import.meta.env.VITE_FACEBOOK_APP_ID;
@@ -28,6 +30,17 @@ export default function Register() {
   const [touched, setTouched] = useState({});
 
   const passwordsMatch = confirmPassword.length > 0 && password === confirmPassword;
+
+  const isFormValid =
+    name.trim() !== '' &&
+    email.trim() !== '' &&
+    password.trim() !== '' &&
+    confirmPassword.trim() !== '' &&
+    passwordsMatch &&
+    !fieldErrors.name &&
+    !fieldErrors.email &&
+    !fieldErrors.password &&
+    !fieldErrors.confirmPassword;
 
   useEffect(() => {
     if (!googleClientId) return;
@@ -111,6 +124,24 @@ export default function Register() {
     }
   }, [facebookAppId]);
 
+  async function handleGoogleLogin(credential) {
+    setSubmitting(true);
+    setError('');
+
+    try {
+      await loginWithGoogle(credential);
+      navigate(from, { replace: true });
+    } catch (err) {
+      setError(
+        err.response?.data?.error ||
+        err.message ||
+        'Google login failed.'
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   async function handleFacebookLogin() {
     if (!facebookAppId) {
       setError('Facebook App ID is missing in .env file.');
@@ -188,14 +219,10 @@ export default function Register() {
 
   return (
     <div className="mx-auto flex max-w-md items-center py-20">
-      <div className="w-full rounded-2xl border border-marquee-line bg-marquee-panel2 p-9 shadow-[0_20px_50px_rgba(0,0,0,0.35)]">
-        <h1 className="mb-2 text-center font-serif text-3xl font-bold text-marquee-cream">
+      <div className="w-full rounded-2xl border border-marquee-line bg-marquee-panel2 p-9">
+        <h1 className="mb-6 text-center font-serif text-3xl font-bold text-marquee-cream">
           Create your account
         </h1>
-
-        <p className="mb-8 text-center text-sm text-marquee-muted">
-          Join us and start booking your favorite movies
-        </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <Field
@@ -219,99 +246,67 @@ export default function Register() {
             required
             error={fieldErrors.email}
           />
+          <PasswordField
+            label="Password"
+            value={password}
+            onChange={(value) => {
+              setPassword(value);
+              validateField('password', value);
+            }}
+            error={fieldErrors.password}
+          />
 
-          <div className="relative">
-            <Field
-              label="Password"
-              type={showPassword ? 'text' : 'password'}
-              value={password}
-              onChange={setPassword}
-              onBlur={() => handleBlur('password')}
-              touched={touched.password}
-              required
-              error={fieldErrors.password}
-            />
+          {password.length > 0 && (
+            <PasswordStrength password={password} />
+          )}
 
-            {password.length > 0 && (
-              <PasswordStrength password={password} />
-            )}
+          <PasswordField
+            label="Confirm Password"
+            value={confirmPassword}
+            onChange={(value) => {
+              setConfirmPassword(value);
+              validateField('confirmPassword', value);
+            }}
+            error={fieldErrors.confirmPassword}
+          />
 
-            <button
-              type="button"
-              onClick={() => setShowPassword((prev) => !prev)}
-              aria-label={showPassword ? 'Hide passwords' : 'Show passwords'}
-              className="absolute right-3 top-9 text-marquee-muted hover:text-marquee-gold"
+          {confirmPassword.length > 0 && (
+            <div
+              className={`mt-2 rounded-md border px-3 py-2 text-xs ${passwordsMatch
+                ? 'border-green-500/30 bg-green-500/10 text-green-400'
+                : 'border-red-500/30 bg-red-500/10 text-red-400'
+                }`}
             >
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-            </button>
-          </div>
-
-          <div className="relative">
-            <Field
-              label="Confirm password"
-              type={showConfirmPassword ? 'text' : 'password'}
-              value={confirmPassword}
-              onChange={setConfirmPassword}
-              onBlur={() => handleBlur('confirmPassword')}
-              touched={touched.confirmPassword}
-              required
-              error={fieldErrors.confirmPassword}
-            />
-
-            {confirmPassword.length > 0 && (
-              <div
-                className={`mt-2 rounded-md border px-3 py-2 text-xs ${password === confirmPassword
-                  ? 'border-green-500/30 bg-green-500/10 text-green-400'
-                  : 'border-red-500/30 bg-red-500/10 text-red-400'
-                  }`}
-              >
-                {password === confirmPassword
-                  ? '✓ Passwords match'
-                  : '✕ Passwords do not match'}
-              </div>
-            )}
-
-            <button
-              type="button"
-              onClick={() => setShowConfirmPassword((prev) => !prev)}
-              className="absolute right-3 top-9 text-marquee-muted hover:text-marquee-gold"
-            >
-              {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-            </button>
-          </div>
+              {passwordsMatch
+                ? '✓ Passwords match'
+                : '✕ Passwords do not match'}
+            </div>
+          )}
 
           {fieldErrors.form && <p className="text-sm text-marquee-marquee">{fieldErrors.form}</p>}
           {error && <p className="text-sm text-marquee-marquee">{error}</p>}
 
           <button
             type="submit"
-            disabled={submitting}
-            className="w-full rounded-full bg-marquee-gold px-6 py-3 font-semibold text-marquee-bg transition hover:bg-marquee-goldBright disabled:opacity-40"
+            disabled={submitting || !isFormValid}
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-marquee-gold px-6 py-3 font-semibold text-marquee-bg transition hover:bg-marquee-goldBright disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {submitting ? 'Creating account...' : 'Create account'}
+            {submitting ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span>Creating account...</span>
+              </>
+            ) : (
+              'Create account'
+            )}
           </button>
 
-          <div className="group relative h-[48px] w-full overflow-hidden rounded-full border border-marquee-gold transition hover:bg-marquee-gold">
-            <div className="flex h-full w-full items-center justify-center gap-3 px-6 font-semibold text-marquee-gold transition group-hover:text-marquee-bg">
-              <GoogleIcon className="h-5 w-5" />
-              <span>Continue with Google</span>
-            </div>
-
-            <div
-              ref={googleBtnRef}
-              className="absolute inset-0 z-10 cursor-pointer opacity-0 [&_iframe]:!h-full [&_iframe]:!w-full [&_iframe]:!scale-125 [&_iframe]:!transform-gpu"
-            />
-          </div>
-
-          <button
-            type="button"
-            onClick={handleFacebookLogin}
-            disabled={submitting}
-            className="flex h-[48px] w-full items-center justify-center gap-3 rounded-full border border-marquee-gold bg-transparent px-6 font-semibold text-marquee-gold transition hover:bg-marquee-gold hover:text-marquee-bg disabled:opacity-40"
-          >
-            <FacebookIcon className="h-5 w-5" />
-            <span>Continue with Facebook</span>
-          </button>
+          <SocialLoginButtons
+            submitting={submitting}
+            googleBtnRef={googleBtnRef}
+            onGoogle={handleGoogleLogin}
+            onFacebook={handleFacebookLogin}
+          />
         </form >
 
         <p className="mt-6 text-left text-sm text-marquee-muted">

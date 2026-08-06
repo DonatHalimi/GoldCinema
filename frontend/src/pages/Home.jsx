@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../api/client';
-import MovieCard from '../components/MovieCard';
+import MovieCard from '../components/movies/MovieCard';
 import { useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 

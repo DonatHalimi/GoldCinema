@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import RequireAuth from './components/RequireAuth';
+import Navbar from './components/layout/Navbar';
+import RequireAuth from './components/guards/RequireAuth';
 import Home from './pages/Home';
 import MovieDetail from './pages/MovieDetail';
 import SeatSelection from './pages/SeatSelection';
@@ -12,7 +12,7 @@ import Register from './pages/Register';
 import VerifyEmail from './pages/VerifyEmail';
 import ResetPassword from './pages/ResetPassword';
 import AdminDashboard from './pages/AdminDashboard';
-import RequireAdmin from './components/RequireAdmin';
+import RequireAdmin from './components/guards/RequireAdmin';
 import { ToastContainer } from 'react-toastify';
 
 export default function App() {
