@@ -121,11 +121,10 @@ export default function AdminDashboard() {
 
     return (
         <div className="flex min-h-screen bg-marquee-bg border-t border-marquee-line">
-            <aside className="w-64 border-r border-marquee-line p-6 flex flex-col justify-between">
+            <aside className="m-6 flex w-64 flex-col justify-between rounded-xl border border-marquee-line bg-marquee-panel p-4">
                 <div>
-                    <div className="flex items-center gap-2 mb-8 px-2">
-                        <span className="h-3 w-3 rounded-full bg-amber-500 animate-pulse"></span>
-                        <h2 className="font-display text-xl font-bold tracking-wider text-marquee-goldBright">
+                    <div className="mb-6 px-3">
+                        <h2 className="font-display text-3xl font-semibold tracking-wide text-marquee-goldBright">
                             Admin Dashboard
                         </h2>
                     </div>
@@ -137,13 +136,15 @@ export default function AdminDashboard() {
                                 <button
                                     key={mod.key}
                                     onClick={() => navigate(`/admin/${mod.key}`)}
-                                    className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center justify-between ${isActive
-                                        ? 'bg-amber-500/10 text-amber-border border-amber-500/30'
-                                        : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900'
-                                        }`}
+                                    className={`
+    flex w-full items-center justify-between rounded-lg px-4 py-3 text-sm font-medium transition
+    ${isActive
+                                            ? 'bg-marquee-gold text-marquee-bg shadow-glow'
+                                            : 'text-marquee-muted hover:bg-marquee-panel2 hover:text-marquee-gold'
+                                        }
+`}
                                 >
                                     <span>{mod.label}</span>
-                                    {isActive && <span className="h-1.5 w-1.5 rounded-full bg-amber-400"></span>}
                                 </button>
                             );
                         })}

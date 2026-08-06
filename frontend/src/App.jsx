@@ -14,6 +14,13 @@ import ResetPassword from './pages/ResetPassword';
 import AdminDashboard from './pages/AdminDashboard';
 import RequireAdmin from './components/guards/RequireAdmin';
 import { ToastContainer } from 'react-toastify';
+import Account from './pages/Account';
+import ProfileSettings from './components/account/ProfileSettings';
+import SecuritySettings from './components/account/SecuritySettings';
+import Notifications from './pages/Notifications';
+import Sessions from './pages/Sessions';
+import DangerZone from './pages/DangerZone';
+import { Navigate } from 'react-router-dom';
 
 export default function App() {
   return (
@@ -42,14 +49,14 @@ export default function App() {
               </RequireAuth>
             }
           />
-          <Route
+          {/* <Route
             path="/tickets"
             element={
               <RequireAuth>
                 <MyTickets />
               </RequireAuth>
             }
-          />
+          /> */}
 
           <Route
             path="/admin/:moduleName?"
@@ -61,6 +68,16 @@ export default function App() {
           />
 
           <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/account" element={<Account />}>
+            <Route index element={<Navigate to="profile" replace />} />
+            <Route path="profile" element={<ProfileSettings />} />
+            <Route path="security" element={<SecuritySettings />} />
+            <Route path="notifications" element={<Notifications />} />
+            <Route path="tickets" element={<MyTickets />} />
+            <Route path="sessions" element={<Sessions />} />
+            <Route path="danger" element={<DangerZone />} />
+          </Route>
+          
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

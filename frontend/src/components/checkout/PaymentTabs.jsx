@@ -19,6 +19,13 @@ export default function PaymentTabs({
             >
                 PayPal
             </TabButton>
+
+            <TabButton
+                active={provider === 'applepay'}
+                onClick={() => setProvider('applepay')}
+            >
+                Apple Pay
+            </TabButton>
         </div>
     );
 }

@@ -130,10 +130,10 @@ export default function ModuleDataGrid({ moduleConfig }) {
                     <p className="animate-pulse text-sm">Loading {moduleConfig.label} records...</p>
                 </div>
             ) : (
-                <div className="rounded-xl border border-amber-500/20 bg-[#11100d]/80 overflow-hidden">
+                <div className="rounded-xl border border-zinc-800 bg-[#0b0b0b]/95 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm text-zinc-200">
-                            <thead className="bg-amber-500/5 border-b border-amber-500/20 uppercase text-[11px] font-semibold text-amber-400 tracking-wider">
+                            <thead className="bg-black/60 border-b border-zinc-800 uppercase text-[11px] font-semibold text-amber-400 tracking-wider">
                                 <tr>
                                     <th className="px-4 py-4 w-12 text-center">
                                         <button
@@ -141,10 +141,10 @@ export default function ModuleDataGrid({ moduleConfig }) {
                                             onClick={handleSelectAll}
                                             aria-label="Select all rows"
                                             className={`inline-flex h-4 w-4 items-center justify-center rounded border transition-all ${isAllSelected
-                                                    ? 'bg-amber-500 border-amber-500 text-zinc-950 shadow-[0_0_8px_rgba(245,158,11,0.4)]'
-                                                    : isSomeSelected
-                                                        ? 'bg-amber-500/20 border-amber-500/60 text-amber-400'
-                                                        : 'border-amber-500/30 bg-black/30 hover:border-amber-400'
+                                                ? 'bg-amber-500 border-amber-500 text-zinc-950 shadow-[0_0_8px_rgba(245,158,11,0.4)]'
+                                                : isSomeSelected
+                                                    ? 'bg-amber-500/20 border-amber-500/60 text-amber-400'
+                                                    : 'border-amber-500/30 bg-black/30 hover:border-amber-400'
                                                 }`}
                                         >
                                             {isAllSelected && <Check className="h-3 w-3 stroke-[3]" />}
@@ -166,7 +166,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
                                 </tr>
                             </thead>
 
-                            <tbody className="divide-y divide-amber-500/10">
+                            <tbody className="divide-y divide-zinc-800">
                                 {data.length === 0 ? (
                                     <tr>
                                         <td
@@ -184,8 +184,8 @@ export default function ModuleDataGrid({ moduleConfig }) {
                                             <tr
                                                 key={row._id}
                                                 className={`transition-colors ${isSelected
-                                                        ? 'bg-amber-500/15 hover:bg-amber-500/20'
-                                                        : 'hover:bg-amber-500/5'
+                                                    ? 'bg-amber-500/10 hover:bg-amber-500/15'
+                                                    : 'hover:bg-zinc-800/50'
                                                     }`}
                                             >
                                                 <td className="px-4 py-4 w-12 text-center">
@@ -194,8 +194,8 @@ export default function ModuleDataGrid({ moduleConfig }) {
                                                         onClick={() => handleSelectRow(row._id)}
                                                         aria-label={`Select row ${row._id}`}
                                                         className={`inline-flex h-4 w-4 items-center justify-center rounded border transition-all ${isSelected
-                                                                ? 'bg-amber-500 border-amber-500 text-zinc-950 shadow-[0_0_8px_rgba(245,158,11,0.4)]'
-                                                                : 'border-amber-500/30 bg-black/30 hover:border-amber-400'
+                                                            ? 'bg-amber-500 border-amber-500 text-zinc-950 shadow-[0_0_8px_rgba(245,158,11,0.4)]'
+                                                            : 'border-amber-500/30 bg-black/30 hover:border-amber-400'
                                                             }`}
                                                     >
                                                         {isSelected && (
@@ -270,66 +270,66 @@ export default function ModuleDataGrid({ moduleConfig }) {
                     </div>
                 </div >
             )
-}
+            }
 
-<CrudModal
-    isOpen={isModalOpen}
-    onClose={() => setIsModalOpen(false)}
-    onSubmit={() => fetchModuleData()}
-    initialData={selectedItem}
-    fields={fields}
-    title={`${selectedItem ? 'Edit' : 'Create'} ${moduleConfig.label}`}
-/>
+            <CrudModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSubmit={() => fetchModuleData()}
+                initialData={selectedItem}
+                fields={fields}
+                title={`${selectedItem ? 'Edit' : 'Create'} ${moduleConfig.label}`}
+            />
 
-{
-    deleteTarget && (
-        <div
-            onClick={() => !deleting && setDeleteTarget(null)}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
-        >
-            <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-md rounded-xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl">
-                <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
-                    <h2 className="font-display text-2xl text-amber-400">
-                        {Array.isArray(deleteTarget)
-                            ? `Delete ${deleteTarget.length} Records`
-                            : `Delete ${moduleConfig.label.slice(0, -1)}`}
-                    </h2>
-                    <button
+            {
+                deleteTarget && (
+                    <div
                         onClick={() => !deleting && setDeleteTarget(null)}
-                        disabled={deleting}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition-colors disabled:opacity-50"
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
                     >
-                        <X className="h-4 w-4" />
-                    </button>
-                </div>
+                        <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-md rounded-xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl">
+                            <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
+                                <h2 className="font-display text-2xl text-amber-400">
+                                    {Array.isArray(deleteTarget)
+                                        ? `Delete ${deleteTarget.length} Records`
+                                        : `Delete ${moduleConfig.label.slice(0, -1)}`}
+                                </h2>
+                                <button
+                                    onClick={() => !deleting && setDeleteTarget(null)}
+                                    disabled={deleting}
+                                    className="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition-colors disabled:opacity-50"
+                                >
+                                    <X className="h-4 w-4" />
+                                </button>
+                            </div>
 
-                <p className="mt-4 text-sm text-zinc-400">
-                    {Array.isArray(deleteTarget)
-                        ? `Are you sure you want to delete these ${deleteTarget.length} selected items? This action cannot be undone.`
-                        : `This action cannot be undone. Are you sure you want to permanently delete this record?`}
-                </p>
+                            <p className="mt-4 text-sm text-zinc-400">
+                                {Array.isArray(deleteTarget)
+                                    ? `Are you sure you want to delete these ${deleteTarget.length} selected items? This action cannot be undone.`
+                                    : `This action cannot be undone. Are you sure you want to permanently delete this record?`}
+                            </p>
 
-                <div className="mt-8 flex justify-end gap-3">
-                    <button
-                        onClick={() => setDeleteTarget(null)}
-                        disabled={deleting}
-                        className="rounded-lg border border-zinc-700 px-4 py-2 text-zinc-300 hover:bg-zinc-800 transition-colors"
-                    >
-                        Cancel
-                    </button>
+                            <div className="mt-8 flex justify-end gap-3">
+                                <button
+                                    onClick={() => setDeleteTarget(null)}
+                                    disabled={deleting}
+                                    className="rounded-lg border border-zinc-700 px-4 py-2 text-zinc-300 hover:bg-zinc-800 transition-colors"
+                                >
+                                    Cancel
+                                </button>
 
-                    <button
-                        onClick={confirmDelete}
-                        disabled={deleting}
-                        className="rounded-lg bg-red-600 px-4 py-2 font-semibold text-white hover:bg-red-500 disabled:opacity-50 transition-colors shadow-[0_0_12px_rgba(220,38,38,0.2)]"
-                    >
-                        {deleting ? 'Deleting...' : 'Delete'}
-                    </button>
-                </div>
-            </div>
-        </div>
-    )
-}
+                                <button
+                                    onClick={confirmDelete}
+                                    disabled={deleting}
+                                    className="rounded-lg bg-red-600 px-4 py-2 font-semibold text-white hover:bg-red-500 disabled:opacity-50 transition-colors shadow-[0_0_12px_rgba(220,38,38,0.2)]"
+                                >
+                                    {deleting ? 'Deleting...' : 'Delete'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
         </div >
     );
 }

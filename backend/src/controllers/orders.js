@@ -24,7 +24,13 @@ async function getOrderById(req, res, next) {
             return res.status(404).json({ error: 'Order not found.' });
         }
 
-        res.json({ order });
+        const paymentOptions = {
+            stripeConfigured: !!process.env.STRIPE_SECRET_KEY,
+            paypalConfigured: !!(process.env.PAYPAL_CLIENT_ID && process.env.PAYPAL_CLIENT_SECRET),
+            stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY || null,
+        };
+
+        res.json({ order, paymentOptions });
     } catch (err) {
         next(err);
     }
