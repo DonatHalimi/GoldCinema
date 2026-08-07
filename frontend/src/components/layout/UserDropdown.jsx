@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Ticket, LayoutDashboard, LogOut, ChevronDown, Settings } from 'lucide-react';
+import { User, Ticket, LayoutDashboard, LogOut, ChevronDown, Settings, User2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import Avatar from '../ui/Avatar';
 
 export default function UserDropdown() {
     const { user, logout } = useAuth();
@@ -39,9 +40,13 @@ export default function UserDropdown() {
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={() => setOpen((prev) => !prev)}
-                className="flex items-center gap-2 rounded-full border border-marquee-line bg-marquee-panel2 px-4 py-2 text-marquee-cream transition hover:border-marquee-gold"
+                className="flex items-center gap-2 rounded-full border border-marquee-line bg-marquee-panel2 px-2 py-1 text-marquee-cream transition hover:border-marquee-gold"
             >
-                <User size={18} />
+                <Avatar
+                    name={user?.name}
+                    avatar={user?.avatar}
+                    size="sm"
+                />
 
                 <span>{displayName}</span>
 
@@ -53,56 +58,66 @@ export default function UserDropdown() {
 
             {open && (
                 <div className="absolute right-0 mt-3 w-60 overflow-hidden rounded-xl border border-marquee-line bg-marquee-panel shadow-2xl">
-                    <div className="border-b border-marquee-line px-4 py-4">
-                        <p className="font-semibold text-marquee-cream">
-                            {displayName}
-                        </p>
+                    <div className="flex items-center gap-3 border-b border-marquee-line px-3 py-4">
+                        <Avatar
+                            name={user?.name}
+                            avatar={user?.avatar}
+                            size="sm"
+                        />
 
-                        <p className="mt-1 text-xs text-marquee-muted">
-                            {user.email}
-                        </p>
+                        <div className="min-w-0">
+                            <p className="truncate font-semibold text-marquee-cream">
+                                {displayName}
+                            </p>
+
+                            <p className="truncate text-xs text-marquee-muted">
+                                {user.email}
+                            </p>
+                        </div>
                     </div>
 
-                    {isAdmin && (
+                    <div className="flex flex-col px-1">
                         <Link
-                            to="/admin/users"
+                            to="/account"
                             onClick={() => setOpen(false)}
                             className="flex items-center gap-3 px-4 py-3 text-sm text-marquee-muted transition hover:bg-marquee-panel2 hover:text-marquee-gold"
                         >
-                            <LayoutDashboard size={18} />
-                            Dashboard
+                            <User2 size={18} />
+                            Account
                         </Link>
-                    )}
 
-                    <Link
-                        to="/account"
-                        onClick={() => setOpen(false)}
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-marquee-muted transition hover:bg-marquee-panel2 hover:text-marquee-gold"
-                    >
-                        <Settings size={18} />
-                        Account
-                    </Link>
+                        {isAdmin && (
+                            <Link
+                                to="/admin/users"
+                                onClick={() => setOpen(false)}
+                                className="flex items-center gap-3 px-4 py-3 text-sm text-marquee-muted transition hover:bg-marquee-panel2 hover:text-marquee-gold"
+                            >
+                                <LayoutDashboard size={18} />
+                                Dashboard
+                            </Link>
+                        )}
 
-                    <Link
-                        to="/tickets"
-                        onClick={() => setOpen(false)}
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-marquee-muted transition hover:bg-marquee-panel2 hover:text-marquee-gold"
-                    >
-                        <Ticket size={18} />
-                        My Tickets
-                    </Link>
+                        <Link
+                            to="/account/tickets"
+                            onClick={() => setOpen(false)}
+                            className="flex items-center gap-3 px-4 py-3 text-sm text-marquee-muted transition hover:bg-marquee-panel2 hover:text-marquee-gold"
+                        >
+                            <Ticket size={18} />
+                            My Tickets
+                        </Link>
 
-                    <button
-                        onClick={() => {
-                            setOpen(false);
-                            logout();
-                            navigate('/');
-                        }}
-                        className="flex w-full items-center gap-3 border-t border-marquee-line px-4 py-3 text-left text-sm text-red-400 transition hover:bg-red-500/10"
-                    >
-                        <LogOut size={18} />
-                        Log out
-                    </button>
+                        <button
+                            onClick={() => {
+                                setOpen(false);
+                                logout();
+                                navigate('/');
+                            }}
+                            className="flex w-full items-center gap-3 border-t border-marquee-line px-4 py-3 text-left text-sm text-red-400 transition hover:bg-red-500/10"
+                        >
+                            <LogOut size={18} />
+                            Log out
+                        </button>
+                    </div>
                 </div>
             )}
         </div>

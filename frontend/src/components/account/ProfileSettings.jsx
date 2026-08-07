@@ -28,7 +28,6 @@ export default function ProfileSettings() {
         try {
             const { data } = await api.get('/auth/me');
 
-            // Safely access user data with fallbacks
             const userData = data?.user || data || {};
 
             setForm({
@@ -91,13 +90,11 @@ export default function ProfileSettings() {
 
             toast.success(response.data?.message || 'Password updated successfully. Please log in again.');
 
-            // Clear password fields
             setPasswordForm({
                 currentPassword: '',
                 newPassword: '',
             });
 
-            // Optionally redirect to login after a delay
             setTimeout(() => {
                 window.location.href = '/login';
             }, 2000);
@@ -206,6 +203,10 @@ export default function ProfileSettings() {
                 <h2 className="font-display text-2xl font-semibold tracking-wide text-marquee-goldBright">
                     Change Password
                 </h2>
+
+                <p className="mt-1 text-sm text-marquee-muted">
+                    Secure your account by changing your password
+                </p>
 
                 <form onSubmit={handlePasswordChange} className="mt-6 space-y-6">
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">

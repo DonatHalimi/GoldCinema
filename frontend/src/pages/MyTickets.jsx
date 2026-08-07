@@ -4,6 +4,7 @@ import api from '../api/client';
 import TicketCard from '../components/tickets/TicketCard';
 import EmptyTickets from '../components/tickets/EmptyTickets';
 import TicketSidebar from '../components/tickets/TicketSidebar';
+import TicketContent from '../components/account/TicketContent';
 
 export default function MyTickets() {
   const [orders, setOrders] = useState([]);
@@ -11,27 +12,6 @@ export default function MyTickets() {
   const [error, setError] = useState('');
 
   const [active, setActive] = useState('all');
-
-  useEffect(() => {
-    async function loadTickets() {
-      try {
-        const { data } = await api.get('/orders/mine');
-
-        setOrders(data.orders || []);
-      } catch (err) {
-        console.error('ORDERS LOAD ERROR:', err);
-        setError(
-          err.response?.data?.error ||
-          err.message ||
-          'Failed to load tickets'
-        );
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadTickets();
-  }, []);
 
   const filteredOrders = orders.filter((order) => {
     if (active === 'all') {
@@ -64,45 +44,11 @@ export default function MyTickets() {
         setActive={setActive}
       />
 
-      <main className="flex-1 rounded-xl border border-marquee-line bg-marquee-panel p-8">
-        <div className="mb-8 border-b border-marquee-line pb-6">
-          <h1 className="font-display text-3xl text-marquee-goldBright">
-            {active === 'all' && 'All Tickets'}
-            {active === 'upcoming' && 'Upcoming Movies'}
-            {active === 'past' && 'Past Movies'}
-            {active === 'cancelled' && 'Cancelled Tickets'}
-          </h1>
-
-          <p className="mt-2 text-sm text-marquee-muted">
-            Your GoldCinema bookings
-          </p>
-        </div>
-
-        {loading && (
-          <p className="text-marquee-muted">
-            Loading your tickets...
-          </p>
-        )}
-
-        {error && (
-          <p className="text-red-400">
-            {error}
-          </p>
-        )}
-
-        {!loading && filteredOrders.length === 0 && (
-          <EmptyTickets />
-        )}
-
-        <div className="space-y-4">
-          {filteredOrders.map((order) => (
-            <TicketCard
-              key={order._id}
-              order={order}
-            />
-          ))}
-        </div>
-      </main>
+      <TicketContent
+        orders={filteredOrders}
+        loading={loading}
+        error={error}
+      />
     </div>
   );
 }

@@ -22,6 +22,7 @@ const userSchema = new Schema(
         },
         passwordHash: { type: String, required: true },
         role: { type: Schema.Types.ObjectId, ref: 'Role' },
+        avatar: { type: String, default: null },
 
         emailVerified: { type: Boolean, default: false },
         verificationToken: { type: String, default: null },
@@ -39,6 +40,29 @@ const userSchema = new Schema(
 
         orderHistory: [{ type: Schema.Types.ObjectId, ref: 'Order' }],
         totalSpent: { type: Number, default: 0 },
+
+        twoFactor: {
+            enabled: { type: Boolean, default: false },
+            method: { type: String, enum: ['email', 'totp', 'sms', null], default: null },
+            totpSecret: { type: String, select: false },
+            pendingMethod: { type: String, enum: ['email', 'totp', null], default: null },
+            pendingTotpSecret: { type: String, select: false },
+            emailOtpHash: { type: String, select: false },
+            emailOtpExpiresAt: { type: Date, select: false },
+            backupCodes: [{
+                codeHash: { type: String, select: false },
+                usedAt: { type: Date, default: null },
+            }],
+        },
+        mfaFailedAttempts: { type: Number, default: 0 },
+        mfaLockUntil: { type: Date, default: null },
+        trustedDevices: [{
+            tokenHash: { type: String, required: true },
+            label: { type: String },
+            createdAt: { type: Date, default: Date.now },
+            lastUsedAt: { type: Date, default: Date.now },
+            expiresAt: { type: Date, required: true },
+        }],
     },
     { timestamps: true }
 );
@@ -49,6 +73,7 @@ userSchema.methods.toPublicJSON = function toPublicJSON() {
         name: this.name,
         email: this.email,
         role: this.role,
+        avatar: this.avatar,
         emailVerified: this.emailVerified,
         createdAt: this.createdAt,
     };

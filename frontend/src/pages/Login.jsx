@@ -8,6 +8,7 @@ import { FacebookIcon, GoogleIcon } from '../components/ui/Icons';
 import { ForgotPasswordModal } from '../components/auth/ForgotPasswordModal';
 import RememberMeCheckbox from '../components/auth/RememberMeCheckbox';
 import SocialLoginButtons from '../components/auth/SocialLoginButtons';
+import MfaVerifyStep from '../components/auth/MfaVerifyStep';
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const facebookAppId = import.meta.env.VITE_FACEBOOK_APP_ID;
@@ -27,6 +28,7 @@ export default function Login() {
   const [submitting, setSubmitting] = useState(false);
   const [googleReady, setGoogleReady] = useState(false);
   const [facebookReady, setFacebookReady] = useState(false);
+  const [mfaState, setMfaState] = useState(null);
   const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [touched, setTouched] = useState({});
@@ -176,7 +178,17 @@ export default function Login() {
     }
 
     try {
-      await login(email, password, rememberMe);
+      const result = await login(email, password, rememberMe);
+
+      if (result?.mfaRequired) {
+        setMfaState({
+          mfaToken: result.mfaToken,
+          method: result.method,
+          rememberMe: result.rememberMe,
+        });
+        return;
+      }
+
       navigate(from, { replace: true });
     } catch (err) {
       setError(err.response?.data?.error || err.message || 'Login failed');
@@ -206,75 +218,85 @@ export default function Login() {
   return (
     <div className="mx-auto flex max-w-md items-center py-20">
       <div className="w-full rounded-2xl border border-marquee-line bg-marquee-panel2 p-9">
-        <h1 className="mb-6 text-center font-serif text-3xl font-bold text-marquee-cream">
-          Welcome back
-        </h1>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Field
-            label="Email"
-            type="email"
-            value={email}
-            onChange={(value) => {
-              setEmail(value);
-              validateField('email', value);
-            }}
-            required
-            error={fieldErrors.email}
+        {mfaState ? (
+          <MfaVerifyStep
+            mfaState={mfaState}
+            from={from}
+            onBack={() => setMfaState(null)}
           />
+        ) : (
+          <>
+            <h1 className="mb-6 text-center font-serif text-3xl font-bold text-marquee-cream">
+              Welcome back
+            </h1>
 
-          <PasswordField
-            value={password}
-            onChange={(value) => {
-              setPassword(value);
-              validateField('password', value);
-            }}
-            error={fieldErrors.password}
-          />
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Field
+                label="Email"
+                type="email"
+                value={email}
+                onChange={(value) => {
+                  setEmail(value);
+                  validateField('email', value);
+                }}
+                required
+                error={fieldErrors.email}
+              />
 
-          {fieldErrors.form && <p className="text-sm text-marquee-marquee">{fieldErrors.form}</p>}
-          {error && <p className="text-sm text-marquee-marquee">{error}</p>}
+              <PasswordField
+                value={password}
+                onChange={(value) => {
+                  setPassword(value);
+                  validateField('password', value);
+                }}
+                error={fieldErrors.password}
+              />
 
-          <div className="mt-4 flex items-center justify-between">
-            <RememberMeCheckbox
-              checked={rememberMe}
-              onChange={() => setRememberMe(prev => !prev)}
-            />
+              {fieldErrors.form && <p className="text-sm text-marquee-marquee">{fieldErrors.form}</p>}
+              {error && <p className="text-sm text-marquee-marquee">{error}</p>}
 
-            <button
-              type="button"
-              onClick={() => setIsForgotModalOpen(true)}
-              className="text-sm text-marquee-gold hover:text-marquee-goldBright"
-            >
-              Forgot password?
-            </button>
-          </div>
+              <div className="mt-4 flex items-center justify-between">
+                <RememberMeCheckbox
+                  checked={rememberMe}
+                  onChange={() => setRememberMe(prev => !prev)}
+                />
 
-          <button
-            type="submit"
-            disabled={submitting || !isFormValid}
-            className="w-full rounded-full bg-marquee-gold px-6 py-3 font-semibold text-marquee-bg transition hover:bg-marquee-goldBright disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {submitting ? 'Logging in...' : 'Login'}
-          </button>
+                <button
+                  type="button"
+                  onClick={() => setIsForgotModalOpen(true)}
+                  className="text-sm text-marquee-gold hover:text-marquee-goldBright"
+                >
+                  Forgot password?
+                </button>
+              </div>
 
-          <SocialLoginButtons
-            submitting={submitting}
-            googleBtnRef={googleBtnRef}
-            onGoogle={handleGoogleLogin}
-            onFacebook={handleFacebookLogin}
-          />
-        </form>
+              <button
+                type="submit"
+                disabled={submitting || !isFormValid}
+                className="w-full rounded-full bg-marquee-gold px-6 py-3 font-semibold text-marquee-bg transition hover:bg-marquee-goldBright disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {submitting ? 'Logging in...' : 'Login'}
+              </button>
 
-        <p className="mt-6 text-left text-sm text-marquee-muted">
-          Don't have an account?{' '}
-          <Link to="/register" className="text-marquee-gold hover:text-marquee-goldBright">
-            Create an account
-          </Link>
-        </p>
+              <SocialLoginButtons
+                submitting={submitting}
+                googleBtnRef={googleBtnRef}
+                onGoogle={handleGoogleLogin}
+                onFacebook={handleFacebookLogin}
+              />
+            </form>
 
-        {isForgotModalOpen && (
-          <ForgotPasswordModal isOpen={isForgotModalOpen} onClose={() => setIsForgotModalOpen(false)} />
+            <p className="mt-6 text-left text-sm text-marquee-muted">
+              Don't have an account?{' '}
+              <Link to="/register" className="text-marquee-gold hover:text-marquee-goldBright">
+                Create an account
+              </Link>
+            </p>
+
+            {isForgotModalOpen && (
+              <ForgotPasswordModal isOpen={isForgotModalOpen} onClose={() => setIsForgotModalOpen(false)} />
+            )}
+          </>
         )}
       </div>
     </div>

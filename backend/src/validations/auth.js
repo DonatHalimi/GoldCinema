@@ -92,6 +92,33 @@ const deleteAccountSchema = yup.object({
         .required('Password confirmation is required.'),
 }).noUnknown(true);
 
+const sixDigitCodeSchema = yup.object({
+    code: yup
+        .string()
+        .trim()
+        .required('Verification code is required.')
+        .matches(/^\d{6}$/, 'Code must be exactly 6 digits.'),
+}).noUnknown(true);
+
+const disable2faSchema = yup.object({
+    password: yup
+        .string()
+        .required('Password is required.'),
+}).noUnknown(true);
+
+const verifyLoginMfaSchema = yup.object({
+    mfaToken: yup.string().required(),
+    code: yup.string().required(),
+    rememberMe: yup.boolean().optional(),
+    trustDevice: yup.boolean().optional(),
+});
+
+const resendLoginMfaSchema = yup.object({
+    mfaToken: yup
+        .string()
+        .required('MFA token is required.'),
+}).noUnknown(true);
+
 module.exports = {
     registerSchema,
     loginSchema,
@@ -103,4 +130,8 @@ module.exports = {
     facebookLoginSchema,
     changePasswordSchema,
     deleteAccountSchema,
+    sixDigitCodeSchema,
+    disable2faSchema,
+    verifyLoginMfaSchema,
+    resendLoginMfaSchema,
 };

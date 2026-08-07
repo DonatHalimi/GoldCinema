@@ -16,6 +16,11 @@ const items = [
         icon: User,
     },
     {
+        id: 'tickets',
+        label: 'Tickets',
+        icon: Ticket,
+    },
+    {
         id: 'security',
         label: 'Security',
         icon: Shield,

@@ -29,8 +29,19 @@ const MODULE_CONFIGS = [
             { name: 'duration', label: 'Duration (mins)', type: 'number' },
             { name: 'rating', label: 'Rating (e.g. PG-13, R)' },
             { name: 'price', label: 'Base Price ($)', type: 'number' },
-            { name: 'releaseDate', label: 'Release Date', type: 'date' }
-        ]
+            {
+                name: 'releaseDate',
+                label: 'Release Date',
+                format: (value) =>
+                    value
+                        ? new Date(value).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                        })
+                        : '-',
+            },
+        ],
     },
     {
         key: 'cinemas',

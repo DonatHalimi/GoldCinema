@@ -259,10 +259,73 @@ async function sendTicketEmail(to, order, qrDataUrl) {
     });
 }
 
+async function sendTwoFactorCode({ to, name, code }) {
+    if (!to) throw new Error('No email recipient provided');
+
+    const safeName = escapeHtml(name || 'there');
+    const safeCode = escapeHtml(code);
+
+    const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #0f0f12; color: #f3f3f5; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #18181c; border: 1px solid #2a2a32; border-radius: 12px; overflow: hidden; }
+        .header { background-color: #000000; text-align: center; padding: 24px; border-bottom: 2px solid #d4af37; }
+        .brand { font-size: 26px; font-weight: bold; letter-spacing: 2px; color: #d4af37; text-decoration: none; }
+        .content { padding: 30px; }
+        .code-card { background-color: #222228; padding: 24px; border-radius: 8px; text-align: center; margin: 24px 0; border: 1px solid #2a2a32; }
+        .code-display { font-family: monospace; font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #d4af37; margin: 10px 0; }
+        .detail-line { font-size: 14px; color: #b3b3c2; line-height: 1.5; }
+        .warning-text { border-top: 1px dashed #33333d; padding-top: 16px; margin-top: 20px; font-size: 13px; color: #666677; }
+        .footer { text-align: center; padding: 20px; font-size: 12px; color: #666677; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="brand">GOLD<span style="color:#ffffff;">CINEMA</span></div>
+        </div>
+        <div class="content">
+          <h2 style="color: #ffffff; margin-top: 0;">Two-Factor Authentication</h2>
+          <p class="detail-line">Hi <strong>${safeName}</strong>,</p>
+          <p class="detail-line">Use the verification code below to complete your sign-in process.</p>
+
+          <div class="code-card">
+            <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #b3b3c2; margin-bottom: 6px;">Your Security Code</div>
+            <div class="code-display">${safeCode}</div>
+            <div style="font-size: 13px; color: #b3b3c2; margin-top: 6px;">Expires in <strong>10 minutes</strong></div>
+          </div>
+
+          <div class="warning-text">
+            If you did not request this code, please ignore this message or change your password to secure your account.
+          </div>
+        </div>
+        <div class="footer">
+          &copy; ${new Date().getFullYear()} GoldCinema. All rights reserved.
+        </div>
+      </div>
+    </body>
+    </html>
+    `;
+
+    const transporter = getTransporter();
+    await transporter.sendMail({
+        from: process.env.SMTP_FROM || 'GoldCinema <no-reply@goldcinema.example>',
+        to,
+        subject: `🔒 Your GoldCinema Verification Code: ${code}`,
+        text: `Hi ${name},\n\nYour verification code is: ${code}\n\nThis code expires in 10 minutes. If you didn't request this, secure your account immediately.`,
+        html: htmlContent,
+    });
+}
+
 module.exports = {
     getTransporter,
     sendVerificationEmail,
     sendPasswordResetEmail,
     sendOrderEmail,
     sendTicketEmail,
+    sendTwoFactorCode
 };

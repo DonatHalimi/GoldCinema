@@ -3,9 +3,22 @@ const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/user');
 const Role = require('../models/role');
-const { generateVerificationToken, generatePasswordResetToken } = require('../utils/tokens');
-const { sendVerificationEmail, sendPasswordResetEmail } = require('../utils/mailer');
+const { generateVerificationToken,
+    generatePasswordResetToken,
+    generateMfaPendingToken,
+    verifyMfaPendingToken,
+    generateBackupCodes,
+    generateDeviceToken,
+    hashDeviceToken,
+} = require('../utils/tokens');
+const { sendVerificationEmail, sendPasswordResetEmail, sendTwoFactorCode } = require('../utils/mailer');
 const LoginAttempt = require('../models/loginAttempt');
+const { authenticator } = require('otplib');
+const qrcode = require('qrcode');
+
+const TRUSTED_DEVICE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+const EMAIL_OTP_TTL_MS = 10 * 60 * 1000;
+const MFA_MAX_ATTEMPTS = 5;
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -305,6 +318,35 @@ async function login(req, res) {
         user.failedLoginAttempts = 0;
         user.lockUntil = null;
         user.lockStage = 0;
+
+        if (user.twoFactor?.enabled) {
+            const trustedEntry = findTrustedDeviceEntry(user, req);
+
+            if (trustedEntry) {
+                trustedEntry.lastUsedAt = new Date();
+            } else {
+                await user.save();
+
+                const mfaToken = generateMfaPendingToken(user._id);
+
+                if (user.twoFactor.method === 'email') {
+                    const code = String(Math.floor(100000 + Math.random() * 900000));
+                    user.twoFactor.emailOtpHash = await bcrypt.hash(code, 10);
+                    user.twoFactor.emailOtpExpiresAt = new Date(Date.now() + EMAIL_OTP_TTL_MS);
+                    await user.save();
+                    await sendTwoFactorCode({ to: user.email, name: user.name, code });
+                }
+
+                await recordAttempt({ email, user, req, success: true, reason: 'password_ok_mfa_pending' });
+
+                return res.status(200).json({
+                    mfaRequired: true,
+                    method: user.twoFactor.method,
+                    mfaToken,
+                    rememberMe,
+                });
+            }
+        }
 
         const refreshExpiresIn = rememberMe ? '30d' : '7d';
         const refreshMaxAgeMs = rememberMe ? 30 * DAY_MS : 7 * DAY_MS;
@@ -617,6 +659,10 @@ async function me(req, res) {
                 name: user.name,
                 role: roleName,
                 emailVerified: user.emailVerified,
+                twoFactor: {
+                    enabled: user.twoFactor?.enabled || false,
+                    method: user.twoFactor?.method || null,
+                },
             },
         });
     } catch (error) {
@@ -674,6 +720,279 @@ async function updateProfile(req, res, next) {
     }
 }
 
+function setTrustedDeviceCookie(res, rawToken) {
+    res.cookie('trustedDevice', rawToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: TRUSTED_DEVICE_MAX_AGE_MS,
+    });
+}
+
+function findTrustedDeviceEntry(user, req) {
+    const raw = req.cookies?.trustedDevice;
+    if (!raw) return null;
+    const hash = hashDeviceToken(raw);
+    return user.trustedDevices?.find((d) => d.tokenHash === hash && d.expiresAt > new Date()) || null;
+}
+
+async function verifyLoginMfa(req, res, next) {
+    try {
+        const { mfaToken, code, rememberMe, trustDevice } = req.body;
+
+        let decoded;
+        try {
+            decoded = verifyMfaPendingToken(mfaToken);
+        } catch {
+            return res.status(401).json({ error: 'MFA session expired. Please log in again.' });
+        }
+
+        const user = await User.findById(decoded.id)
+            .select('+twoFactor.totpSecret +twoFactor.emailOtpHash +twoFactor.emailOtpExpiresAt +twoFactor.backupCodes.codeHash')
+            .populate('role');
+
+        if (!user || !user.twoFactor?.enabled) {
+            return res.status(400).json({ error: 'Two-factor authentication is not active on this account.' });
+        }
+
+        if (user.mfaLockUntil && user.mfaLockUntil > new Date()) {
+            const waitMinutes = Math.ceil((user.mfaLockUntil - Date.now()) / 60000);
+            return res.status(423).json({ error: `Too many failed codes. Try again in ${waitMinutes} minute(s).` });
+        }
+
+        let verified = false;
+
+        if (user.twoFactor.method === 'totp') {
+            verified = authenticator.check(code, user.twoFactor.totpSecret);
+        } else if (user.twoFactor.method === 'email') {
+            verified =
+                user.twoFactor.emailOtpHash &&
+                user.twoFactor.emailOtpExpiresAt > new Date() &&
+                (await bcrypt.compare(code, user.twoFactor.emailOtpHash));
+        }
+
+        if (!verified && user.twoFactor.backupCodes?.length) {
+            for (const bc of user.twoFactor.backupCodes) {
+                if (!bc.usedAt && (await bcrypt.compare(code, bc.codeHash))) {
+                    bc.usedAt = new Date();
+                    verified = true;
+                    break;
+                }
+            }
+        }
+
+        if (!verified) {
+            user.mfaFailedAttempts = (user.mfaFailedAttempts || 0) + 1;
+            if (user.mfaFailedAttempts >= MFA_MAX_ATTEMPTS) {
+                user.mfaLockUntil = new Date(Date.now() + 15 * 60 * 1000);
+                user.mfaFailedAttempts = 0;
+            }
+            await user.save();
+            return res.status(401).json({ error: 'Invalid or expired code.' });
+        }
+
+        user.mfaFailedAttempts = 0;
+        user.mfaLockUntil = null;
+        user.twoFactor.emailOtpHash = undefined;
+        user.twoFactor.emailOtpExpiresAt = undefined;
+
+        if (trustDevice) {
+            const rawToken = generateDeviceToken();
+            user.trustedDevices = user.trustedDevices || [];
+            user.trustedDevices.push({
+                tokenHash: hashDeviceToken(rawToken),
+                label: (req.headers['user-agent'] || 'Unknown device').slice(0, 120),
+                expiresAt: new Date(Date.now() + TRUSTED_DEVICE_MAX_AGE_MS),
+            });
+            setTrustedDeviceCookie(res, rawToken);
+        }
+
+        const refreshExpiresIn = rememberMe ? '30d' : '7d';
+        const refreshMaxAgeMs = rememberMe ? 30 * DAY_MS : 7 * DAY_MS;
+        const { accessToken, refreshToken } = generateTokens(user._id, refreshExpiresIn);
+
+        user.refreshTokens.push({
+            token: refreshToken,
+            expiresAt: new Date(Date.now() + refreshMaxAgeMs),
+            createdAt: new Date(),
+            rememberMe,
+        });
+
+        await user.save();
+        setCookies(res, accessToken, refreshToken, refreshMaxAgeMs);
+
+        res.json({
+            message: 'Logged in successfully',
+            user: { id: user._id, name: user.name, email: user.email, role: user.role },
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function setupTotp(req, res, next) {
+    try {
+        const user = await User.findById(req.user.id);
+        const secret = authenticator.generateSecret();
+
+        user.twoFactor.pendingMethod = 'totp';
+        user.twoFactor.pendingTotpSecret = secret;
+        await user.save();
+
+        const otpauthUrl = authenticator.keyuri(user.email, 'GoldCinema', secret);
+        const qrDataUrl = await qrcode.toDataURL(otpauthUrl);
+
+        res.json({ qrDataUrl, secret }); // secret shown once as manual-entry fallback
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function verifyTotpSetup(req, res, next) {
+    try {
+        const { code } = req.body;
+        const user = await User.findById(req.user.id).select('+twoFactor.pendingTotpSecret');
+
+        if (!user.twoFactor?.pendingTotpSecret) {
+            return res.status(400).json({ error: 'No TOTP setup in progress. Start setup again.' });
+        }
+
+        if (!authenticator.check(code, user.twoFactor.pendingTotpSecret)) {
+            return res.status(400).json({ error: 'Invalid code. Please try again.' });
+        }
+
+        user.twoFactor.totpSecret = user.twoFactor.pendingTotpSecret;
+        user.twoFactor.pendingTotpSecret = undefined;
+        user.twoFactor.pendingMethod = null;
+        user.twoFactor.enabled = true;
+        user.twoFactor.method = 'totp';
+
+        const backupCodes = generateBackupCodes();
+        user.twoFactor.backupCodes = await Promise.all(
+            backupCodes.map(async (c) => ({ codeHash: await bcrypt.hash(c, 10) }))
+        );
+
+        await user.save();
+        res.json({ message: 'Authenticator app enabled.', backupCodes }); // shown once — not retrievable again
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function enableEmail2fa(req, res, next) {
+    try {
+        const user = await User.findById(req.user.id);
+        const code = String(Math.floor(100000 + Math.random() * 900000));
+
+        user.twoFactor.pendingMethod = 'email';
+        user.twoFactor.emailOtpHash = await bcrypt.hash(code, 10);
+        user.twoFactor.emailOtpExpiresAt = new Date(Date.now() + EMAIL_OTP_TTL_MS);
+        await user.save();
+
+        await sendTwoFactorCode({ to: user.email, name: user.name, code });
+        res.json({ message: 'Verification code sent to your email.' });
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function verifyEmail2faSetup(req, res, next) {
+    try {
+        const { code } = req.body;
+        const user = await User.findById(req.user.id).select('+twoFactor.emailOtpHash +twoFactor.emailOtpExpiresAt');
+
+        const valid =
+            user.twoFactor?.emailOtpHash &&
+            user.twoFactor.emailOtpExpiresAt > new Date() &&
+            (await bcrypt.compare(code, user.twoFactor.emailOtpHash));
+
+        if (!valid) return res.status(400).json({ error: 'Invalid or expired code.' });
+
+        user.twoFactor.enabled = true;
+        user.twoFactor.method = 'email';
+        user.twoFactor.pendingMethod = null;
+        user.twoFactor.emailOtpHash = undefined;
+        user.twoFactor.emailOtpExpiresAt = undefined;
+
+        const backupCodes = generateBackupCodes();
+        user.twoFactor.backupCodes = await Promise.all(
+            backupCodes.map(async (c) => ({ codeHash: await bcrypt.hash(c, 10) }))
+        );
+
+        await user.save();
+        res.json({ message: 'Email 2FA enabled.', backupCodes });
+    } catch (err) {
+        next(err);
+    }
+}
+
+const setupSms2fa = async (req, res, next) => {
+    try {
+        const { phoneNumber } = req.body;
+        await authService.sendSmsVerificationCode(req.user.id, phoneNumber);
+        res.status(200).json({ success: true, message: 'Verification code sent via SMS.' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const verifySms2faSetup = async (req, res, next) => {
+    try {
+        const { phoneNumber, code } = req.body;
+        await authService.verifyAndEnableSms(req.user.id, phoneNumber, code);
+        res.status(200).json({ success: true, message: 'SMS 2FA enabled successfully.' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+async function disable2fa(req, res, next) {
+    try {
+        const { password } = req.body;
+        const user = await User.findById(req.user.id);
+
+        if (!(await bcrypt.compare(password, user.passwordHash))) {
+            return res.status(401).json({ error: 'Incorrect password.' });
+        }
+
+        user.twoFactor = { enabled: false, method: null, backupCodes: [] };
+        user.trustedDevices = [];
+        await user.save();
+
+        res.json({ message: 'Two-factor authentication disabled.' });
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function resendLoginMfaCode(req, res, next) {
+    try {
+        const { mfaToken } = req.body;
+
+        let decoded;
+        try {
+            decoded = verifyMfaPendingToken(mfaToken);
+        } catch {
+            return res.status(401).json({ error: 'MFA session expired. Please log in again.' });
+        }
+
+        const user = await User.findById(decoded.id);
+        if (!user?.twoFactor?.enabled || user.twoFactor.method !== 'email') {
+            return res.status(400).json({ error: 'Email code resend is not available for this account.' });
+        }
+
+        const code = String(Math.floor(100000 + Math.random() * 900000));
+        user.twoFactor.emailOtpHash = await bcrypt.hash(code, 10);
+        user.twoFactor.emailOtpExpiresAt = new Date(Date.now() + EMAIL_OTP_TTL_MS);
+        await user.save();
+
+        await sendTwoFactorCode({ to: user.email, name: user.name, code });
+        res.json({ message: 'Code resent.' });
+    } catch (err) {
+        next(err);
+    }
+}
+
 async function logout(req, res) {
     const { refreshToken } = req.cookies;
 
@@ -703,5 +1022,14 @@ module.exports = {
     facebookLogin,
     me,
     updateProfile,
+    setupTotp,
+    verifyTotpSetup,
+    setupSms2fa,
+    verifySms2faSetup,
+    enableEmail2fa,
+    verifyEmail2faSetup,
+    verifyLoginMfa,
+    resendLoginMfaCode,
+    disable2fa,
     logout,
 };

@@ -64,11 +64,15 @@ export async function deleteItem(resource, id) {
   return data;
 }
 
-export const bulkDeleteItems = async (moduleKey, ids) => {
-  const response = await client.delete(`/${moduleKey}/bulk-delete`, {
-    data: { ids }
-  });
-  return response.data;
-};
+export async function bulkDeleteItems(resource, ids) {
+  const { data } = await api.delete(
+    `/admin/${resource}/bulk-delete`,
+    {
+      data: { ids },
+    }
+  );
+
+  return data;
+}
 
 export default api;

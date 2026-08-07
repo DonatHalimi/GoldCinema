@@ -95,13 +95,21 @@ function deleteMany(Model) {
             const { ids } = req.body;
 
             if (!Array.isArray(ids) || ids.length === 0) {
-                return res.status(400).json({ error: 'Please provide an array of IDs to delete' });
+                return res.status(400).json({
+                    error: 'Please provide an array of IDs to delete',
+                });
             }
 
-            const result = await Model.deleteMany({ _id: { $in: ids } });
+            const validIds = ids.filter((id) =>
+                mongoose.Types.ObjectId.isValid(id)
+            );
+
+            const result = await Model.deleteMany({
+                _id: { $in: validIds },
+            });
 
             res.status(200).json({
-                message: `Successfully deleted ${result.deletedCount} items`,
+                success: true,
                 deletedCount: result.deletedCount,
             });
         } catch (error) {

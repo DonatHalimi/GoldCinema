@@ -7,8 +7,9 @@ export function Field({
     value,
     onChange,
     required,
-    error,
     onBlur,
+    error,
+    ...props
 }) {
     const [focused, setFocused] = useState(false);
 
@@ -28,6 +29,7 @@ export function Field({
                     setFocused(false);
                     onBlur?.();
                 }}
+                {...props}
                 className={`w-full rounded-md border bg-marquee-panel2 px-4 py-2.5 text-marquee-cream outline-none transition
         ${error
                         ? 'border-red-500 focus:border-red-500'
@@ -111,6 +113,7 @@ export function PasswordField({
     onChange,
     error,
     label = "Password",
+    ...props
 }) {
     const [showPassword, setShowPassword] = useState(false);
 
@@ -122,6 +125,7 @@ export function PasswordField({
                 value={value}
                 onChange={onChange}
                 error={error}
+                {...props}
             />
 
             <button

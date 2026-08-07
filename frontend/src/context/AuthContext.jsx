@@ -41,14 +41,30 @@ export function AuthProvider({ children }) {
   };
 
   const login = async (email, password, rememberMe = false) => {
-    const { data } = await api.post('/auth/login', {
-      email,
-      password,
-      rememberMe,
-    });
-
+    const { data } = await api.post('/auth/login', { email, password, rememberMe });
+    if (data.mfaRequired) return data;
     setUser(data.user);
     return data;
+  };
+
+  const verifyLoginMfa = async (
+    mfaToken,
+    code,
+    rememberMe,
+    trustDevice
+  ) => {
+    const response = await api.post('/auth/2fa/verify-login', {
+      mfaToken,
+      code,
+      rememberMe,
+      trustDevice,
+    });
+
+    const { data } = await api.get('/auth/me');
+
+    setUser(data.user);
+
+    return response.data;
   };
 
   const loginWithGoogle = async (credential) => {
@@ -92,7 +108,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, setUser, register, forgotPassword, resetPassword, login, loginWithGoogle, loginWithFacebook, logout, loading }}>
+    <AuthContext.Provider value={{ user, setUser, register, forgotPassword, resetPassword, login, verifyLoginMfa, changePassword, deleteAccount, loginWithGoogle, loginWithFacebook, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
