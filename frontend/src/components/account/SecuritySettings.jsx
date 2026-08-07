@@ -10,6 +10,7 @@ import {
 import api from '../../api/client';
 import EnableEmail2faModal from '../ui/EnableEmail2faModal';
 import Disable2faModal from '../ui/DisableEmail2faModal';
+import EnableTotpModal from '../ui/EnableTotpModal';
 
 export default function SecuritySettings() {
     const [showEmailVerify, setShowEmailVerify] = useState(false);
@@ -85,7 +86,7 @@ export default function SecuritySettings() {
                 {/* Two Factor Authentication */}
                 <div className="rounded-xl border border-marquee-line bg-marquee-bg p-5">
                     <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-start gap-3 flex-1">
                             <ShieldCheck className="h-6 w-6 text-marquee-gold shrink-0" />
 
                             <div>
@@ -120,6 +121,7 @@ export default function SecuritySettings() {
                     <div className="mt-5 flex flex-wrap gap-3">
                         {twoFactor.method !== 'email' && (
                             <button
+                                type="button"
                                 onClick={enableEmail2FA}
                                 disabled={loading}
                                 className="rounded-full bg-marquee-gold px-5 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-marquee-goldBright disabled:opacity-50"
@@ -150,7 +152,6 @@ export default function SecuritySettings() {
                     </div>
                 </div>
 
-                {/* Login Alerts */}
                 <div className="rounded-xl border border-marquee-line bg-marquee-bg p-5">
                     <div className="flex items-center gap-3">
                         <Bell className="text-marquee-gold" />
@@ -166,15 +167,11 @@ export default function SecuritySettings() {
                         </div>
                     </div>
 
-                    <button
-                        disabled
-                        className="mt-5 cursor-not-allowed rounded-full bg-marquee-panel2 px-5 py-2 text-sm text-marquee-muted"
-                    >
+                    <button disabled className="mt-5 cursor-not-allowed rounded-full bg-marquee-panel2 px-5 py-2 text-sm text-marquee-muted">
                         Coming Soon
                     </button>
                 </div>
 
-                {/* Trusted Devices */}
                 <div className="rounded-xl border border-marquee-line bg-marquee-bg p-5">
                     <div className="flex items-center gap-3">
                         <Laptop className="text-marquee-gold" />
@@ -198,7 +195,6 @@ export default function SecuritySettings() {
                     </button>
                 </div>
 
-                {/* Security Activity */}
                 <div className="rounded-xl border border-marquee-line bg-marquee-bg p-5">
                     <div className="flex items-center gap-3">
                         <History className="text-marquee-gold" />
@@ -214,10 +210,7 @@ export default function SecuritySettings() {
                         </div>
                     </div>
 
-                    <button
-                        disabled
-                        className="mt-5 cursor-not-allowed rounded-full bg-marquee-panel2 px-5 py-2 text-sm text-marquee-muted"
-                    >
+                    <button disabled className="mt-5 cursor-not-allowed rounded-full bg-marquee-panel2 px-5 py-2 text-sm text-marquee-muted">
                         Coming Soon
                     </button>
                 </div>
@@ -262,7 +255,6 @@ export default function SecuritySettings() {
                 />
             )}
 
-            {/* Authenticator App */}
             {showTotpSetup && (
                 <EnableTotpModal
                     onClose={() => setShowTotpSetup(false)}

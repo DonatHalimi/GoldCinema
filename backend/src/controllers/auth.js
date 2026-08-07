@@ -12,8 +12,8 @@ const { generateVerificationToken,
     hashDeviceToken,
 } = require('../utils/tokens');
 const { sendVerificationEmail, sendPasswordResetEmail, sendTwoFactorCode } = require('../utils/mailer');
+const { authenticator } = require('@otplib/preset-default');
 const LoginAttempt = require('../models/loginAttempt');
-const { authenticator } = require('otplib');
 const qrcode = require('qrcode');
 
 const TRUSTED_DEVICE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
@@ -25,7 +25,6 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCK_STAGES_MIN = [1, 5, 15, 60];
 const DAY_MS = 24 * 60 * 60 * 1000;
-
 
 const generateTokens = (userId, refreshExpiresIn = process.env.JWT_REFRESH_EXPIRES_IN) => {
     const accessToken = jwt.sign(
@@ -763,10 +762,10 @@ async function verifyLoginMfa(req, res, next) {
         let verified = false;
 
         if (user.twoFactor.method === 'totp') {
-            verified = authenticator.check(code, user.twoFactor.totpSecret);
+            const token = String(code || '').trim();
+            verified = authenticator.verify({ secret: user.twoFactor.totpSecret, token });
         } else if (user.twoFactor.method === 'email') {
-            verified =
-                user.twoFactor.emailOtpHash &&
+            verified = user.twoFactor.emailOtpHash &&
                 user.twoFactor.emailOtpExpiresAt > new Date() &&
                 (await bcrypt.compare(code, user.twoFactor.emailOtpHash));
         }
@@ -833,16 +832,21 @@ async function verifyLoginMfa(req, res, next) {
 async function setupTotp(req, res, next) {
     try {
         const user = await User.findById(req.user.id);
-        const secret = authenticator.generateSecret();
 
+        const secret = authenticator.generateSecret();
         user.twoFactor.pendingMethod = 'totp';
         user.twoFactor.pendingTotpSecret = secret;
         await user.save();
 
-        const otpauthUrl = authenticator.keyuri(user.email, 'GoldCinema', secret);
-        const qrDataUrl = await qrcode.toDataURL(otpauthUrl);
+        const otpauth = authenticator.keyuri(
+            user.email,
+            'GoldCinema',
+            secret
+        );
 
-        res.json({ qrDataUrl, secret }); // secret shown once as manual-entry fallback
+        const qrDataUrl = await qrcode.toDataURL(otpauth);
+
+        res.json({ qrDataUrl, secret });
     } catch (err) {
         next(err);
     }
@@ -851,29 +855,41 @@ async function setupTotp(req, res, next) {
 async function verifyTotpSetup(req, res, next) {
     try {
         const { code } = req.body;
-        const user = await User.findById(req.user.id).select('+twoFactor.pendingTotpSecret');
 
-        if (!user.twoFactor?.pendingTotpSecret) {
-            return res.status(400).json({ error: 'No TOTP setup in progress. Start setup again.' });
-        }
+        if (!code) return res.status(400).json({ error: 'Verification code is required' });
 
-        if (!authenticator.check(code, user.twoFactor.pendingTotpSecret)) {
-            return res.status(400).json({ error: 'Invalid code. Please try again.' });
-        }
+        const user = await User.findById(req.user.id)
+            .select('+twoFactor.pendingTotpSecret');
 
-        user.twoFactor.totpSecret = user.twoFactor.pendingTotpSecret;
-        user.twoFactor.pendingTotpSecret = undefined;
-        user.twoFactor.pendingMethod = null;
+        if (!user.twoFactor.pendingTotpSecret) return res.status(400).json({ error: "No authenticator setup found" });
+
+        const valid = authenticator.check(
+            code,
+            user.twoFactor.pendingTotpSecret
+        );
+
+        if (!valid) return res.status(400).json({ error: "Invalid authenticator code" });
+
         user.twoFactor.enabled = true;
         user.twoFactor.method = 'totp';
 
+        user.twoFactor.totpSecret = user.twoFactor.pendingTotpSecret;
+
+        user.twoFactor.pendingTotpSecret = null;
+        user.twoFactor.pendingMethod = null;
+
         const backupCodes = generateBackupCodes();
-        user.twoFactor.backupCodes = await Promise.all(
-            backupCodes.map(async (c) => ({ codeHash: await bcrypt.hash(c, 10) }))
-        );
+
+        user.twoFactor.backupCodes =
+            await Promise.all(
+                backupCodes.map(async (code) => ({
+                    codeHash:
+                        await bcrypt.hash(code, 10)
+                }))
+            );
 
         await user.save();
-        res.json({ message: 'Authenticator app enabled.', backupCodes }); // shown once — not retrievable again
+        res.json({ message: "Authenticator app enabled", backupCodes });
     } catch (err) {
         next(err);
     }

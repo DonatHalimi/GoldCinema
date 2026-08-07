@@ -101,7 +101,7 @@ export default function Confirmation() {
 
       <div className="mt-8 text-center">
         <Link
-          to="/tickets"
+          to="/account/tickets"
           className="text-sm text-marquee-gold hover:text-marquee-goldBright"
         >
           View all my tickets →

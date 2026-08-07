@@ -83,3 +83,57 @@ body {
 .ticket-edge::after {
   right: -9px;
 }
+
+.Toastify__toast {
+  background: #332D22 !important;
+  color: #F3ECDD !important;
+  border: 1px solid #5A4A2C;
+  border-radius: 12px;
+}
+
+.Toastify__toast-icon {
+  color: #C6A15B;
+}
+
+.Toastify__progress-bar {
+  background: #C6A15B;
+}
+
+.Toastify__close-button {
+  color: #F3ECDD;
+  opacity: 0.7;
+}
+
+.Toastify__close-button:hover {
+  opacity: 1;
+}
+
+.to-top-button {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  height: 50px;
+  width: 60px;
+  background-color: #373533;
+  color: #fff;
+  padding: 10px 15px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.to-top-button:hover {
+  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
+}
+
+.to-top-button.visible {
+  opacity: 1;
+}
+
+.to-top-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

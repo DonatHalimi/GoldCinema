@@ -1,4 +1,4 @@
-import { X } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 
 export default function DeleteConfirmModal({
     deleteTarget,
@@ -12,14 +12,9 @@ export default function DeleteConfirmModal({
     const isBulkDelete = Array.isArray(deleteTarget);
 
     return (
-        <div
-            onClick={() => !deleting && onClose()}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
-        >
-            <div
-                onClick={(e) => e.stopPropagation()}
-                className="relative w-full max-w-md rounded-xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl"
-            >
+        <div onClick={() => !deleting && onClose()} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-md rounded-xl border border-marquee-line bg-marquee-bg p-6 shadow-2xl">
+
                 <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
                     <h2 className="font-display text-2xl text-marquee-gold">
                         {isBulkDelete
@@ -52,10 +47,15 @@ export default function DeleteConfirmModal({
                     </button>
 
                     <button
+                        type="submit"
                         onClick={onConfirm}
                         disabled={deleting}
-                        className="rounded-lg bg-red-600 px-4 py-2 font-semibold text-white shadow-[0_0_12px_rgba(220,38,38,0.2)] transition-colors hover:bg-red-500 disabled:opacity-50"
+                        className="inline-flex items-center gap-2 rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-red-500 disabled:opacity-50"
                     >
+                        {deleting && (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        )}
+
                         {deleting ? 'Deleting...' : 'Delete'}
                     </button>
                 </div>

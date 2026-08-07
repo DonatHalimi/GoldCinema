@@ -2,6 +2,10 @@ import { ToastContainer } from 'react-toastify';
 import Navbar from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import AppRoutes from './components/routes/AppRoutes';
+import tailwindConfig from '../tailwind.config.js';
+import ToTop from './components/layout/ToTop.jsx';
+
+const toastTheme = tailwindConfig.toastTheme;
 
 export default function App() {
   return (
@@ -15,13 +19,15 @@ export default function App() {
       <Footer />
 
       <ToastContainer
-        position="top-right"
+        position="bottom-right"
         autoClose={4000}
         newestOnTop
         stacked
-        limit={5}
-        theme="dark"
+        theme={!toastTheme}
+        hideProgressBar
+        closeOnClick
       />
+      <ToTop />
     </div>
   );
 }

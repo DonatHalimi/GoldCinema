@@ -31,5 +31,9 @@ export default {
       },
     },
   },
+  toastTheme: {
+    backgroundColor: '#3A3225',
+    color: '#F3ECDD',
+  },
   plugins: [],
 };

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import api from '../../api/client';
 import { PasswordField } from './FormUI';
+import { Loader2, X } from 'lucide-react';
 
 export default function Disable2faModal({ onClose, onSuccess }) {
     const [password, setPassword] = useState('');
@@ -33,7 +34,7 @@ export default function Disable2faModal({ onClose, onSuccess }) {
         <div onClick={onClose} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
             <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-md rounded-xl border border-marquee-line bg-marquee-bg p-6 shadow-2xl">
                 <div className="flex items-center justify-between pb-3 border-b border-marquee-line/50">
-                    <h2 className="font-display text-2xl text-marquee-goldBright">
+                    <h2 className="font-display text-2xl font-semibold tracking-wide text-marquee-goldBright">
                         Disable Two-Factor Authentication
                     </h2>
                     <button
@@ -41,7 +42,7 @@ export default function Disable2faModal({ onClose, onSuccess }) {
                         onClick={onClose}
                         className="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition-colors"
                     >
-                        ✕
+                        <X />
                     </button>
                 </div>
                 <p className="mt-2 text-sm text-marquee-muted">
@@ -73,8 +74,12 @@ export default function Disable2faModal({ onClose, onSuccess }) {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-red-500 disabled:opacity-50"
+                            className="inline-flex items-center gap-2 rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-red-500 disabled:opacity-50"
                         >
+                            {loading && (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            )}
+
                             {loading ? 'Disabling...' : 'Disable 2FA'}
                         </button>
                     </div>

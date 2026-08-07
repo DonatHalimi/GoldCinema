@@ -1,3 +1,4 @@
+import { X } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 
 export default function CrudModal({ isOpen, onClose, onSubmit, initialData, fields, title }) {
@@ -54,8 +55,8 @@ export default function CrudModal({ isOpen, onClose, onSubmit, initialData, fiel
     };
 
     return (
-        <div onClick={onClose} ref={modalRef} tabIndex="-1" className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-            <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg rounded-xl border border-marquee-line bg-zinc-900 p-6 shadow-2xl">
+        <div onClick={onClose} ref={modalRef} tabIndex={-1} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-md rounded-xl border border-marquee-line bg-marquee-bg p-6 shadow-2xl">
                 <div className="flex items-center justify-between pb-3 border-b border-marquee-line/50">
                     <h2 className="font-display text-2xl text-marquee-goldBright">
                         {title}
@@ -65,7 +66,7 @@ export default function CrudModal({ isOpen, onClose, onSubmit, initialData, fiel
                         onClick={onClose}
                         className="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition-colors"
                     >
-                        ✕
+                        <X />
                     </button>
                 </div>
 
