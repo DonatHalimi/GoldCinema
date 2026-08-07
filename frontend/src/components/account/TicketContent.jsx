@@ -121,10 +121,7 @@ export default function TicketContent() {
                     <EmptyTickets />
                 )}
 
-                <div
-                    key={active}
-                    className="animate-filter"
-                >
+                <div key={active} className="flex flex-col gap-4">
                     {filteredOrders.map((ticket) => (
                         <TicketCard
                             key={ticket._id}
