@@ -86,7 +86,7 @@ export default function EnableEmail2faModal({ onSuccess, onClose }) {
                 </div>
 
                 <p className="mt-2 text-sm text-marquee-muted">
-                    Enter the 6-digit code sent to your email.
+                    Enter the 6-digit code sent to your email
                 </p>
 
                 <form onSubmit={handleSubmit} className="mt-5 space-y-4">

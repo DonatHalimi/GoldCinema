@@ -192,7 +192,7 @@ export default function AdminDashboard() {
 
     return (
         <div className="flex min-h-screen bg-marquee-bg border-t border-marquee-line">
-            <aside className="m-6 flex w-64 flex-col justify-between rounded-xl border border-marquee-line bg-marquee-panel p-4">
+            <aside className="sticky top-6 m-6 flex h-[calc(100vh-3rem)] w-64 shrink-0 flex-col justify-between rounded-xl border border-marquee-line bg-marquee-panel p-4">
                 <div>
                     <div className="mb-6 px-3">
                         <h2 className="font-display text-3xl font-semibold tracking-wide text-marquee-goldBright">

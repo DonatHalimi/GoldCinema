@@ -12,6 +12,7 @@ const orderRoutes = require('./routes/orders');
 const paymentRoutes = require('./routes/payments');
 const adminRoutes = require('./routes/adminRoutes');
 const slideshowRoutes = require('./routes/slideshow');
+const passkeyRoutes = require('./routes/passkey');
 
 const errorHandler = require('./middleware/errorHandler');
 
@@ -67,6 +68,7 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/auth', passkeyRoutes);
 app.use('/api/movies', movieRoutes);
 app.use('/api/showtimes', showtimeRoutes);
 app.use('/api', seatHoldRoutes);

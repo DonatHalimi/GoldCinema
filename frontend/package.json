@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@paypal/react-paypal-js": "^10.2.0",
+    "@simplewebauthn/browser": "^13.3.0",
     "@stripe/react-stripe-js": "^6.8.0",
     "@stripe/stripe-js": "^9.12.1",
     "axios": "^1.18.1",

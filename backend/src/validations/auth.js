@@ -106,6 +106,16 @@ const disable2faSchema = yup.object({
         .required('Password is required.'),
 }).noUnknown(true);
 
+const disable2faMethodSchema = yup.object({
+    password: yup
+        .string()
+        .required(),
+    method: yup
+        .string()
+        .oneOf(['email', 'totp'])
+        .required()
+});
+
 const verifyLoginMfaSchema = yup.object({
     mfaToken: yup.string().required(),
     code: yup.string().required(),
@@ -132,6 +142,7 @@ module.exports = {
     deleteAccountSchema,
     sixDigitCodeSchema,
     disable2faSchema,
+    disable2faMethodSchema,
     verifyLoginMfaSchema,
     resendLoginMfaSchema,
 };

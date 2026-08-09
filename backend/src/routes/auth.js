@@ -26,6 +26,7 @@ const {
   verifyLoginMfa,
   resendLoginMfa,
   resendLoginMfaCode,
+  disable2faMethod,
 } = require('../controllers/auth');
 const {
   validateBody,
@@ -42,7 +43,7 @@ const {
     deleteAccountSchema
   },
 } = require('../validations');
-const { sixDigitCodeSchema, disable2faSchema, verifyLoginMfaSchema, resendLoginMfaSchema } = require('../validations/auth');
+const { sixDigitCodeSchema, disable2faSchema, verifyLoginMfaSchema, resendLoginMfaSchema, disable2faMethodSchema } = require('../validations/auth');
 
 const router = express.Router();
 
@@ -64,6 +65,7 @@ router.post('/2fa/totp/verify', requireAuth, validateBody(sixDigitCodeSchema), v
 router.post('/2fa/email/verify', requireAuth, validateBody(sixDigitCodeSchema), verifyEmail2faSetup);
 router.post('/2fa/email/enable', requireAuth, enableEmail2fa);
 router.post('/2fa/disable', requireAuth, validateBody(disable2faSchema), disable2fa);
+router.post('/2fa/disable-method', requireAuth, validateBody(disable2faMethodSchema), disable2faMethod);
 router.post('/2fa/verify-login', validateBody(verifyLoginMfaSchema), verifyLoginMfa);
 router.post('/2fa/login-resend', validateBody(resendLoginMfaSchema), resendLoginMfaCode);
 router.delete('/account', requireAuth, validateBody(deleteAccountSchema), deleteAccount);

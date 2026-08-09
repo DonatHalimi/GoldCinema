@@ -4,6 +4,7 @@ import { Footer } from './components/layout/Footer';
 import AppRoutes from './components/routes/AppRoutes';
 import tailwindConfig from '../tailwind.config.js';
 import ToTop from './components/layout/ToTop.jsx';
+import 'react-toastify/dist/ReactToastify.css';
 
 const toastTheme = tailwindConfig.toastTheme;
 

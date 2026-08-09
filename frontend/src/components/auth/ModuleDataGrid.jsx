@@ -142,8 +142,8 @@ export default function ModuleDataGrid({ moduleConfig }) {
                                             className={`inline-flex h-4 w-4 items-center justify-center rounded border transition-all ${isAllSelected
                                                 ? 'bg-marquee-gold border-marquee-gold text-zinc-950 shadow-[0_0_8px_rgba(245,158,11,0.4)]'
                                                 : isSomeSelected
-                                                    ? 'bg-amber-500/20 border-marquee-goldBright text-marquee-gold'
-                                                    : 'border-amber-500/30 bg-black/30 hover:border-amber-400'
+                                                    ? 'bg-marquee-gold border-marquee-goldBright text-marquee-gold'
+                                                    : 'border-marquee-cream bg-black/30 hover:border-marquee-goldBright hover:text-marquee-gold'
                                                 }`}
                                         >
                                             {isAllSelected && <Check className="h-3 w-3 stroke-[3]" />}
@@ -181,7 +181,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
                                             <tr
                                                 key={row._id}
                                                 className={`transition-colors ${isSelected
-                                                    ? 'bg-amber-500/10 hover:bg-amber-500/15'
+                                                    ? 'bg-marquee-gold/10 hover:bg-marquee-gold/20'
                                                     : 'hover:bg-zinc-800/50'
                                                     }`}
                                             >

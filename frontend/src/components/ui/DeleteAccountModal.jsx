@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Loader2, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/client';
@@ -12,6 +12,16 @@ export default function DeleteAccountModal({ onClose }) {
 
     const navigate = useNavigate();
     const { logout } = useAuth();
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onClose]);
 
     const handleDelete = async () => {
         if (!password.trim()) {
@@ -43,10 +53,12 @@ export default function DeleteAccountModal({ onClose }) {
     return (
         <div onClick={onClose} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
             <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-md rounded-xl border border-marquee-line bg-marquee-bg p-6 shadow-2xl">
-                <div className="mb-6 flex items-center justify-between">
-                    <h2 className="font-display text-2xl font-semibold tracking-wide text-marquee-goldBright">
-                        Delete Account
-                    </h2>
+                <div className="flex items-center justify-between border-b border-marquee-line/50 pb-3">
+                    <div className="flex items-center gap-3">
+                        <h2 className="font-display text-2xl font-semibold tracking-wide text-marquee-goldBright">
+                            Delete Account
+                        </h2>
+                    </div>
 
                     <button
                         onClick={onClose}
@@ -54,6 +66,12 @@ export default function DeleteAccountModal({ onClose }) {
                     >
                         <X className="h-4 w-4" />
                     </button>
+                </div>
+
+                <div className="mt-4 mb-4">
+                    <p className="text-sm text-marquee-muted">
+                        <span className="font-semibold">Warning:</span> This action cannot be undone.
+                    </p>
                 </div>
 
                 <PasswordField

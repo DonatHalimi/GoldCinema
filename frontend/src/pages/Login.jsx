@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Check, Eye, EyeOff, X } from 'lucide-react';
+import { Check, Eye, EyeOff, KeyRound, X } from 'lucide-react';
 import { validateForm, loginSchema, forgotPasswordSchema } from '../validations';
 import { SocialLoginButton, PasswordField, Field } from '../components/ui/FormUI';
 import { FacebookIcon, GoogleIcon } from '../components/ui/Icons';
@@ -9,12 +9,15 @@ import { ForgotPasswordModal } from '../components/auth/ForgotPasswordModal';
 import RememberMeCheckbox from '../components/auth/RememberMeCheckbox';
 import SocialLoginButtons from '../components/auth/SocialLoginButtons';
 import MfaVerifyStep from '../components/auth/MfaVerifyStep';
+import { toast } from 'react-toastify';
+import { startAuthentication } from '@simplewebauthn/browser';
+import api from '../api/client';
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const facebookAppId = import.meta.env.VITE_FACEBOOK_APP_ID;
 
 export default function Login() {
-  const { login, loginWithGoogle, loginWithFacebook, forgotPassword } = useAuth();
+  const { login, loginWithGoogle, loginWithFacebook } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || '/';
@@ -31,7 +34,6 @@ export default function Login() {
   const [mfaState, setMfaState] = useState(null);
   const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [touched, setTouched] = useState({});
 
   const isFormValid =
     email.trim() !== '' &&
@@ -39,15 +41,14 @@ export default function Login() {
     !fieldErrors.email &&
     !fieldErrors.password;
 
+  // Google & Facebook scripts initialization effects remain the same...
   useEffect(() => {
     if (!googleClientId) return;
-
     const loadGoogleScript = () => {
       if (document.getElementById('google-gsi-script')) {
         initializeGoogle();
         return;
       }
-
       const script = document.createElement('script');
       script.id = 'google-gsi-script';
       script.src = 'https://accounts.google.com/gsi/client';
@@ -59,7 +60,6 @@ export default function Login() {
 
     const initializeGoogle = () => {
       if (!window.google?.accounts?.id) return;
-
       window.google.accounts.id.initialize({
         client_id: googleClientId,
         callback: ({ credential }) => handleGoogleLogin(credential),
@@ -75,88 +75,106 @@ export default function Login() {
         setGoogleReady(true);
       }
     };
-
     loadGoogleScript();
-  }, [googleClientId, navigate, from, loginWithGoogle]);
+  }, [googleClientId]);
 
-  useEffect(() => {
-    if (!facebookAppId) return;
+  async function handlePasskeyLogin() {
+    setError('');
+    setSubmitting(true);
 
-    const initFacebook = () => {
-      if (window.FB) {
-        window.FB.init({
-          appId: facebookAppId,
-          cookie: true,
-          xfbml: true,
-          version: 'v22.0',
+    try {
+      // 1. Fetch options without passing any email
+      const optRes = await api.post('/auth/passkeys/login/options', {});
+      const optionsJSON = optRes.data;
+
+      // 2. Trigger browser authenticator UI (TouchID, Windows Hello, Security Key, etc.)
+      const authResponse = await startAuthentication({ optionsJSON });
+
+      // 3. Send response back. The server figures out who the user is using the credential ID.
+      const verifyRes = await api.post('/auth/passkeys/login/verify', {
+        rememberMe: rememberMe,
+        ...authResponse,
+      });
+
+      if (verifyRes.data?.mfaRequired) {
+        setMfaState({
+          mfaToken: verifyRes.data.mfaToken,
+          methods: verifyRes.data.methods || [],
+          rememberMe: rememberMe,
         });
-        setFacebookReady(true);
+        return;
       }
-    };
 
-    if (window.FB) {
-      initFacebook();
-      return;
+      toast.success('Passkey login successful!');
+      navigate(from, { replace: true });
+      window.location.reload();
+    } catch (err) {
+      if (err.name === 'NotAllowedError') {
+        toast.info('Passkey sign-in cancelled or timed out.');
+      } else {
+        toast.error('Passkey login failed!');
+        setError(
+          err.response?.data?.error ||
+          err.response?.data?.message ||
+          err.message ||
+          'Passkey login failed.'
+        );
+      }
+    } finally {
+      setSubmitting(false);
     }
-
-    window.fbAsyncInit = initFacebook;
-
-    if (!document.getElementById('facebook-jssdk')) {
-      const script = document.createElement('script');
-      script.id = 'facebook-jssdk';
-      script.src = 'https://connect.facebook.net/en_US/sdk.js';
-      script.async = true;
-      script.defer = true;
-      document.body.appendChild(script);
-    }
-  }, [facebookAppId]);
+  }
 
   async function handleGoogleLogin(credential) {
     setSubmitting(true);
     setError('');
-
     try {
-      await loginWithGoogle(credential);
+      const result = await loginWithGoogle(credential);
+      if (result?.mfaRequired) {
+        setMfaState({
+          mfaToken: result.mfaToken,
+          methods: result.methods || [],
+          rememberMe: result.rememberMe ?? rememberMe,
+        });
+        return;
+      }
       navigate(from, { replace: true });
+      toast.success('Google login successful!');
     } catch (err) {
-      setError(
-        err.response?.data?.error ||
-        err.message ||
-        'Google login failed.'
-      );
+      toast.error('Google login failed!');
+      setError(err.response?.data?.error || err.message || 'Google login failed.');
     } finally {
       setSubmitting(false);
     }
   }
 
   async function handleFacebookLogin() {
-    if (!facebookAppId) {
-      setError('Facebook App ID is missing in .env file.');
-      return;
-    }
-
     if (!window.FB) {
-      setError('Facebook SDK is still loading. Please try again in a moment.');
+      setError('Facebook SDK is still loading. Please try again.');
       return;
     }
-
     setSubmitting(true);
     setError('');
-
     try {
       const response = await new Promise((resolve) => {
-        window.FB.login((fbResponse) => resolve(fbResponse), {
-          scope: 'public_profile',
-        });
+        window.FB.login((fbResponse) => resolve(fbResponse), { scope: 'public_profile,email' });
       });
-
       if (!response?.authResponse?.accessToken) {
-        throw new Error('Facebook login was cancelled or failed.');
+        throw new Error('Facebook login cancelled.');
       }
-
-      await loginWithFacebook(response.authResponse.accessToken);
+      const result = await loginWithFacebook(response.authResponse.accessToken);
+      if (result?.mfaRequired) {
+        setMfaState({
+          mfaToken: result.mfaToken,
+          methods: result.methods || [],
+          rememberMe: result.rememberMe ?? rememberMe,
+        });
+        return;
+      }
       navigate(from, { replace: true });
+      toast.success('Facebook login successful!');
     } catch (err) {
+      toast.error('Facebook login failed!');
       setError(err.response?.data?.error || err.message || 'Facebook login failed.');
     } finally {
       setSubmitting(false);
@@ -170,7 +188,6 @@ export default function Login() {
     setFieldErrors({});
 
     const { valid, errors } = await validateForm(loginSchema, { email, password });
-
     if (!valid) {
       setFieldErrors(errors);
       setSubmitting(false);
@@ -179,18 +196,18 @@ export default function Login() {
 
     try {
       const result = await login(email, password, rememberMe);
-
       if (result?.mfaRequired) {
         setMfaState({
           mfaToken: result.mfaToken,
-          method: result.method,
+          methods: result.methods || [],
           rememberMe: result.rememberMe,
         });
         return;
       }
-
       navigate(from, { replace: true });
+      toast.success('Login successful!');
     } catch (err) {
+      toast.error('Login failed!');
       setError(err.response?.data?.error || err.message || 'Login failed');
     } finally {
       setSubmitting(false);
@@ -199,19 +216,10 @@ export default function Login() {
 
   async function validateField(field, value) {
     try {
-      await loginSchema.validateAt(field, {
-        [field]: value,
-      });
-
-      setFieldErrors((prev) => ({
-        ...prev,
-        [field]: '',
-      }));
+      await loginSchema.validateAt(field, { [field]: value });
+      setFieldErrors((prev) => ({ ...prev, [field]: '' }));
     } catch (err) {
-      setFieldErrors((prev) => ({
-        ...prev,
-        [field]: err.message,
-      }));
+      setFieldErrors((prev) => ({ ...prev, [field]: err.message }));
     }
   }
 
@@ -219,11 +227,7 @@ export default function Login() {
     <div className="mx-auto flex max-w-md items-center py-20">
       <div className="w-full rounded-2xl border border-marquee-line bg-marquee-panel2 p-9">
         {mfaState ? (
-          <MfaVerifyStep
-            mfaState={mfaState}
-            from={from}
-            onBack={() => setMfaState(null)}
-          />
+          <MfaVerifyStep mfaState={mfaState} from={from} onBack={() => setMfaState(null)} />
         ) : (
           <>
             <h1 className="mb-6 text-center font-serif text-3xl font-bold text-marquee-cream">
@@ -258,9 +262,8 @@ export default function Login() {
               <div className="mt-4 flex items-center justify-between">
                 <RememberMeCheckbox
                   checked={rememberMe}
-                  onChange={() => setRememberMe(prev => !prev)}
+                  onChange={() => setRememberMe((prev) => !prev)}
                 />
-
                 <button
                   type="button"
                   onClick={() => setIsForgotModalOpen(true)}
@@ -277,6 +280,23 @@ export default function Login() {
               >
                 {submitting ? 'Logging in...' : 'Login'}
               </button>
+
+              {/* Passkey Login Button Option */}
+              <button
+                type="button"
+                onClick={handlePasskeyLogin}
+                disabled={submitting}
+                className="flex w-full items-center justify-center gap-2 rounded-full border border-marquee-line bg-marquee-panel px-6 py-3 font-semibold text-marquee-cream transition hover:border-marquee-gold disabled:opacity-40"
+              >
+                <KeyRound className="h-5 w-5 text-marquee-gold" />
+                Sign in with Passkey
+              </button>
+
+              <div className="relative flex py-2 items-center">
+                <div className="flex-grow border-t border-marquee-line"></div>
+                <span className="flex-shrink mx-4 text-xs text-marquee-muted uppercase">Or continue with</span>
+                <div className="flex-grow border-t border-marquee-line"></div>
+              </div>
 
               <SocialLoginButtons
                 submitting={submitting}

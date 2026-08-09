@@ -1,4 +1,5 @@
 const { Schema, model } = require('mongoose');
+const mongoose = require('mongoose');
 
 const refreshTokenSchema = new Schema(
     {
@@ -43,7 +44,13 @@ const userSchema = new Schema(
 
         twoFactor: {
             enabled: { type: Boolean, default: false },
-            method: { type: String, enum: ['email', 'totp', 'sms', null], default: null },
+            methods: {
+                type: [{
+                    type: String,
+                    enum: ['email', 'totp', 'sms'],
+                }],
+                default: [],
+            },
             totpSecret: { type: String, select: false },
             pendingMethod: { type: String, enum: ['email', 'totp', null], default: null },
             pendingTotpSecret: { type: String, select: false },
@@ -63,6 +70,19 @@ const userSchema = new Schema(
             lastUsedAt: { type: Date, default: Date.now },
             expiresAt: { type: Date, required: true },
         }],
+        passkeys: [{
+            credentialId: { type: String, required: true, unique: true, sparse: true },
+            publicKey: { type: Buffer, required: true, },
+            counter: { type: Number, default: 0, },
+            deviceType: { type: String, },
+            backedUp: { type: Boolean, default: false, },
+            transports: { type: [String], default: [], },
+            name: { type: String, default: 'Passkey', },
+            createdAt: { type: Date, default: Date.now, },
+            lastUsedId: { type: Date, default: null, },
+        }],
+        passkeyRegistrationChallenge: { type: String, default: null, },
+        passkeyAuthenticationChallenge: { type: String, default: null, },
     },
     { timestamps: true }
 );
@@ -75,8 +95,12 @@ userSchema.methods.toPublicJSON = function toPublicJSON() {
         role: this.role,
         avatar: this.avatar,
         emailVerified: this.emailVerified,
+        twoFactor: {
+            enabled: this.twoFactor?.enabled || false,
+            methods: this.twoFactor?.methods || [],
+        },
         createdAt: this.createdAt,
     };
 };
 
-module.exports = model('User', userSchema);
+module.exports = mongoose.models.User || model('User', userSchema);

@@ -289,7 +289,7 @@ async function login(req, res) {
             await recordAttempt({ email, user, req, success: false, reason: 'locked' });
             const waitMinutes = Math.ceil((user.lockUntil - Date.now()) / 60000);
             return res.status(423).json({
-                message: `Too many failed attempts. Try again in ${waitMinutes} minute(s).`,
+                message: `Too many failed attempts.Try again in ${waitMinutes} minute(s).`,
             });
         }
 
@@ -318,7 +318,7 @@ async function login(req, res) {
         user.lockUntil = null;
         user.lockStage = 0;
 
-        if (user.twoFactor?.enabled) {
+        if (user.twoFactor?.enabled && user.twoFactor.methods?.length > 0) {
             const trustedEntry = findTrustedDeviceEntry(user, req);
 
             if (trustedEntry) {
@@ -328,19 +328,36 @@ async function login(req, res) {
 
                 const mfaToken = generateMfaPendingToken(user._id);
 
-                if (user.twoFactor.method === 'email') {
+                const methods = user.twoFactor.methods;
+
+                if (methods.includes('email')) {
                     const code = String(Math.floor(100000 + Math.random() * 900000));
+
                     user.twoFactor.emailOtpHash = await bcrypt.hash(code, 10);
-                    user.twoFactor.emailOtpExpiresAt = new Date(Date.now() + EMAIL_OTP_TTL_MS);
+                    user.twoFactor.emailOtpExpiresAt = new Date(
+                        Date.now() + EMAIL_OTP_TTL_MS
+                    );
+
                     await user.save();
-                    await sendTwoFactorCode({ to: user.email, name: user.name, code });
+
+                    await sendTwoFactorCode({
+                        to: user.email,
+                        name: user.name,
+                        code
+                    });
                 }
 
-                await recordAttempt({ email, user, req, success: true, reason: 'password_ok_mfa_pending' });
+                await recordAttempt({
+                    email,
+                    user,
+                    req,
+                    success: true,
+                    reason: 'password_ok_mfa_pending'
+                });
 
                 return res.status(200).json({
                     mfaRequired: true,
-                    method: user.twoFactor.method,
+                    methods,
                     mfaToken,
                     rememberMe,
                 });
@@ -365,14 +382,33 @@ async function login(req, res) {
         await user.save();
 
         setCookies(res, accessToken, refreshToken, refreshMaxAgeMs);
-        await recordAttempt({ email, user, req, success: true, reason: 'success' });
+
+        await recordAttempt({
+            email,
+            user,
+            req,
+            success: true,
+            reason: 'success'
+        });
 
         res.json({
             message: 'Logged in successfully',
-            user: { id: user._id, name: user.name, email: user.email, role: user.role },
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            },
         });
     } catch (error) {
-        await recordAttempt({ email, user: null, req, success: false, reason: 'server_error' });
+        await recordAttempt({
+            email,
+            user: null,
+            req,
+            success: false,
+            reason: 'server_error'
+        });
+
         res.status(500).json({ error: error.message });
     }
 }
@@ -428,7 +464,7 @@ async function refreshToken(req, res) {
 
         const newTokens = generateTokens(
             user._id,
-            `${remainingDays}d`
+            `${remainingDays} d`
         );
 
         updatedRefreshTokens.push({
@@ -504,9 +540,7 @@ async function googleLogin(req, res, next) {
     try {
         const { credential } = req.body;
 
-        if (!credential) {
-            return res.status(400).json({ error: 'Google credential is required.' });
-        }
+        if (!credential) return res.status(400).json({ error: 'Google credential is required.' });
 
         const ticket = await googleClient.verifyIdToken({
             idToken: credential,
@@ -516,18 +550,21 @@ async function googleLogin(req, res, next) {
         const payload = ticket.getPayload();
         const email = payload?.email?.toLowerCase();
 
-        if (!email || !payload?.email_verified) {
-            return res.status(400).json({ error: 'Google account could not be verified.' });
-        }
+        if (!email || !payload?.email_verified) return res.status(400).json({ error: 'Google account could not be verified.' });
 
-        const name = payload.name || payload.given_name || email.split('@')[0];
+        const name =
+            payload.name ||
+            payload.given_name ||
+            email.split('@')[0];
 
         let user = await User.findOne({ email }).populate('role');
 
         if (!user) {
             const roleId = await getCustomerRoleId();
             const passwordHash = await bcrypt.hash(
-                `${Date.now()}-google-${Math.random().toString(36).slice(2)}`,
+                `${Date.now()}-google-${Math.random()
+                    .toString(36)
+                    .slice(2)}`,
                 10
             );
 
@@ -545,14 +582,36 @@ async function googleLogin(req, res, next) {
         user.name = user.name || name;
         user.emailVerified = true;
 
-        const { accessToken, refreshToken } = generateTokens(user._id);
+        if (user.twoFactor?.enabled && user.twoFactor?.methods?.length) {
+            const mfaToken = generateMfaPendingToken(user._id);
+
+            return res.json({
+                message: 'Two-factor authentication required.',
+                mfaRequired: true,
+                mfaToken,
+                methods: user.twoFactor.methods,
+            });
+        }
+
+        const { accessToken, refreshToken } =
+            generateTokens(user._id);
+
         user.refreshTokens.push({
             token: refreshToken,
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            expiresAt: new Date(
+                Date.now() + 7 * 24 * 60 * 60 * 1000
+            ),
+            createdAt: new Date(),
+            rememberMe: false,
         });
 
         await user.save();
-        setCookies(res, accessToken, refreshToken);
+
+        setCookies(
+            res,
+            accessToken,
+            refreshToken
+        );
 
         return res.json({
             message: 'Logged in with Google successfully',
@@ -572,34 +631,43 @@ async function facebookLogin(req, res, next) {
     try {
         const { accessToken } = req.body;
 
-        if (!accessToken) {
-            return res.status(400).json({ error: 'Facebook access token is required.' });
-        }
+        if (!accessToken) return res.status(400).json({ error: 'Facebook access token is required.' });
 
-        const debugTokenUrl = `https://graph.facebook.com/debug_token?input_token=${encodeURIComponent(accessToken)}&access_token=${encodeURIComponent(`${process.env.FACEBOOK_APP_ID}|${process.env.FACEBOOK_APP_SECRET}`)}`;
+        const debugTokenUrl =
+            `https://graph.facebook.com/debug_token` +
+            `?input_token=${encodeURIComponent(accessToken)}` +
+            `&access_token=${encodeURIComponent(
+                `${process.env.FACEBOOK_APP_ID}|${process.env.FACEBOOK_APP_SECRET}`
+            )}`;
+
         const debugResponse = await fetch(debugTokenUrl);
         const debugData = await debugResponse.json();
 
-        if (!debugData?.data?.is_valid || debugData.data.app_id !== process.env.FACEBOOK_APP_ID) {
-            return res.status(400).json({ error: 'Facebook account could not be verified.' });
-        }
+        if (!debugData?.data?.is_valid || debugData.data.app_id !== process.env.FACEBOOK_APP_ID) return res.status(400).json({ error: 'Facebook account could not be verified.' });
 
-        const profileUrl = `https://graph.facebook.com/me?fields=id,name,email&access_token=${encodeURIComponent(accessToken)}`;
+        const profileUrl =
+            `https://graph.facebook.com/me` +
+            `?fields=id,name,email` +
+            `&access_token=${encodeURIComponent(accessToken)}`;
+
         const profileResponse = await fetch(profileUrl);
         const profileData = await profileResponse.json();
         const email = profileData?.email?.toLowerCase();
 
-        if (!email) {
-            return res.status(400).json({ error: 'Facebook email permission is required.' });
-        }
+        if (!email) return res.status(400).json({ error: 'Facebook email permission is required.' });
 
-        const name = profileData.name || email.split('@')[0];
+        const name =
+            profileData.name ||
+            email.split('@')[0];
+
         let user = await User.findOne({ email }).populate('role');
 
         if (!user) {
             const roleId = await getCustomerRoleId();
             const passwordHash = await bcrypt.hash(
-                `${Date.now()}-facebook-${Math.random().toString(36).slice(2)}`,
+                `${Date.now()}-facebook-${Math.random()
+                    .toString(36)
+                    .slice(2)}`,
                 10
             );
 
@@ -617,14 +685,38 @@ async function facebookLogin(req, res, next) {
         user.name = user.name || name;
         user.emailVerified = true;
 
-        const { accessToken: appAccessToken, refreshToken } = generateTokens(user._id);
+        if (user.twoFactor?.enabled && user.twoFactor?.methods?.length) {
+            const mfaToken = generateMfaPendingToken(user._id);
+
+            return res.json({
+                message: 'Two-factor authentication required.',
+                mfaRequired: true,
+                mfaToken,
+                methods: user.twoFactor.methods,
+            });
+        }
+
+        const {
+            accessToken: appAccessToken,
+            refreshToken,
+        } = generateTokens(user._id);
+
         user.refreshTokens.push({
             token: refreshToken,
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            expiresAt: new Date(
+                Date.now() + 7 * 24 * 60 * 60 * 1000
+            ),
+            createdAt: new Date(),
+            rememberMe: false,
         });
 
         await user.save();
-        setCookies(res, appAccessToken, refreshToken);
+
+        setCookies(
+            res,
+            appAccessToken,
+            refreshToken
+        );
 
         return res.json({
             message: 'Logged in with Facebook successfully',
@@ -646,9 +738,7 @@ async function me(req, res) {
             .populate('role')
             .select('-passwordHash -refreshTokens');
 
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
+        if (!user) return res.status(404).json({ error: 'User not found' });
 
         const roleName = user.role?.name || user.role || 'user';
         res.json({
@@ -659,8 +749,8 @@ async function me(req, res) {
                 role: roleName,
                 emailVerified: user.emailVerified,
                 twoFactor: {
-                    enabled: user.twoFactor?.enabled || false,
-                    method: user.twoFactor?.method || null,
+                    enabled: user.twoFactor.enabled,
+                    methods: user.twoFactor.methods || [],
                 },
             },
         });
@@ -675,11 +765,7 @@ async function updateProfile(req, res, next) {
 
         const user = await User.findById(req.user.id);
 
-        if (!user) {
-            return res.status(404).json({
-                error: 'User not found.',
-            });
-        }
+        if (!user) return res.status(404).json({ error: 'User not found.', });
 
         if (email && email.toLowerCase() !== user.email) {
             const exists = await User.findOne({
@@ -687,11 +773,7 @@ async function updateProfile(req, res, next) {
                 _id: { $ne: user._id },
             });
 
-            if (exists) {
-                return res.status(400).json({
-                    error: 'Email already in use.',
-                });
-            }
+            if (exists) return res.status(400).json({ error: 'Email already in use.', });
 
             user.email = email.toLowerCase();
             user.emailVerified = false;
@@ -737,7 +819,7 @@ function findTrustedDeviceEntry(user, req) {
 
 async function verifyLoginMfa(req, res, next) {
     try {
-        const { mfaToken, code, rememberMe, trustDevice } = req.body;
+        const { mfaToken, code, method, rememberMe, trustDevice } = req.body;
 
         let decoded;
         try {
@@ -761,13 +843,25 @@ async function verifyLoginMfa(req, res, next) {
 
         let verified = false;
 
-        if (user.twoFactor.method === 'totp') {
+        if (method === 'totp' && user.twoFactor.methods.includes('totp')) {
             const token = String(code || '').trim();
-            verified = authenticator.verify({ secret: user.twoFactor.totpSecret, token });
-        } else if (user.twoFactor.method === 'email') {
-            verified = user.twoFactor.emailOtpHash &&
+
+            try {
+                verified = authenticator.verify({
+                    secret: user.twoFactor.totpSecret,
+                    token,
+                });
+            } catch (err) {
+                verified = false;
+            }
+        } else if (method === 'email' && user.twoFactor.methods.includes('email')) {
+            verified =
+                user.twoFactor.emailOtpHash &&
                 user.twoFactor.emailOtpExpiresAt > new Date() &&
-                (await bcrypt.compare(code, user.twoFactor.emailOtpHash));
+                (await bcrypt.compare(
+                    String(code || ''),
+                    user.twoFactor.emailOtpHash
+                ));
         }
 
         if (!verified && user.twoFactor.backupCodes?.length) {
@@ -871,7 +965,10 @@ async function verifyTotpSetup(req, res, next) {
         if (!valid) return res.status(400).json({ error: "Invalid authenticator code" });
 
         user.twoFactor.enabled = true;
-        user.twoFactor.method = 'totp';
+
+        if (!user.twoFactor.methods.includes('totp')) {
+            user.twoFactor.methods.push('totp');
+        }
 
         user.twoFactor.totpSecret = user.twoFactor.pendingTotpSecret;
 
@@ -925,7 +1022,11 @@ async function verifyEmail2faSetup(req, res, next) {
         if (!valid) return res.status(400).json({ error: 'Invalid or expired code.' });
 
         user.twoFactor.enabled = true;
-        user.twoFactor.method = 'email';
+
+        if (!user.twoFactor.methods.includes('email')) {
+            user.twoFactor.methods.push('email');
+        }
+
         user.twoFactor.pendingMethod = null;
         user.twoFactor.emailOtpHash = undefined;
         user.twoFactor.emailOtpExpiresAt = undefined;
@@ -971,11 +1072,63 @@ async function disable2fa(req, res, next) {
             return res.status(401).json({ error: 'Incorrect password.' });
         }
 
-        user.twoFactor = { enabled: false, method: null, backupCodes: [] };
+        user.twoFactor = {
+            enabled: false,
+            methods: [],
+            backupCodes: []
+        };
+
         user.trustedDevices = [];
         await user.save();
 
         res.json({ message: 'Two-factor authentication disabled.' });
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function disable2faMethod(req, res, next) {
+    try {
+        const { password, method } = req.body;
+
+        if (!method || !['email', 'totp'].includes(method)) return res.status(400).json({ error: 'Invalid 2FA method.' });
+
+        const user = await User.findById(req.user.id);
+
+        if (!user) return res.status(404).json({ error: 'User not found.' });
+
+        if (!(await bcrypt.compare(password, user.passwordHash))) {
+            return res.status(401).json({
+                error: 'Incorrect password.'
+            });
+        }
+
+        const currentMethods = user.twoFactor?.methods || [];
+
+        if (!currentMethods.includes(method)) return res.status(400).json({ error: 'This 2FA method is not enabled.' });
+
+        const methods = currentMethods.filter(
+            (currentMethod) => currentMethod !== method
+        );
+
+        user.twoFactor = {
+            enabled: methods.length > 0,
+            methods,
+            backupCodes: methods.length > 0
+                ? user.twoFactor.backupCodes
+                : []
+        };
+
+        if (methods.length === 0) user.trustedDevices = [];
+
+        await user.save();
+
+        res.json({
+            message: method === 'email'
+                ? 'Email two-factor authentication disabled.'
+                : 'Authenticator app two-factor authentication disabled.',
+            twoFactor: user.twoFactor
+        });
     } catch (err) {
         next(err);
     }
@@ -993,9 +1146,7 @@ async function resendLoginMfaCode(req, res, next) {
         }
 
         const user = await User.findById(decoded.id);
-        if (!user?.twoFactor?.enabled || user.twoFactor.method !== 'email') {
-            return res.status(400).json({ error: 'Email code resend is not available for this account.' });
-        }
+        if (!user?.twoFactor?.enabled || !user.twoFactor.methods.includes('email')) return res.status(400).json({ error: 'Email code resend is not available for this account' });
 
         const code = String(Math.floor(100000 + Math.random() * 900000));
         user.twoFactor.emailOtpHash = await bcrypt.hash(code, 10);
@@ -1025,6 +1176,8 @@ async function logout(req, res) {
 }
 
 module.exports = {
+    generateTokens,
+    setCookies,
     register,
     login,
     refreshToken,
@@ -1047,5 +1200,6 @@ module.exports = {
     verifyLoginMfa,
     resendLoginMfaCode,
     disable2fa,
+    disable2faMethod,
     logout,
 };

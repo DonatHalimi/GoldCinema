@@ -9,7 +9,7 @@ export default function RequireAdmin({ children }) {
     if (loading) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-marquee-bg">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-marquee-gold border-t-transparent" />
             </div>
         );
     }

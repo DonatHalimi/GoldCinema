@@ -11,7 +11,7 @@ const STATUS_STYLES = {
   available:
     'border-emerald-700 bg-emerald-950/60 text-emerald-300 hover:border-emerald-400 hover:bg-emerald-900/60 hover:text-emerald-200',
   held:
-    'cursor-not-allowed border-amber-700/60 bg-amber-950/40 text-amber-500/70',
+    'cursor-not-allowed border-marquee-gold bg-marque-gold/40 text-marquee-gold/80',
   booked:
     'cursor-not-allowed border-red-800/60 bg-red-950/40 text-red-500/60',
   selected:
@@ -87,7 +87,7 @@ export default function SeatMap({ seats, selected, onToggle }) {
       <div className="mt-10 flex flex-wrap justify-center gap-6 text-xs text-marquee-muted">
         <Legend swatchClass="border-emerald-700 bg-emerald-950/60" label="Available" />
         <Legend swatchClass="border-marquee-goldBright bg-marquee-gold" label="Selected" />
-        <Legend swatchClass="border-amber-700/60 bg-amber-950/40" label="Held" />
+        <Legend swatchClass="border-marquee-gold bg-marque-gold/40" label="Held" />
         <Legend swatchClass="border-red-800/60 bg-red-950/40" label="Booked" />
       </div>
       <div className="mt-6 flex flex-wrap justify-center gap-8 text-xs text-marquee-muted pt-3">

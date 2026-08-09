@@ -106,7 +106,7 @@ export default function CrudModal({ isOpen, onClose, onSubmit, initialData, fiel
                         </button>
                         <button
                             type="submit"
-                            className="rounded-md bg-amber-500 px-5 py-2 text-sm font-semibold text-zinc-950 hover:bg-amber-400 transition-all shadow-md shadow-amber-500/10"
+                            className="rounded-md bg-marquee-gold px-5 py-2 text-sm font-semibold text-zinc-950 hover:bg-marquee-goldBright transition-all shadow-md shadow-marquee-gold/50"
                         >
                             Save Changes
                         </button>
