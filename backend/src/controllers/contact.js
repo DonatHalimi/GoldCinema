@@ -1,4 +1,4 @@
-const Contact = require('../models/Contact');
+const Contact = require('../models/contact');
 const { sendContactEmail } = require('../utils/mailer');
 
 async function getContacts(req, res, next) {
