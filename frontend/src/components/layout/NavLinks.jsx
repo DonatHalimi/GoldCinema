@@ -7,18 +7,12 @@ export default function NavLinks() {
 
     return (
         <nav className="flex items-center gap-6 font-body text-sm">
-            <Link
-                to="/"
-                className="text-marquee-muted transition hover:text-marquee-gold"
-            >
+            <Link to="/" className="text-marquee-muted transition hover:text-marquee-gold">
                 Now Showing
             </Link>
 
             {!user ? (
-                <Link
-                    to="/login"
-                    className="rounded-full bg-marquee-gold px-5 py-1.5 font-semibold text-marquee-bg transition hover:bg-marquee-goldBright"
-                >
+                <Link to="/login" className="rounded-full bg-marquee-gold px-5 py-1.5 font-semibold text-marquee-bg transition hover:bg-marquee-goldBright">
                     Sign in
                 </Link>
             ) : (

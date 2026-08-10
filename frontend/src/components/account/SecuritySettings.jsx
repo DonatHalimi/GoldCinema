@@ -1,21 +1,16 @@
 import { useEffect, useState } from 'react';
-import {
-    ShieldCheck,
-    Bell,
-    Laptop,
-    History,
-    KeyRound,
-    BadgeCheck,
-} from 'lucide-react';
+import { toast } from 'react-toastify';
 import api from '../../api/client';
+import Disable2faModal from '../ui/Disable2faModal.jsx';
 import EnableEmail2faModal from '../ui/EnableEmail2faModal';
 import EnableTotpModal from '../ui/EnableTotpModal';
-import TwoFactorSettings from './TwoFactorSettings';
-import Disable2faModal from '../ui/Disable2faModal.jsx';
-import PasskeySettings from './PasskeySettings.jsx';
-import { toast } from 'react-toastify';
-import TrustedDevicesSettings from './TrustedDeviceSettings.jsx';
 import LoginAlertsSettings from './LoginAlertsSettings.jsx';
+import PasskeySettings from './PasskeySettings.jsx';
+import SecurityActivityCard from './SecurityActivityCard.jsx';
+import TrustedDevicesSettings from './TrustedDeviceSettings.jsx';
+import TwoFactorSettings from './TwoFactorSettings';
+import BackupCodesCard from '../ui/BackupCodesCard.jsx';
+import SecurityLogExportCard from '../ui/SecurityLogExportCard.jsx';
 
 export default function SecuritySettings() {
     const [showEmailVerify, setShowEmailVerify] = useState(false);
@@ -129,31 +124,17 @@ export default function SecuritySettings() {
             <div className="mt-6 space-y-5">
                 <TwoFactorSettings />
 
+                {/* <BackupCodesCard /> */}
+
                 <PasskeySettings twoFactor={twoFactor} />
 
-                <LoginAlertsSettings initialLoginAlerts={loginAlerts} onUpdate={setLoginAlerts} />
+                <SecurityActivityCard />
+
+                {/* <SecurityLogExportCard /> */}
 
                 <TrustedDevicesSettings />
 
-                <div className="rounded-xl border border-marquee-line bg-marquee-bg p-5">
-                    <div className="flex items-center gap-3">
-                        <History className="text-marquee-gold" />
-
-                        <div>
-                            <h3 className="font-semibold text-marquee-cream">
-                                Recent Security Activity
-                            </h3>
-
-                            <p className="text-sm text-marquee-muted">
-                                Review recent logins, password changes, and other important security events
-                            </p>
-                        </div>
-                    </div>
-
-                    <button disabled className="mt-5 cursor-not-allowed rounded-full bg-marquee-panel2 px-5 py-2 text-sm text-marquee-muted">
-                        Coming Soon
-                    </button>
-                </div>
+                <LoginAlertsSettings initialLoginAlerts={loginAlerts} onUpdate={setLoginAlerts} />
 
                 {showEmailVerify && (
                     <EnableEmail2faModal

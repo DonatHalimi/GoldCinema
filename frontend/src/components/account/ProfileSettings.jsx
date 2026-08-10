@@ -1,7 +1,7 @@
+import { BadgeAlert, BadgeCheck, Lock, Mail, Save, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { User, Mail, BadgeCheck, BadgeAlert, Lock, Save } from 'lucide-react';
-import api from '../../api/client';
 import { toast } from 'react-toastify';
+import api from '../../api/client';
 import { Field, PasswordField } from '../ui/FormUI';
 
 export default function ProfileSettings() {

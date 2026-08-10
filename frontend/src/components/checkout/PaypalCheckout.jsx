@@ -1,4 +1,4 @@
-import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
+import { PayPalButtons, PayPalScriptProvider } from '@paypal/react-paypal-js';
 import api from '../../api/client';
 
 const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID;
@@ -14,9 +14,7 @@ export default function PaypalCheckout({ booking, onSuccess, onError }) {
   }
 
   return (
-    <PayPalScriptProvider
-      options={{ clientId, currency: booking.currency || 'USD', intent: 'capture' }}
-    >
+    <PayPalScriptProvider options={{ clientId, currency: booking.currency || 'USD', intent: 'capture' }}>
       <PayPalButtons
         style={{ layout: 'vertical', color: 'gold', shape: 'pill', label: 'pay' }}
         createOrder={async () => {

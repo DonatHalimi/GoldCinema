@@ -16,14 +16,7 @@ export default function SocialLoginButtons({
                     Continue with Google
                 </SocialLoginButton>
 
-                <div
-                    ref={googleBtnRef}
-                    className="
-          absolute inset-0 z-10 cursor-pointer opacity-0
-          [&_iframe]:!h-full
-          [&_iframe]:!w-full
-          "
-                />
+                <div ref={googleBtnRef} className="absolute inset-0 z-10 cursor-pointer opacity-0 [&_iframe]:!h-full [&_iframe]:!w-full" />
             </div>
             <SocialLoginButton
                 icon={<FacebookIcon className="h-5 w-5" />}

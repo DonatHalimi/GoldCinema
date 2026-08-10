@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Pencil, Trash2, X, Plus, ChevronLeft, ChevronRight, Trash, Check } from 'lucide-react';
-import { getItems, createItem, updateItem, deleteItem, bulkDeleteItems } from '../../api/client';
+import { Check, ChevronLeft, ChevronRight, Pencil, Plus, Trash, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { bulkDeleteItems, deleteItem, getItems } from '../../api/client';
 import CrudModal from '../ui/CrudModal';
 import DeleteConfirmModal from '../ui/DeleteConfirmModal';
 
@@ -109,10 +109,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
 
                 <div className="flex items-center gap-3">
                     {selectedIds.length > 0 && (
-                        <button
-                            onClick={() => setDeleteTarget(selectedIds)}
-                            className="flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm font-semibold text-red-400 hover:bg-red-500/20 shadow-[0_0_12px_rgba(239,68,68,0.15)] transition-all"
-                        >
+                        <button onClick={() => setDeleteTarget(selectedIds)} className="flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm font-semibold text-red-400 hover:bg-red-500/20 shadow-[0_0_12px_rgba(239,68,68,0.15)] transition-all">
                             <Trash className="h-4 w-4" /> Delete Selected ({selectedIds.length})
                         </button>
                     )}
@@ -141,11 +138,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
                                             aria-label="Select all rows"
                                             className={`inline-flex h-4 w-4 items-center justify-center rounded border transition-all ${isAllSelected
                                                 ? 'bg-marquee-gold border-marquee-gold text-zinc-950 shadow-[0_0_8px_rgba(245,158,11,0.4)]'
-                                                : isSomeSelected
-                                                    ? 'bg-marquee-gold border-marquee-goldBright text-marquee-gold'
-                                                    : 'border-marquee-cream bg-black/30 hover:border-marquee-goldBright hover:text-marquee-gold'
-                                                }`}
-                                        >
+                                                : isSomeSelected ? 'bg-marquee-gold border-marquee-goldBright text-marquee-gold' : 'border-marquee-cream bg-black/30 hover:border-marquee-goldBright hover:text-marquee-gold'}`}>
                                             {isAllSelected && <Check className="h-3 w-3 stroke-[3]" />}
                                             {isSomeSelected && (
                                                 <span className="h-1.5 w-1.5 rounded-sm bg-marquee-gold"></span>
@@ -168,8 +161,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
                             <tbody className="divide-y divide-zinc-800">
                                 {data.length === 0 ? (
                                     <tr>
-                                        <td colSpan={fields.length + 3} className="px-6 py-8 text-center text-zinc-500"
-                                        >
+                                        <td colSpan={fields.length + 3} className="px-6 py-8 text-center text-zinc-500">
                                             No {moduleConfig.label.toLowerCase()} found.
                                         </td>
                                     </tr>
@@ -178,13 +170,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
                                         const isSelected = selectedIds.includes(row._id);
 
                                         return (
-                                            <tr
-                                                key={row._id}
-                                                className={`transition-colors ${isSelected
-                                                    ? 'bg-marquee-gold/10 hover:bg-marquee-gold/20'
-                                                    : 'hover:bg-zinc-800/50'
-                                                    }`}
-                                            >
+                                            <tr key={row._id} className={`transition-colors ${isSelected ? 'bg-marquee-gold/10 hover:bg-marquee-gold/20' : 'hover:bg-zinc-800/50'}`}>
                                                 <td className="px-4 py-4 w-12 text-center">
                                                     <button
                                                         type="button"
@@ -192,9 +178,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
                                                         aria-label={`Select row ${row._id}`}
                                                         className={`inline-flex h-4 w-4 items-center justify-center rounded border transition-all ${isSelected
                                                             ? 'bg-marquee-gold border-marquee-gold text-zinc-950 shadow-[0_0_8px_rgba(245,158,11,0.4)]'
-                                                            : 'border-marquee-goldBright bg-black/30 hover:border-marquee-gold'
-                                                            }`}
-                                                    >
+                                                            : 'border-marquee-goldBright bg-black/30 hover:border-marquee-gold'}`}>
                                                         {isSelected && (
                                                             <Check className="h-3 w-3 stroke-[3]" />
                                                         )}

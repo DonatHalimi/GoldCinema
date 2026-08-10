@@ -1,7 +1,7 @@
+import { KeyRound, Loader2, Sparkles, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import api from '../../api/client';
-import { Loader2, X, KeyRound, Sparkles } from 'lucide-react';
 import { toast } from 'react-toastify';
+import api from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 
 export default function RenamePasskeyModal({
@@ -16,12 +16,10 @@ export default function RenamePasskeyModal({
 
     const displayName = user?.name || user?.email?.split('@')[0] || 'User';
 
-    // Generate smart suggestions, always keeping the defaults available
     const getSuggestions = () => {
         const suggestions = [`${displayName}'s PC`, 'MacBook TouchID', 'Windows Hello', 'Phone Passkey'];
         const devType = passkey?.deviceType?.toLowerCase() || '';
 
-        // If it detects a hardware security key, push those suggestions to the front
         if (devType.includes('single') || devType.includes('cross')) {
             suggestions.unshift('Security Key', 'YubiKey');
         }
@@ -111,7 +109,6 @@ export default function RenamePasskeyModal({
                             />
                         </div>
 
-                        {/* Suggestion Chips */}
                         <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
                             <span className="inline-flex items-center gap-1 text-xs text-marquee-muted mr-1">
                                 <Sparkles className="h-3 w-3 text-marquee-gold" /> Suggestions:

@@ -1,7 +1,7 @@
+import { AnimatePresence, motion } from 'framer-motion';
+import { ChevronDown, LayoutDashboard, LogOut, Ticket, User2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { User, Ticket, LayoutDashboard, LogOut, ChevronDown, Settings, User2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Avatar from '../ui/Avatar';
 
@@ -38,11 +38,8 @@ export default function UserDropdown() {
         user.role?.name?.toLowerCase() === 'admin';
 
     return (
-        <div className="relative" ref={dropdownRef}>
-            <button
-                onClick={() => setOpen((prev) => !prev)}
-                className="flex items-center gap-2 rounded-full border border-marquee-line bg-marquee-panel2 px-2 py-1 text-marquee-cream transition hover:border-marquee-gold"
-            >
+        <div ref={dropdownRef} className="relative">
+            <button onClick={() => setOpen((prev) => !prev)} className="flex items-center gap-2 rounded-full border border-marquee-line bg-marquee-panel2 px-2 py-1 text-marquee-cream transition hover:border-marquee-gold">
                 <Avatar
                     name={user?.name}
                     avatar={user?.avatar}
@@ -51,10 +48,7 @@ export default function UserDropdown() {
 
                 <span>{displayName}</span>
 
-                <ChevronDown
-                    size={16}
-                    className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
-                />
+                <ChevronDown size={16} className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
             </button>
 
             <AnimatePresence>

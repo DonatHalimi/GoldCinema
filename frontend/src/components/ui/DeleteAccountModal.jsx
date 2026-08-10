@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
 import { Loader2, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import api from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
-import { toast } from 'react-toastify';
 import { PasswordField } from './FormUI';
 
 export default function DeleteAccountModal({ onClose }) {
@@ -67,10 +67,7 @@ export default function DeleteAccountModal({ onClose }) {
                         </h2>
                     </div>
 
-                    <button
-                        onClick={onClose}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100 disabled:opacity-50"
-                    >
+                    <button onClick={onClose} className="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100 disabled:opacity-50">
                         <X className="h-4 w-4" />
                     </button>
                 </div>
@@ -90,10 +87,7 @@ export default function DeleteAccountModal({ onClose }) {
                 />
 
                 <div className="mt-6 flex justify-end gap-3">
-                    <button
-                        onClick={onClose}
-                        className="rounded-full border border-marquee-line px-4 py-2 text-sm text-marquee-muted hover:border-marquee-gold"
-                    >
+                    <button onClick={onClose} className="rounded-full border border-marquee-line px-4 py-2 text-sm text-marquee-muted hover:border-marquee-gold">
                         Cancel
                     </button>
 
@@ -102,9 +96,7 @@ export default function DeleteAccountModal({ onClose }) {
                         disabled={loading}
                         className="inline-flex items-center gap-2 rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-red-500 disabled:opacity-50"
                     >
-                        {loading && (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                        )}
+                        {loading && <Loader2 className="h-4 w-4 animate-spin" />}
 
                         {loading ? 'Deleting...' : 'Delete Account'}
                     </button>

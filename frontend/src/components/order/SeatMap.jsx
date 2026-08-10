@@ -1,7 +1,7 @@
 import {
+  Accessibility,
   Armchair,
   Sofa,
-  Accessibility,
   User,
 } from 'lucide-react';
 

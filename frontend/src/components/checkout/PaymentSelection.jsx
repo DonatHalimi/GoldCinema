@@ -1,6 +1,6 @@
-import StripeCheckout from './StripeCheckout';
-import PaypalCheckout from './PaypalCheckout';
 import PaymentTabs from './PaymentTabs';
+import PaypalCheckout from './PaypalCheckout';
+import StripeCheckout from './StripeCheckout';
 
 export default function PaymentSection({
     provider,
@@ -12,7 +12,6 @@ export default function PaymentSection({
 }) {
     return (
         <div className="rounded-xl border border-marquee-line bg-marquee-panel p-6">
-
             <PaymentTabs
                 provider={provider}
                 setProvider={setProvider}

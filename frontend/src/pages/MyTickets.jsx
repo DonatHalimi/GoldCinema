@@ -1,10 +1,6 @@
-import { useEffect, useState } from 'react';
-import api from '../api/client';
-
-import TicketCard from '../components/tickets/TicketCard';
-import EmptyTickets from '../components/tickets/EmptyTickets';
-import TicketSidebar from '../components/tickets/TicketSidebar';
+import { useState } from 'react';
 import TicketContent from '../components/account/TicketContent';
+import TicketSidebar from '../components/tickets/TicketSidebar';
 
 export default function MyTickets() {
   const [orders, setOrders] = useState([]);
@@ -18,9 +14,7 @@ export default function MyTickets() {
       return true;
     }
 
-    const showtime = order.showtime?.startTime
-      ? new Date(order.showtime.startTime)
-      : null;
+    const showtime = order.showtime?.startTime ? new Date(order.showtime.startTime) : null;
 
     if (active === 'upcoming') {
       return showtime && showtime > new Date();

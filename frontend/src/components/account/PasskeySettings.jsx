@@ -1,10 +1,10 @@
+import { startRegistration } from '@simplewebauthn/browser';
+import { BadgeCheck, Fingerprint, KeyRound, Pencil, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { KeyRound, Fingerprint, Trash2, BadgeCheck, Pencil } from 'lucide-react';
+import { toast } from 'react-toastify';
 import api from '../../api/client';
 import DisablePasskeyModal from '../ui/DisablePasskeyModal';
 import RenamePasskeyModal from '../ui/RenamePasskeyModal';
-import { toast } from 'react-toastify';
-import { startRegistration } from '@simplewebauthn/browser';
 
 export default function PasskeySettings() {
     const [passkeys, setPasskeys] = useState([]);
@@ -97,10 +97,7 @@ export default function PasskeySettings() {
                 {passkeys.length > 0 && (
                     <div className="mt-5 space-y-3">
                         {passkeys.map((passkey) => (
-                            <div
-                                key={passkey.id}
-                                className="flex items-center justify-between rounded-lg border border-marquee-line bg-marquee-panel2 px-4 py-3"
-                            >
+                            <div key={passkey.id} className="flex items-center justify-between rounded-lg border border-marquee-line bg-marquee-panel2 px-4 py-3">
                                 <div className="flex items-center gap-3">
                                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-marquee-line/30 text-marquee-gold">
                                         <Fingerprint className="h-5 w-5" />
@@ -111,7 +108,7 @@ export default function PasskeySettings() {
                                         </p>
 
                                         <p className="text-xs text-marquee-muted">
-                                            Added on {new Date(passkey.createdAt).toLocaleDateString()}
+                                            Added on {new Date(passkey.createdAt).toLocaleDateString('en-GB')}
                                         </p>
                                     </div>
                                 </div>

@@ -1,11 +1,10 @@
-import { useEffect, useState, useRef } from 'react';
+import { Loader2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
-import { validateForm, registerSchema } from '../validations';
-import { Field, PasswordField, PasswordStrength, SocialLoginButton } from '../components/ui/FormUI';
-import { FacebookIcon, GoogleIcon } from '../components/ui/Icons';
 import SocialLoginButtons from '../components/auth/SocialLoginButtons';
+import { Field, PasswordField, PasswordStrength } from '../components/ui/FormUI';
+import { useAuth } from '../context/AuthContext';
+import { registerSchema, validateForm } from '../validations';
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const facebookAppId = import.meta.env.VITE_FACEBOOK_APP_ID;
@@ -132,11 +131,7 @@ export default function Register() {
       await loginWithGoogle(credential);
       navigate(from, { replace: true });
     } catch (err) {
-      setError(
-        err.response?.data?.error ||
-        err.message ||
-        'Google login failed.'
-      );
+      setError(err.response?.data?.error || err.message || 'Google login failed.');
     } finally {
       setSubmitting(false);
     }
@@ -246,6 +241,7 @@ export default function Register() {
             required
             error={fieldErrors.email}
           />
+
           <PasswordField
             label="Password"
             value={password}
@@ -274,8 +270,7 @@ export default function Register() {
             <div
               className={`mt-2 rounded-md border px-3 py-2 text-xs ${passwordsMatch
                 ? 'border-green-500/30 bg-green-500/10 text-green-400'
-                : 'border-red-500/30 bg-red-500/10 text-red-400'
-                }`}
+                : 'border-red-500/30 bg-red-500/10 text-red-400'}`}
             >
               {passwordsMatch
                 ? '✓ Passwords match'
@@ -300,6 +295,12 @@ export default function Register() {
               'Create account'
             )}
           </button>
+
+          <div className="relative flex py-2 items-center">
+            <div className="flex-grow border-t border-marquee-line"></div>
+            <span className="flex-shrink mx-4 text-xs text-marquee-muted uppercase">Or</span>
+            <div className="flex-grow border-t border-marquee-line"></div>
+          </div>
 
           <SocialLoginButtons
             submitting={submitting}

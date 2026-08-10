@@ -1,6 +1,19 @@
-
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const Role = require('../models/role');
+const { OAuth2Client } = require('google-auth-library');
+const { sendVerificationEmail } = require('../utils/mailer');
+const { generateVerificationToken } = require('../utils/tokens');
+
+const TRUSTED_DEVICE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+const EMAIL_OTP_TTL_MS = 10 * 60 * 1000;
+const MFA_MAX_ATTEMPTS = 5;
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCK_STAGES_MIN = [1, 5, 15, 60];
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 const requireAuth = async (req, res, next) => {
   try {
@@ -103,4 +116,83 @@ async function checkTrustedDevice(req, res, next) {
   }
 }
 
-module.exports = { requireAuth, optionalAuth, requireVerified, checkTrustedDevice };
+const generateTokens = (userId, refreshExpiresIn = process.env.JWT_REFRESH_EXPIRES_IN) => {
+  const accessToken = jwt.sign(
+    { id: userId },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRES_IN }
+  );
+
+  const refreshToken = jwt.sign(
+    { id: userId },
+    process.env.JWT_REFRESH_SECRET,
+    { expiresIn: refreshExpiresIn }
+  );
+
+  return { accessToken, refreshToken };
+};
+
+const setCookies = (res, accessToken, refreshToken, refreshMaxAgeMs = 7 * 24 * 60 * 60 * 1000) => {
+  res.cookie('accessToken', accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 15 * 60 * 1000,
+  });
+
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: refreshMaxAgeMs,
+  });
+};
+
+async function getCustomerRoleId() {
+  const role = await Role.findOneAndUpdate(
+    { name: 'customer' },
+    {
+      $setOnInsert: {
+        name: 'customer',
+        description: 'Default role for registered users.',
+      },
+    },
+    { upsert: true, new: true }
+  );
+
+  return role._id;
+}
+
+async function issueVerificationEmail(user) {
+  const { token, expiresAt } = generateVerificationToken();
+  user.verificationToken = token;
+  user.verificationTokenExpiresAt = expiresAt;
+  await user.save();
+
+  const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+  const verificationUrl = `${clientUrl}/verify-email?token=${token}`;
+
+  await sendVerificationEmail({
+    to: user.email,
+    name: user.name,
+    verificationUrl,
+  });
+}
+
+module.exports = {
+  TRUSTED_DEVICE_MAX_AGE_MS,
+  EMAIL_OTP_TTL_MS,
+  MFA_MAX_ATTEMPTS,
+  MAX_FAILED_ATTEMPTS,
+  LOCK_STAGES_MIN,
+  DAY_MS,
+  googleClient,
+  requireAuth,
+  optionalAuth,
+  requireVerified,
+  checkTrustedDevice,
+  getCustomerRoleId,
+  issueVerificationEmail,
+  generateTokens,
+  setCookies,
+};

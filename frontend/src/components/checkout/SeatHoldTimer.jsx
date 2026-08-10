@@ -8,12 +8,7 @@ export default function SeatHoldTimer({
 
     return (
         <div className="mt-5 mb-5 text-center">
-            <p
-                className={`text-sm ${secondsLeft < 60
-                        ? 'text-marquee-marquee'
-                        : 'text-marquee-muted'
-                    }`}
-            >
+            <p className={`text-sm ${secondsLeft < 60 ? 'text-marquee-marquee' : 'text-marquee-muted'}`}>
                 {expired
                     ? ''
                     : `Seats reserved for ${Math.floor(secondsLeft / 60)}:${String(

@@ -1,26 +1,26 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
-import Home from '../../pages/Home';
-import MovieDetail from '../../pages/MovieDetail';
-import SeatSelection from '../../pages/SeatSelection';
-import Login from '../../pages/Login';
-import Register from '../../pages/Register';
-import VerifyEmail from '../../pages/VerifyEmail';
-import ResetPassword from '../../pages/ResetPassword';
-import Checkout from '../../pages/Checkout';
-import Confirmation from '../../pages/Confirmation';
-import Account from '../../pages/Account';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import DangerZone from '../../components/account/DangerZone';
+import Notifications from '../../components/account/Notifications';
 import ProfileSettings from '../../components/account/ProfileSettings';
 import SecuritySettings from '../../components/account/SecuritySettings';
-import Notifications from '../../components/account/Notifications';
-import TicketsContent from '../../components/account/TicketContent';
 import Sessions from '../../components/account/Sessions';
-import DangerZone from '../../components/account/DangerZone';
+import TicketsContent from '../../components/account/TicketContent';
+import Account from '../../pages/Account';
 import AdminDashboard from '../../pages/AdminDashboard';
-import RequireAuth from '../guards/RequireAuth';
-import RequireAdmin from '../guards/RequireAdmin';
-import RequireGuest from '../guards/RequireGuest';
-import NotFound from '../../pages/NotFound';
+import Checkout from '../../pages/Checkout';
+import Confirmation from '../../pages/Confirmation';
 import ContactPage from '../../pages/Contact';
+import Home from '../../pages/Home';
+import Login from '../../pages/Login';
+import MovieDetail from '../../pages/MovieDetail';
+import NotFound from '../../pages/NotFound';
+import Register from '../../pages/Register';
+import ResetPassword from '../../pages/ResetPassword';
+import SeatSelection from '../../pages/SeatSelection';
+import VerifyEmail from '../../pages/VerifyEmail';
+import RequireAdmin from '../guards/RequireAdmin';
+import RequireAuth from '../guards/RequireAuth';
+import RequireGuest from '../guards/RequireGuest';
 
 export default function AppRoutes() {
     return (

@@ -2,10 +2,7 @@ import { Link } from 'react-router-dom';
 
 export default function MovieCard({ movie }) {
   return (
-    <Link
-      to={`/movies/${movie._id}`}
-      className="group block overflow-hidden rounded-lg border border-marquee-line bg-marquee-panel transition hover:border-marquee-gold hover:shadow-glow"
-    >
+    <Link to={`/movies/${movie._id}`} className="group block overflow-hidden rounded-lg border border-marquee-line bg-marquee-panel transition hover:border-marquee-gold hover:shadow-glow">
       <div className="aspect-[2/3] overflow-hidden bg-marquee-panel2">
         <img
           src={movie.posterUrl}

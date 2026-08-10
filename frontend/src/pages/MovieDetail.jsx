@@ -31,12 +31,9 @@ export default function MovieDetail() {
 
   const showtimesForDate = showtimes.filter((s) => s.date === selectedDate);
 
-  if (loading) {
-    return <p className="py-20 text-center text-marquee-muted">Loading...</p>;
-  }
-  if (error || !movie) {
-    return <p className="py-20 text-center text-marquee-marquee">{error || 'Movie not found.'}</p>;
-  }
+  if (loading) return <p className="py-20 text-center text-marquee-muted">Loading...</p>;
+
+  if (error || !movie) return <p className="py-20 text-center text-marquee-marquee">{error || 'Movie not found.'}</p>;
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-12">
@@ -72,8 +69,7 @@ export default function MovieDetail() {
                   onClick={() => setSelectedDate(date)}
                   className={`rounded-full border px-4 py-2 text-sm transition ${selectedDate === date
                     ? 'border-marquee-gold bg-marquee-gold text-marquee-bg'
-                    : 'border-marquee-line text-marquee-muted hover:border-marquee-gold hover:text-marquee-gold'
-                    }`}
+                    : 'border-marquee-line text-marquee-muted hover:border-marquee-gold hover:text-marquee-gold'}`}
                 >
                   {formatDate(date)}
                 </button>

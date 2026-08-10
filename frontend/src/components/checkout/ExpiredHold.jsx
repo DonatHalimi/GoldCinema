@@ -5,10 +5,7 @@ export default function ExpiredHold({ onBack }) {
                 Your seats are no longer reserved.
             </p>
 
-            <button
-                onClick={onBack}
-                className="rounded-full bg-marquee-gold px-6 py-2 font-semibold text-marquee-bg"
-            >
+            <button onClick={onBack} className="rounded-full bg-marquee-gold px-6 py-2 font-semibold text-marquee-bg">
                 Choose seats again
             </button>
         </div>

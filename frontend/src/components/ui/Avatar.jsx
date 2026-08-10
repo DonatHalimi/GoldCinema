@@ -23,18 +23,7 @@ export default function Avatar({
     }
 
     return (
-        <div
-            className={`
-        flex items-center justify-center
-        rounded-full
-        border border-marquee-gold/30
-        bg-marquee-panel
-        font-bold
-        text-marquee-gold
-        ${sizes[size]}
-        ${className}
-      `}
-        >
+        <div className={`flex items-center justify-center rounded-full border border-marquee-gold/30 bg-marquee-panel font-bold text-marquee-gold ${sizes[size]} ${className} `}>
             {name?.charAt(0).toUpperCase()}
         </div>
     );

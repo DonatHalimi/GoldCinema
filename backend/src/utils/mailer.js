@@ -2,13 +2,6 @@ const nodemailer = require('nodemailer');
 
 let cachedTransporter = null;
 
-/**
- * Builds (and caches) a nodemailer transporter from SMTP_* env vars.
- * Works with MailHog (no auth, just point SMTP_HOST/PORT at it), a real SMTP
- * provider (SendGrid, Postmark, etc. — set SMTP_USER/SMTP_PASSWORD), or, if
- * nothing is configured, falls back to logging emails to the console so
- * registration doesn't hard-fail in a fresh dev environment.
- */
 function getTransporter() {
   if (cachedTransporter) return cachedTransporter;
 
@@ -126,7 +119,6 @@ async function sendTicketEmail(to, order, qrDataUrl) {
     order.movie?.posterUrl ||
     'https://via.placeholder.com/300x450?text=GoldCinema';
 
-
   const cinema = order.showtime?.cinema;
 
   const cinemaName = cinema?.name || 'GoldCinema';
@@ -138,35 +130,42 @@ async function sendTicketEmail(to, order, qrDataUrl) {
   const screenName =
     order.showtime?.screen?.name ||
     order.showtime?.hall ||
-    'Main Hall';
-
+    'GoldCinema Hall';
 
   const startDate = order.showtime?.startTime
     ? new Date(order.showtime.startTime)
     : null;
 
-
   const showtimeDate = startDate
-    ? startDate.toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
+    ? startDate.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
       year: 'numeric',
     })
-    : 'Scheduled Date';
-
+    : '28.07.2026';
 
   const showtimeTime = startDate
     ? startDate.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
+      hour12: false,
     })
-    : 'Scheduled Time';
+    : '17:30';
 
-  const seatsList = Array.isArray(order.seats) ? order.seats.join(', ') : 'Assigned Seats';
+  const seatsList = Array.isArray(order.seats) ? order.seats.join(', ') : '19';
   const totalPaid = typeof order.totalAmount === 'number'
     ? order.totalAmount.toFixed(2)
-    : (order.ticketAmount || 0).toFixed(2);
+    : (order.ticketAmount || 6.00).toFixed(2);
+
+  const customerName = order.user?.name || 'Valued Customer';
+  const customerEmail = order.user?.email || to;
+  const paymentType = order.paymentType || 'CREDIT';
+  const purchaseDate = order.createdAt 
+    ? new Date(order.createdAt).toLocaleDateString('en-GB') 
+    : '27.07.2026';
+
+  const rowName = order.row || 'C';
+  const ticketType = order.ticketType || `1 Regular VIP (${totalPaid})`;
 
   const attachments = [];
   let qrImgSrc = '';
@@ -202,7 +201,11 @@ async function sendTicketEmail(to, order, qrDataUrl) {
         .detail-line strong { color: #f3f3f5; }
         .qr-section { text-align: center; background-color: #ffffff; padding: 24px; border-radius: 10px; margin: 24px 0; }
         .qr-image { width: 260px; height: 260px; display: block; margin: 0 auto; }
-        .qr-instruction { color: #111111; font-weight: bold; font-size: 14px; margin-top: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        .qr-code-text { font-size: 16px; font-weight: bold; color: #111111; margin-top: 10px; letter-spacing: 2px; }
+        .instructions-box { background-color: #222228; border-left: 4px solid #d4af37; padding: 15px; border-radius: 0 8px 8px 0; margin: 20px 0; font-size: 13px; color: #b3b3c2; line-height: 1.6; }
+        .instructions-box h4 { color: #ffffff; margin: 0 0 8px 0; font-size: 14px; }
+        .instructions-box ul { margin: 0; padding-left: 18px; }
+        .instructions-box li { margin-bottom: 6px; }
         .order-summary { border-top: 1px dashed #33333d; padding-top: 16px; margin-top: 20px; font-size: 14px; color: #b3b3c2; }
         .footer { text-align: center; padding: 20px; font-size: 12px; color: #666677; }
       </style>
@@ -213,36 +216,59 @@ async function sendTicketEmail(to, order, qrDataUrl) {
           <div class="brand">GOLD<span style="color:#ffffff;">CINEMA</span></div>
         </div>
         <div class="content">
-          <h2 style="color: #ffffff; margin-top: 0;">Your Ticket is Confirmed!</h2>
-          <p style="color: #b3b3c2; font-size: 15px;">Show this email or scan your QR code at the entrance.</p>
+          <h2 style="color: #ffffff; margin-top: 0;">Electronic Ticket</h2>
+          <p style="color: #b3b3c2; font-size: 15px;">This confirmation also serves as your receipt!</p>
 
           <div class="movie-card">
             <img src="${posterUrl}" alt="${escapeHtml(movieTitle)}" class="poster" />
             <div class="movie-details">
               <h3 class="movie-title">${escapeHtml(movieTitle)}</h3>
-              <p class="detail-line"><strong>Cinema:</strong> ${escapeHtml(cinemaName)} ${location ? `(${escapeHtml(location)})` : ''}</p>
-              <p class="detail-line"><strong>Hall / Screen:</strong> ${escapeHtml(screenName)}</p>
-              <p class="detail-line"><strong>Date:</strong> ${escapeHtml(showtimeDate)}</p>
               <p class="detail-line"><strong>Time:</strong> ${escapeHtml(showtimeTime)}</p>
+              <p class="detail-line"><strong>Date:</strong> ${escapeHtml(showtimeDate)}</p>
+              <p class="detail-line"><strong>Cinema:</strong> ${escapeHtml(cinemaName)} ${location ? `(${escapeHtml(location)})` : ''}</p>
+              <p class="detail-line"><strong>Screen / Hall:</strong> ${escapeHtml(screenName)}</p>
+              <p class="detail-line"><strong>Row:</strong> ${escapeHtml(rowName)}</p>
               <p class="detail-line"><strong>Seats:</strong> <span style="color: #d4af37; font-weight: bold;">${escapeHtml(seatsList)}</span></p>
+              <p class="detail-line"><strong>Ticket:</strong> ${escapeHtml(ticketType)}</p>
+              <p class="detail-line"><strong>Price:</strong> ${totalPaid} EUR (all amounts include VAT)</p>
             </div>
           </div>
 
           ${qrImgSrc
       ? `<div class="qr-section">
                    <img src="${qrImgSrc}" alt="Entry QR Code" class="qr-image" />
-                   <div class="qr-instruction">Scan at Cinema Entrance</div>
+                   <div class="qr-code-text">#${order._id || 'WPW2H73'}</div>
                  </div>`
       : ''
     }
 
+          <div class="instructions-box">
+            <h4>What to do at the cinema?</h4>
+            <p style="margin: 0 0 10px 0; color: #f3f3f5;"><strong>Go straight to the entrance - skip the ticket control counter and show your QR Code.</strong></p>
+            <ul>
+              <li><strong>Via mobile phone:</strong> Display this confirmation email with the QR Code or use the mobile app and show the QR Code via the "My Tickets" section!</li>
+              <li><strong>Via print:</strong> Show the QR Code. Please do not fold the QR Code and protect it from moisture and dirt.</li>
+              <li><strong>Take care of your QR Code!</strong> After the first validation, this QR Code cannot be used for entry again.</li>
+              <li>If you purchased more than one seat, please note: All guests must enter together at the ticket check.</li>
+              <li>When buying food and drinks: It is also possible to get your printed tickets at the counter if preferred.</li>
+            </ul>
+          </div>
+
+          <p style="font-size: 13px; color: #b3b3c2; font-style: italic; margin-top: 15px;">
+            Please note that online tickets cannot be cancelled!
+          </p>
+
           <div class="order-summary">
-            <p style="margin: 4px 0;"><strong>Order Reference:</strong> #${order._id}</p>
-            <p style="margin: 4px 0;"><strong>Total Paid:</strong> $${totalPaid}</p>
+            <p style="margin: 4px 0;"><strong>User:</strong> ${escapeHtml(customerName)}, ${escapeHtml(customerEmail)}</p>
+            <p style="margin: 4px 0;"><strong>Payment Type:</strong> ${escapeHtml(paymentType)}</p>
+            <p style="margin: 4px 0;"><strong>Price:</strong> ${totalPaid} EUR</p>
+            <p style="margin: 4px 0;"><strong>Purchase Date:</strong> ${escapeHtml(purchaseDate)}</p>
           </div>
         </div>
         <div class="footer">
-          &copy; ${new Date().getFullYear()} GoldCinema. Enjoy your movie!
+          <p style="margin: 0 0 10px 0; color: #888899;">You can print your tickets using your booking code at GoldCinema kiosks.</p>
+          <p style="margin: 0 0 10px 0; color: #f3f3f5; font-weight: bold;">Enjoy your movie and your stay at GoldCinema!</p>
+          &copy; ${new Date().getFullYear()} GoldCinema Staff
         </div>
       </div>
     </body>
@@ -252,8 +278,8 @@ async function sendTicketEmail(to, order, qrDataUrl) {
   await transporter.sendMail({
     from: process.env.SMTP_FROM || 'GoldCinema <no-reply@goldcinema.example>',
     to,
-    subject: `🎟️ Your GoldCinema Ticket: ${movieTitle}`,
-    text: `Your ticket for ${movieTitle} is confirmed! Show reference #${order._id} at entrance. Seats: ${seatsList}.`,
+    subject: `🎟️ Electronic Ticket: ${movieTitle}`,
+    text: `Electronic ticket for ${movieTitle}. Time: ${showtimeTime}, Date: ${showtimeDate}. Screen: ${screenName}, Row: ${rowName}, Seat: ${seatsList}. Code: #${order._id || 'WPW2H73'}`,
     html: htmlContent,
     attachments,
   });

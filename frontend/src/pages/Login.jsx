@@ -1,17 +1,16 @@
-import { useEffect, useState, useRef } from 'react';
+import { startAuthentication } from '@simplewebauthn/browser';
+import { KeyRound } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { Check, Eye, EyeOff, KeyRound, X } from 'lucide-react';
-import { validateForm, loginSchema, forgotPasswordSchema } from '../validations';
-import { SocialLoginButton, PasswordField, Field } from '../components/ui/FormUI';
-import { FacebookIcon, GoogleIcon } from '../components/ui/Icons';
+import { toast } from 'react-toastify';
+import api from '../api/client';
 import { ForgotPasswordModal } from '../components/auth/ForgotPasswordModal';
+import MfaVerifyStep from '../components/auth/MfaVerifyStep';
 import RememberMeCheckbox from '../components/auth/RememberMeCheckbox';
 import SocialLoginButtons from '../components/auth/SocialLoginButtons';
-import MfaVerifyStep from '../components/auth/MfaVerifyStep';
-import { toast } from 'react-toastify';
-import { startAuthentication } from '@simplewebauthn/browser';
-import api from '../api/client';
+import { Field, PasswordField } from '../components/ui/FormUI';
+import { useAuth } from '../context/AuthContext';
+import { loginSchema, validateForm } from '../validations';
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const facebookAppId = import.meta.env.VITE_FACEBOOK_APP_ID;
@@ -41,7 +40,6 @@ export default function Login() {
     !fieldErrors.email &&
     !fieldErrors.password;
 
-  // Google & Facebook scripts initialization effects remain the same...
   useEffect(() => {
     if (!googleClientId) return;
     const loadGoogleScript = () => {
@@ -83,14 +81,11 @@ export default function Login() {
     setSubmitting(true);
 
     try {
-      // 1. Fetch options without passing any email
       const optRes = await api.post('/auth/passkeys/login/options', {});
       const optionsJSON = optRes.data;
 
-      // 2. Trigger browser authenticator UI (TouchID, Windows Hello, Security Key, etc.)
       const authResponse = await startAuthentication({ optionsJSON });
 
-      // 3. Send response back. The server figures out who the user is using the credential ID.
       const verifyRes = await api.post('/auth/passkeys/login/verify', {
         rememberMe: rememberMe,
         ...authResponse,
@@ -264,6 +259,7 @@ export default function Login() {
                   checked={rememberMe}
                   onChange={() => setRememberMe((prev) => !prev)}
                 />
+
                 <button
                   type="button"
                   onClick={() => setIsForgotModalOpen(true)}
@@ -281,7 +277,6 @@ export default function Login() {
                 {submitting ? 'Logging in...' : 'Login'}
               </button>
 
-              {/* Passkey Login Button Option */}
               <button
                 type="button"
                 onClick={handlePasskeyLogin}
@@ -294,7 +289,7 @@ export default function Login() {
 
               <div className="relative flex py-2 items-center">
                 <div className="flex-grow border-t border-marquee-line"></div>
-                <span className="flex-shrink mx-4 text-xs text-marquee-muted uppercase">Or continue with</span>
+                <span className="flex-shrink mx-4 text-xs text-marquee-muted uppercase">Or</span>
                 <div className="flex-grow border-t border-marquee-line"></div>
               </div>
 

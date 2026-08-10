@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
 import api from '../../api/client';
+import { useAuth } from '../../context/AuthContext';
 import RememberMeCheckbox from './RememberMeCheckbox';
 
 const RESEND_COOLDOWN_SECONDS = 30;
@@ -81,11 +81,7 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
 
             navigate(from, { replace: true });
         } catch (err) {
-            setError(
-                err.response?.data?.error ||
-                err.message ||
-                'Invalid code. Please try again.'
-            );
+            setError(err.response?.data?.error || err.message || 'Invalid code. Please try again.');
 
             if (useBackupCode) {
                 setBackupCode('');
@@ -173,11 +169,7 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
 
             setResendCooldown(RESEND_COOLDOWN_SECONDS);
         } catch (err) {
-            setError(
-                err.response?.data?.error ||
-                err.message ||
-                'Could not resend code.'
-            );
+            setError(err.response?.data?.error || err.message || 'Could not resend code.');
         } finally {
             setResending(false);
         }
@@ -219,10 +211,8 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
                         onClick={() => switchMethod('totp')}
                         disabled={submitting}
                         className={`w-full rounded-lg border px-4 py-3 text-left transition ${selectedMethod === 'totp'
-                                ? 'border-marquee-gold bg-marquee-gold/10 text-marquee-cream'
-                                : 'border-marquee-line bg-marquee-panel2 text-marquee-muted hover:border-marquee-gold/50 hover:text-marquee-cream'
-                            }`}
-                    >
+                            ? 'border-marquee-gold bg-marquee-gold/10 text-marquee-cream'
+                            : 'border-marquee-line bg-marquee-panel2 text-marquee-muted hover:border-marquee-gold/50 hover:text-marquee-cream'}`}>
                         <div className="font-medium">
                             Authenticator App
                         </div>
@@ -237,10 +227,8 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
                         onClick={() => switchMethod('email')}
                         disabled={submitting}
                         className={`w-full rounded-lg border px-4 py-3 text-left transition ${selectedMethod === 'email'
-                                ? 'border-marquee-gold bg-marquee-gold/10 text-marquee-cream'
-                                : 'border-marquee-line bg-marquee-panel2 text-marquee-muted hover:border-marquee-gold/50 hover:text-marquee-cream'
-                            }`}
-                    >
+                            ? 'border-marquee-gold bg-marquee-gold/10 text-marquee-cream'
+                            : 'border-marquee-line bg-marquee-panel2 text-marquee-muted hover:border-marquee-gold/50 hover:text-marquee-cream'}`}>
                         <div className="font-medium">
                             Email
                         </div>
@@ -252,10 +240,7 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
                 </div>
             )}
 
-            <form
-                onSubmit={handleSubmit}
-                className="space-y-4"
-            >
+            <form onSubmit={handleSubmit} className="space-y-4">
                 {useBackupCode ? (
                     <label className="block">
                         <span className="mb-1 block text-sm text-marquee-muted">
@@ -280,10 +265,7 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
                             Verification code
                         </span>
 
-                        <div
-                            className="flex justify-between gap-2"
-                            onPaste={handleOtpPaste}
-                        >
+                        <div onPaste={handleOtpPaste} className="flex justify-between gap-2">
                             {otp.map((digit, index) => (
                                 <input
                                     key={index}
@@ -309,17 +291,7 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
                                     onKeyDown={(e) =>
                                         handleOtpKeyDown(index, e)
                                     }
-                                    className="
-                                        h-12 w-12 rounded-md
-                                        border border-marquee-line
-                                        bg-marquee-panel2
-                                        text-center text-lg font-semibold
-                                        text-marquee-cream
-                                        outline-none
-                                        transition
-                                        focus:border-marquee-gold
-                                        disabled:opacity-50
-                                    "
+                                    className="h-12 w-12 rounded-md border border-marquee-line bg-marquee-panel2 text-center text-lg font-semibold text-marquee-cream outline-none transition focus:border-marquee-gold disabled:opacity-50"
                                 />
                             ))}
                         </div>
@@ -351,9 +323,7 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
                     }
                     className="w-full rounded-full bg-marquee-gold px-6 py-3 font-semibold text-marquee-bg transition hover:bg-marquee-goldBright disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                    {submitting
-                        ? 'Verifying...'
-                        : 'Verify'}
+                    {submitting ? 'Verifying...' : 'Verify'}
                 </button>
 
                 <div className="flex items-center justify-between text-sm">
@@ -367,9 +337,7 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
                         }}
                         className="text-marquee-gold hover:text-marquee-goldBright"
                     >
-                        {useBackupCode
-                            ? 'Use verification code instead'
-                            : 'Use a backup code instead'}
+                        {useBackupCode ? 'Use verification code instead' : 'Use a backup code instead'}
                     </button>
 
                     {selectedMethod === 'email' &&

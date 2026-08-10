@@ -1,10 +1,10 @@
+import { BadgeCheck, Mail, ShieldCheck, Smartphone, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { ShieldCheck, BadgeCheck, Trash2, Mail, Smartphone, KeyRound } from 'lucide-react';
+import { toast } from 'react-toastify';
 import api from '../../api/client';
+import Disable2faModal from '../ui/Disable2faModal.jsx';
 import EnableEmail2faModal from '../ui/EnableEmail2faModal';
 import EnableTotpModal from '../ui/EnableTotpModal';
-import Disable2faModal from '../ui/Disable2faModal.jsx';
-import { toast } from 'react-toastify';
 
 export default function TwoFactorSettings() {
     const [showEmailVerify, setShowEmailVerify] = useState(false);
@@ -103,7 +103,7 @@ export default function TwoFactorSettings() {
 
                         <p className="mt-1 text-sm text-marquee-muted">
                             Add an extra layer of protection to your account
-                            using email or an authenticator app 
+                            using email or an authenticator app
                         </p>
                     </div>
                 </div>

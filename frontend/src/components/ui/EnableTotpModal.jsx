@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from "react";
+import { Loader2, X, Download } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import api from "../../api/client";
-import { X, Loader2 } from "lucide-react";
 
 export default function EnableTotpModal({
     onClose,
@@ -25,10 +25,7 @@ export default function EnableTotpModal({
             setQr(data.qrDataUrl);
             setSecret(data.secret);
         } catch (err) {
-            setError(
-                err.response?.data?.error ||
-                err.message
-            );
+            setError(err.response?.data?.error || err.message);
         } finally {
             setLoading(false);
         }
@@ -53,19 +50,12 @@ export default function EnableTotpModal({
             setLoading(true);
             setError("");
 
-            const { data } = await api.post(
-                "/auth/2fa/totp/verify",
-                {
-                    code: codeToSubmit
-                }
+            const { data } = await api.post("/auth/2fa/totp/verify", { code: codeToSubmit }
             );
 
             setBackupCodes(data.backupCodes);
         } catch (err) {
-            setError(
-                err.response?.data?.error ||
-                'Invalid verification code'
-            );
+            setError(err.response?.data?.error || 'Invalid verification code');
         } finally {
             setLoading(false);
         }
@@ -111,7 +101,16 @@ export default function EnableTotpModal({
         submitCode(otp.join(""));
     };
 
-    // Format secret into chunks of 4 characters for better readability
+    const handleDownload = () => {
+        const blob = new Blob([backupCodes.join('\n')], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'goldcinema-backup-codes.txt';
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
     const formattedSecret = secret ? secret.match(/.{1,4}/g)?.join(' ') || secret : '';
 
     return (
@@ -122,10 +121,7 @@ export default function EnableTotpModal({
                         Authenticator App
                     </h2>
 
-                    <button
-                        onClick={onClose}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition-colors"
-                    >
+                    <button onClick={onClose} className="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition-colors">
                         <X />
                     </button>
                 </div>
@@ -175,21 +171,7 @@ export default function EnableTotpModal({
                                             disabled={loading}
                                             onChange={(e) => handleChange(index, e.target.value)}
                                             onKeyDown={(e) => handleKeyDown(index, e)}
-                                            className="
-                                                h-12 w-12
-                                                rounded-md
-                                                border
-                                                border-marquee-line
-                                                bg-marquee-panel2
-                                                text-center
-                                                text-lg
-                                                font-semibold
-                                                text-marquee-cream
-                                                outline-none
-                                                transition
-                                                focus:border-marquee-gold
-                                                disabled:opacity-50
-                                            "
+                                            className="h-12 w-12 rounded-md border border-marquee-line bg-marquee-panel2 text-center text-lg font-semibold text-marquee-cream outline-none transition focus:border-marquee-gold disabled:opacity-50"
                                         />
                                     ))}
                                 </div>
@@ -204,20 +186,7 @@ export default function EnableTotpModal({
                             <button
                                 type="submit"
                                 disabled={loading || otp.join("").length < 6}
-                                className="
-                                    mt-4
-                                    w-full
-                                    rounded-full
-                                    bg-marquee-gold
-                                    px-5
-                                    py-2
-                                    font-semibold
-                                    text-zinc-950
-                                    flex items-center justify-center
-                                    hover:bg-opacity-90
-                                    disabled:opacity-50
-                                    transition
-                                "
+                                className="mt-4 w-full rounded-full bg-marquee-gold px-5 py-2 font-semibold text-zinc-950 flex items-center justify-center hover:bg-opacity-90 disabled:opacity-50 transition "
                             >
                                 {loading ? (
                                     <>
@@ -237,40 +206,32 @@ export default function EnableTotpModal({
                         <h3 className="font-semibold text-green-400">
                             Save your backup codes
                         </h3>
+                        <p className="text-xs text-marquee-muted mt-1">
+                            Store these codes safely. Each code can only be used once.
+                        </p>
 
                         <div className="mt-3 grid grid-cols-2 gap-2">
                             {backupCodes.map((code) => (
-                                <div
-                                    key={code}
-                                    className="
-                                        rounded
-                                        bg-marquee-panel2
-                                        p-2
-                                        text-sm
-                                        text-marquee-cream
-                                    "
-                                >
+                                <div key={code} className="rounded bg-marquee-panel2 p-2 text-sm text-marquee-cream text-center font-mono tracking-wider">
                                     {code}
                                 </div>
                             ))}
                         </div>
 
                         <button
+                            type="button"
+                            onClick={handleDownload}
+                            className="mt-4 inline-flex items-center justify-center gap-1.5 w-full rounded-full border border-marquee-line bg-marquee-panel2 px-4 py-2 text-xs font-semibold text-marquee-cream transition hover:border-marquee-gold"
+                        >
+                            <Download className="h-4 w-4 text-marquee-gold" />
+                            Download Codes File
+                        </button>
+
+                        <button
                             onClick={() => {
                                 onSuccess();
                             }}
-                            className="
-                                mt-5
-                                w-full
-                                rounded-full
-                                bg-marquee-gold
-                                px-5
-                                py-2
-                                font-semibold
-                                text-zinc-950
-                                hover:bg-opacity-90
-                                transition
-                            "
+                            className="mt-3 w-full rounded-full bg-marquee-gold px-5 py-2 font-semibold text-zinc-950 hover:bg-opacity-90 transition"
                         >
                             Done
                         </button>

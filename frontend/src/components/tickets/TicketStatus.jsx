@@ -7,10 +7,7 @@ const STATUS_STYLES = {
 
 export default function TicketStatus({ status }) {
     return (
-        <span
-            className={`inline-block rounded-full border px-2 py-0.5 text-xs uppercase tracking-wide ${STATUS_STYLES[status] || ''
-                }`}
-        >
+        <span className={`inline-block rounded-full border px-2 py-0.5 text-xs uppercase tracking-wide ${STATUS_STYLES[status] || ''}`}>
             {status}
         </span>
     );

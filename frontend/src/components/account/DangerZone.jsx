@@ -1,5 +1,5 @@
 import { Trash } from 'lucide-react';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import DeleteAccountModal from '../ui/DeleteAccountModal';
 
 export default function DangerZone() {

@@ -1,7 +1,7 @@
+import { Loader2, ShieldAlert, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import api from '../../api/client';
-import { Loader2, X, ShieldAlert } from 'lucide-react';
 import { toast } from 'react-toastify';
+import api from '../../api/client';
 
 export default function DisablePasskeyModal({
     id,
@@ -144,10 +144,7 @@ export default function DisablePasskeyModal({
                     </div>
                 </div>
 
-                <form
-                    onSubmit={handleDisable}
-                    className="mt-5 space-y-4"
-                >
+                <form onSubmit={handleDisable} className="mt-5 space-y-4">
                     {error && (
                         <p className="text-sm text-red-400">
                             {error}
@@ -169,13 +166,9 @@ export default function DisablePasskeyModal({
                             disabled={loading}
                             className="inline-flex items-center gap-2 rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                            {loading && (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                            )}
+                            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
 
-                            {loading
-                                ? 'Verifying...'
-                                : 'Verify & Remove'}
+                            {loading ? 'Verifying...' : 'Verify & Remove'}
                         </button>
                     </div>
                 </form>

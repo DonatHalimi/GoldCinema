@@ -1,21 +1,21 @@
-import React, { useState } from 'react';
-import { useParams, useNavigate, Navigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-    Users,
-    ShieldAlert,
-    Film,
-    Building2,
-    MonitorPlay,
     Armchair,
-    Clock,
-    Lock,
-    UtensilsCrossed,
-    Receipt,
+    Building2,
     ChevronDown,
+    Clock,
+    Film,
     LayoutDashboard,
-    Mail, // Added Mail icon for contacts
+    Lock,
+    Mail,
+    MonitorPlay,
+    Receipt,
+    ShieldAlert,
+    Users,
+    UtensilsCrossed,
 } from 'lucide-react';
+import { useState } from 'react';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import ModuleDataGrid from '../components/auth/ModuleDataGrid';
 
 const MODULE_SECTIONS = [
@@ -260,32 +260,24 @@ export default function AdminDashboard() {
                                                             onClick={() => navigate(`/admin/${mod.key}`)}
                                                             className={`
                                                                 relative group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-200 z-10
-                                                                ${isActive
-                                                                    ? 'text-marquee-bg z-10'
-                                                                    : 'text-marquee-muted hover:bg-marquee-panel2 hover:text-marquee-gold z-10'
-                                                                }
-                                                            `}
+                                                                ${isActive ? 'text-marquee-bg z-10' : 'text-marquee-muted hover:bg-marquee-panel2 hover:text-marquee-gold z-10'}`}
                                                         >
                                                             {isActive && (
                                                                 <motion.div
                                                                     layoutId="activeAdminNav"
-                                                                    className="absolute inset-0 rounded-lg bg-marquee-gold shadow-glow -z-10"
                                                                     transition={{
                                                                         type: "spring",
                                                                         stiffness: 380,
                                                                         damping: 30,
                                                                     }}
+                                                                    className="absolute inset-0 rounded-lg bg-marquee-gold shadow-glow -z-10"
                                                                 />
                                                             )}
 
                                                             {IconComponent && (
                                                                 <IconComponent
                                                                     size={16}
-                                                                    className={
-                                                                        isActive
-                                                                            ? 'text-marquee-bg'
-                                                                            : 'text-marquee-muted group-hover:text-marquee-gold'
-                                                                    }
+                                                                    className={isActive ? 'text-marquee-bg' : 'text-marquee-muted group-hover:text-marquee-gold'}
                                                                 />
                                                             )}
 

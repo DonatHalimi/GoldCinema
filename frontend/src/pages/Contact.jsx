@@ -1,5 +1,5 @@
+import { Mail, PhoneCall, Send } from 'lucide-react';
 import { useState } from 'react';
-import { Mail, PhoneCall, Contact2, Send } from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../api/client';
 
@@ -42,7 +42,6 @@ export default function ContactPage() {
             </div>
 
             <div className="mt-12 grid grid-cols-1 gap-10 lg:grid-cols-3">
-                {/* Contact Info Cards */}
                 <div className="space-y-6">
                     <div className="rounded-xl border border-marquee-line bg-marquee-panel p-6">
                         <div className="flex items-center gap-4">
@@ -73,7 +72,6 @@ export default function ContactPage() {
                     </div>
                 </div>
 
-                {/* Contact Form */}
                 <div className="rounded-xl border border-marquee-line bg-marquee-panel p-8 lg:col-span-2">
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">

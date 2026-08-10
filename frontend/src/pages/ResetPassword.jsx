@@ -1,9 +1,9 @@
+import { Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { PasswordField, PasswordStrength } from '../components/ui/FormUI';
 import { useAuth } from '../context/AuthContext';
-import { validateForm, resetPasswordSchema } from '../validations';
-import { Field, PasswordField, PasswordStrength } from '../components/ui/FormUI';
-import { Loader2 } from 'lucide-react';
+import { resetPasswordSchema, validateForm } from '../validations';
 
 export default function ResetPassword() {
     const navigate = useNavigate();
@@ -21,9 +21,8 @@ export default function ResetPassword() {
     const passwordsMatch = confirmPassword.length > 0 && password === confirmPassword;
 
     useEffect(() => {
-        if (!token) {
-            setError('Missing reset token. Please request a new password reset link.');
-        }
+        if (!token) setError('Missing reset token. Please request a new password reset link.');
+
     }, [token]);
 
     async function handleSubmit(e) {
@@ -79,7 +78,6 @@ export default function ResetPassword() {
                     />
 
                     {password.length > 0 && (
-
                         <PasswordStrength password={password} />
                     )}
 
@@ -97,8 +95,7 @@ export default function ResetPassword() {
                         <div
                             className={`mt-2 rounded-md border px-3 py-2 text-xs ${passwordsMatch
                                 ? 'border-green-500/30 bg-green-500/10 text-green-400'
-                                : 'border-red-500/30 bg-red-500/10 text-red-400'
-                                }`}
+                                : 'border-red-500/30 bg-red-500/10 text-red-400'}`}
                         >
                             {passwordsMatch
                                 ? '✓ Passwords match'

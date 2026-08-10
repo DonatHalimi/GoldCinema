@@ -1,7 +1,6 @@
-import { useState, useRef } from 'react';
-import api from '../../api/client';
 import { X } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import api from '../../api/client';
 
 export default function EnableEmail2faModal({ onSuccess, onClose }) {
     const [otp, setOtp] = useState(Array(6).fill(''));
@@ -97,7 +96,7 @@ export default function EnableEmail2faModal({ onSuccess, onClose }) {
                 </p>
 
                 <form onSubmit={handleSubmit} className="mt-5 space-y-4">
-                    <div className="flex gap-2 justify-between" onPaste={handlePaste}>
+                    <div onPaste={handlePaste} className="flex gap-2 justify-between">
                         {otp.map((digit, index) => (
                             <input
                                 key={index}
@@ -109,17 +108,7 @@ export default function EnableEmail2faModal({ onSuccess, onClose }) {
                                 disabled={loading}
                                 onChange={(e) => handleChange(index, e.target.value)}
                                 onKeyDown={(e) => handleKeyDown(index, e)}
-                                className="
-                                    h-12 w-12 rounded-md
-                                    border border-marquee-line
-                                    bg-marquee-panel2
-                                    text-center text-lg font-semibold
-                                    text-marquee-cream
-                                    outline-none
-                                    transition
-                                    focus:border-marquee-gold
-                                    disabled:opacity-50
-                                "
+                                className="h-12 w-12 rounded-md border border-marquee-line bg-marquee-panel2 text-center text-lg font-semibold text-marquee-cream outline-none transition focus:border-marquee-gold disabled:opacity-50 "
                             />
                         ))}
                     </div>
@@ -133,16 +122,7 @@ export default function EnableEmail2faModal({ onSuccess, onClose }) {
                     <button
                         type="submit"
                         disabled={loading || otp.join('').length < 6}
-                        className="
-                            w-full rounded-full
-                            bg-marquee-gold
-                            py-3
-                            font-semibold
-                            text-marquee-bg
-                            hover:bg-marquee-goldBright
-                            disabled:opacity-50
-                            transition
-                        "
+                        className="w-full rounded-full bg-marquee-gold py-3 font-semibold text-marquee-bg hover:bg-marquee-goldBright disabled:opacity-50transition"
                     >
                         {loading ? 'Verifying...' : 'Enable 2FA'}
                     </button>

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api/client';
-import { useAuth } from '../context/AuthContext';
 import SeatMap from '../components/order/SeatMap';
+import { useAuth } from '../context/AuthContext';
 
 export default function SeatSelection() {
   const { id } = useParams();
@@ -34,8 +34,7 @@ export default function SeatSelection() {
       const parsed = JSON.parse(saved);
 
       if (
-        parsed.expiresAt &&
-        new Date(parsed.expiresAt) > new Date()
+        parsed.expiresAt && new Date(parsed.expiresAt) > new Date()
       ) {
         setSelected(parsed.seats);
       } else {
@@ -68,10 +67,8 @@ export default function SeatSelection() {
     const booking = JSON.parse(savedBooking);
 
     if (
-      booking.showtimeId === id &&
-      Date.now() - booking.createdAt < 15 * 60 * 1000
+      booking.showtimeId === id && Date.now() - booking.createdAt < 15 * 60 * 1000
     ) {
-
       setSelected(booking.seats);
       sessionStorage.removeItem('pendingBooking');
     }
@@ -153,48 +150,28 @@ export default function SeatSelection() {
     setNeedsVerification(false);
 
     try {
-      const {
-        data: holdResponse
-      } = await api.post(
-        '/hold-seat',
-        {
-          showtimeId: id,
-          seatIds: selected,
-        }
-      );
+      const { data: holdResponse } = await api.post('/hold-seat', {
+        showtimeId: id,
+        seatIds: selected,
+      });
       const hold = holdResponse.hold;
 
-      const {
-        data: orderResponse
-      } = await api.post(
-        '/orders',
-        {
-          movie: movie._id,
-          showtime: id,
-          seats: selected,
-          ticketAmount: total,
-          totalAmount: total,
-          holdId: hold._id || hold.id || null,
-          holdExpiresAt: hold.expiresAt
-        }
-      );
+      const { data: orderResponse } = await api.post('/orders', {
+        movie: movie._id,
+        showtime: id,
+        seats: selected,
+        ticketAmount: total,
+        totalAmount: total,
+        holdId: hold._id || hold.id || null,
+        holdExpiresAt: hold.expiresAt
+      });
 
-      navigate(
-        `/checkout/${orderResponse.order._id}`
-      );
+      navigate(`/checkout/${orderResponse.order._id}`);
     } catch (err) {
-      if (
-        err.response?.data?.code === 'EMAIL_NOT_VERIFIED'
-        ||
-        /verify your email/i.test(err.message)
-      ) {
+      if (err.response?.data?.code === 'EMAIL_NOT_VERIFIED' || /verify your email/i.test(err.message)) {
         setNeedsVerification(true);
       } else {
-        setError(
-          err.response?.data?.error ||
-          err.message ||
-          'Something went wrong'
-        );
+        setError(err.response?.data?.error || err.message || 'Something went wrong');
       }
       await loadShowtime();
       sessionStorage.removeItem(`selectedSeats-${id}`);
@@ -219,19 +196,9 @@ export default function SeatSelection() {
     }
   }
 
-  if (loading)
-    return (
-      <p className="py-20 text-center text-marquee-muted">
-        Loading seats...
-      </p>
-    );
+  if (loading) return <p className="py-20 text-center text-marquee-muted">Loading seats...</p>
 
-  if (!showtime || !movie)
-    return (
-      <p className="py-20 text-center text-marquee-marquee">
-        Showtime not found.
-      </p>
-    );
+  if (!showtime || !movie) return <p className="py-20 text-center text-marquee-marquee">Showtime not found.</p>;
 
   const total = selected.length * movie.price;
 
@@ -241,10 +208,7 @@ export default function SeatSelection() {
         <p className="text-xs uppercase tracking-[0.3em] text-marquee-goldDim">
           {new Date(showtime.startTime).toLocaleDateString()}
           {" · "}
-          {new Date(showtime.startTime).toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit'
-          })}
+          {new Date(showtime.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </p>
 
         <h1 className="font-serif text-3xl font-bold text-marquee-cream">
@@ -306,6 +270,7 @@ export default function SeatSelection() {
           <p className="font-display text-3xl tracking-wide text-marquee-gold">
             ${total.toFixed(2)}
           </p>
+
           <button
             onClick={handleContinue}
             disabled={!selected.length || submitting}

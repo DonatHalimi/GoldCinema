@@ -1,17 +1,16 @@
-import { useState, useEffect } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
 import {
   Elements,
   PaymentElement,
-  useStripe,
   useElements,
+  useStripe,
 } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
+import { useEffect, useState } from 'react';
 import api from '../../api/client';
 
 const stripePromise = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
   ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
   : null;
-
 
 function StripeForm({ order, onSuccess, onError }) {
   const stripe = useStripe();
@@ -19,16 +18,13 @@ function StripeForm({ order, onSuccess, onError }) {
 
   const [submitting, setSubmitting] = useState(false);
 
-
   async function handleSubmit(e) {
     e.preventDefault();
 
     if (!stripe || !elements) return;
 
-
     setSubmitting(true);
     onError('');
-
 
     const {
       error: submitError,
@@ -49,13 +45,11 @@ function StripeForm({ order, onSuccess, onError }) {
       return;
     }
 
-
     if (!paymentIntent) {
       onError('No payment intent returned.');
       setSubmitting(false);
       return;
     }
-
 
     try {
       const { data } = await api.post(
@@ -67,29 +61,20 @@ function StripeForm({ order, onSuccess, onError }) {
       );
 
       onSuccess(data.order);
-
     } catch (err) {
-
       console.error("STRIPE CONFIRM ERROR:", err);
-
       onError(
         err.response?.data?.error ||
         err.message ||
         'Payment confirmation failed.'
       );
-
     } finally {
       setSubmitting(false);
     }
   }
 
-
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-6"
-    >
-
+    <form onSubmit={handleSubmit} className="space-y-6">
       <PaymentElement />
 
       <button
@@ -97,11 +82,7 @@ function StripeForm({ order, onSuccess, onError }) {
         disabled={!stripe || submitting}
         className="w-full rounded-full bg-marquee-gold px-6 py-3 font-semibold text-marquee-bg transition hover:bg-marquee-goldBright disabled:cursor-not-allowed disabled:opacity-40"
       >
-        {
-          submitting
-            ? 'Processing payment...'
-            : `Pay $${order.totalAmount.toFixed(2)} with card`
-        }
+        {submitting ? 'Processing payment...' : `Pay $${order.totalAmount.toFixed(2)} with card`}
       </button>
     </form>
   );
@@ -119,32 +100,17 @@ export default function StripeCheckout({
   useEffect(() => {
     if (!order?._id) return;
 
-    api
-      .post(
-        '/payments/stripe/create-intent',
-        {
-          orderId: order._id,
-        }
-      )
+    api.post('/payments/stripe/create-intent', { orderId: order._id, })
       .then(({ data }) => {
         setClientSecret(data.clientSecret);
       })
       .catch((err) => {
-        console.error(
-          "STRIPE INTENT ERROR:",
-          err
-        );
-        setLoadError(
-          err.response?.data?.error ||
-          err.message ||
-          'Failed to create payment'
-        );
-
+        console.error("STRIPE INTENT ERROR:", err);
+        setLoadError(err.response?.data?.error || err.message || 'Failed to create payment');
       });
   }, [order?._id]);
 
   if (!stripePromise) {
-
     return (
       <p className="rounded-md border border-marquee-line bg-marquee-panel2 p-4 text-sm text-marquee-muted">
         Stripe isn't configured yet. Set{' '}
@@ -152,7 +118,6 @@ export default function StripeCheckout({
         in the frontend .env file to enable card payments.
       </p>
     );
-
   }
 
   if (loadError) {

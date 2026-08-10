@@ -1,14 +1,13 @@
+import { motion } from 'framer-motion';
 import {
-    User,
-    Shield,
     Bell,
-    CreditCard,
     Monitor,
-    Trash2,
+    Shield,
     Ticket,
+    Trash2,
+    User
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
-import { motion } from 'framer-motion';
 
 const items = [
     {
@@ -66,15 +65,10 @@ export default function AccountSidebar() {
                             to={`/account/${item.id}`}
                             className={({ isActive }) => `
                                 relative group flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors duration-200
-                                ${isActive
-                                    ? 'text-marquee-bg z-10'
-                                    : 'text-marquee-muted hover:text-marquee-gold hover:bg-marquee-panel2 z-10'
-                                }
-                            `}
+                                ${isActive ? 'text-marquee-bg z-10' : 'text-marquee-muted hover:text-marquee-gold hover:bg-marquee-panel2 z-10'}`}
                         >
                             {({ isActive }) => (
                                 <>
-                                    {/* Sliding background indicator using Framer Motion */}
                                     {isActive && (
                                         <motion.div
                                             layoutId="activeAccountNav"
@@ -89,11 +83,7 @@ export default function AccountSidebar() {
 
                                     <Icon
                                         size={18}
-                                        className={
-                                            isActive
-                                                ? 'text-marquee-bg'
-                                                : 'text-marquee-muted group-hover:text-marquee-gold'
-                                        }
+                                        className={isActive ? 'text-marquee-bg' : 'text-marquee-muted group-hover:text-marquee-gold'}
                                     />
 
                                     <span>{item.label}</span>

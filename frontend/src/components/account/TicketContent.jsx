@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import api from "../../api/client";
 import EmptyTickets from '../../components/tickets/EmptyTickets';
 import TicketCard from "../../components/tickets/TicketCard";
@@ -72,7 +72,6 @@ export default function TicketContent() {
                         {active === 'cancelled' && 'Cancelled Tickets'}
                     </h2>
 
-                    {/* Filter Container */}
                     <div className="inline-flex items-center gap-1.5 rounded-full border border-marquee-line bg-marquee-bg p-1.5">
                         {filters.map((filter) => {
                             const isActive = active === filter.value;
@@ -80,11 +79,7 @@ export default function TicketContent() {
                                 <button
                                     key={filter.value}
                                     onClick={() => setActive(filter.value)}
-                                    className={`relative rounded-full px-5 py-2 text-sm font-medium transition-colors duration-200 ${isActive
-                                        ? 'text-white'
-                                        : 'text-marquee-muted hover:text-marquee-gold'
-                                        }`}
-                                >
+                                    className={`relative rounded-full px-5 py-2 text-sm font-medium transition-colors duration-200 ${isActive ? 'text-white' : 'text-marquee-muted hover:text-marquee-gold'}`}>
                                     {isActive && (
                                         <motion.div
                                             layoutId="activeFilterPill"
@@ -97,7 +92,6 @@ export default function TicketContent() {
                                         />
                                     )}
 
-                                    {/* Button Text */}
                                     <span className="relative z-10">{filter.label}</span>
                                 </button>
                             );

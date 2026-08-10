@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../api/client';
 
@@ -23,7 +23,6 @@ export default function VerifyEmail() {
                 await api.get(`/auth/verify-email?token=${token}`);
 
                 toast.success('Email verified successfully! You can now log in');
-
                 navigate('/login');
             } catch (err) {
                 toast.error(err.response?.data?.error || 'Verification link expired or invalid.');

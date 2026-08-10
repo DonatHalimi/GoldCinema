@@ -14,7 +14,6 @@ export default function DeleteConfirmModal({
     return (
         <div onClick={() => !deleting && onClose()} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
             <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-md rounded-xl border border-marquee-line bg-marquee-bg p-6 shadow-2xl">
-
                 <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
                     <h2 className="font-display text-2xl text-marquee-gold">
                         {isBulkDelete
@@ -38,10 +37,7 @@ export default function DeleteConfirmModal({
                 </p>
 
                 <div className="mt-8 flex justify-end gap-3">
-                    <button
-                        onClick={onClose}
-                        className="rounded-full border border-marquee-line px-4 py-2 text-sm text-marquee-muted hover:border-marquee-gold"
-                    >
+                    <button onClick={onClose} className="rounded-full border border-marquee-line px-4 py-2 text-sm text-marquee-muted hover:border-marquee-gold">
                         Cancel
                     </button>
 
@@ -51,9 +47,7 @@ export default function DeleteConfirmModal({
                         disabled={deleting}
                         className="inline-flex items-center gap-2 rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-red-500 disabled:opacity-50"
                     >
-                        {deleting && (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                        )}
+                        {deleting && <Loader2 className="h-4 w-4 animate-spin" />}
 
                         {deleting ? 'Deleting...' : 'Delete'}
                     </button>

@@ -84,6 +84,12 @@ const userSchema = new Schema(
         passkeyRegistrationChallenge: { type: String, default: null, },
         passkeyAuthenticationChallenge: { type: String, default: null, },
         loginAlerts: { type: Boolean, default: true },
+        securityEvents: [{
+            type: { type: String, required: true },
+            title: { type: String, required: true },
+            description: { type: String },
+            createdAt: { type: Date, default: Date.now },
+        }],
     },
     { timestamps: true }
 );

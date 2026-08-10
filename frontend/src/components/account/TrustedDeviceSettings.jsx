@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Laptop, Trash2 } from 'lucide-react';
-import api from '../../api/client';
+import { Computer, Laptop, ShieldCheck, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
+import api from '../../api/client';
 
 export default function TrustedDevicesSettings() {
     const [devices, setDevices] = useState([]);
@@ -57,18 +57,22 @@ export default function TrustedDevicesSettings() {
                 ) : (
                     <div className="space-y-3">
                         {devices.map((device) => (
-                            <div
-                                key={device._id}
-                                className="flex items-center justify-between rounded-lg border border-marquee-line bg-marquee-panel2 p-3 text-sm"
-                            >
-                                <div>
-                                    <p className="font-medium text-marquee-cream">
-                                        {device.name || 'Unknown Device'}
-                                    </p>
-                                    <p className="text-xs text-marquee-muted">
-                                        Added on {new Date(device.createdAt).toLocaleDateString()}
-                                    </p>
+                            <div key={device._id} className="flex items-center justify-between rounded-lg border border-marquee-line bg-marquee-panel2 p-3 text-sm">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-marquee-line/30 text-marquee-gold">
+                                        <ShieldCheck className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-marquee-cream">
+                                            {device.name || 'Unknown Device'}
+                                        </p>
+
+                                        <p className="text-xs text-marquee-muted">
+                                            Added on {new Date(device.createdAt).toLocaleDateString('en-GB')}
+                                        </p>
+                                    </div>
                                 </div>
+
                                 <button
                                     type="button"
                                     onClick={() => handleRevokeDevice(device._id)}

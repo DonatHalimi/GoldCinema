@@ -28,10 +28,7 @@ export default function NotFound() {
                     The page you're looking for doesn't exist or has been moved.
                 </p>
 
-                <Link
-                    to="/"
-                    className="mt-10 inline-flex items-center rounded-full border border-marquee-gold bg-marquee-panel px-8 py-3 font-semibold text-marquee-gold transition-all duration-300 hover:-translate-y-1 hover:bg-marquee-gold hover:text-marquee-bg hover:shadow-[0_0_30px_rgba(212,175,55,.35)]"
-                >
+                <Link to="/" className="mt-10 inline-flex items-center rounded-full border border-marquee-gold bg-marquee-panel px-8 py-3 font-semibold text-marquee-gold transition-all duration-300 hover:-translate-y-1 hover:bg-marquee-gold hover:text-marquee-bg hover:shadow-[0_0_30px_rgba(212,175,55,.35)]">
                     ← Return to Home
                 </Link>
             </div>

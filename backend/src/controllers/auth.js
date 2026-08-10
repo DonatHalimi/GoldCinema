@@ -16,79 +16,7 @@ const { authenticator } = require('@otplib/preset-default');
 const LoginAttempt = require('../models/loginAttempt');
 const qrcode = require('qrcode');
 const crypto = require('crypto');
-
-const TRUSTED_DEVICE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
-const EMAIL_OTP_TTL_MS = 10 * 60 * 1000;
-const MFA_MAX_ATTEMPTS = 5;
-
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
-const MAX_FAILED_ATTEMPTS = 5;
-const LOCK_STAGES_MIN = [1, 5, 15, 60];
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-const generateTokens = (userId, refreshExpiresIn = process.env.JWT_REFRESH_EXPIRES_IN) => {
-    const accessToken = jwt.sign(
-        { id: userId },
-        process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRES_IN }
-    );
-
-    const refreshToken = jwt.sign(
-        { id: userId },
-        process.env.JWT_REFRESH_SECRET,
-        { expiresIn: refreshExpiresIn }
-    );
-
-    return { accessToken, refreshToken };
-};
-
-const setCookies = (res, accessToken, refreshToken, refreshMaxAgeMs = 7 * 24 * 60 * 60 * 1000) => {
-    res.cookie('accessToken', accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 15 * 60 * 1000,
-    });
-
-    res.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: refreshMaxAgeMs,
-    });
-};
-
-async function getCustomerRoleId() {
-    const role = await Role.findOneAndUpdate(
-        { name: 'customer' },
-        {
-            $setOnInsert: {
-                name: 'customer',
-                description: 'Default role for registered users.',
-            },
-        },
-        { upsert: true, new: true }
-    );
-
-    return role._id;
-}
-
-async function issueVerificationEmail(user) {
-    const { token, expiresAt } = generateVerificationToken();
-    user.verificationToken = token;
-    user.verificationTokenExpiresAt = expiresAt;
-    await user.save();
-
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
-    const verificationUrl = `${clientUrl}/verify-email?token=${token}`;
-
-    await sendVerificationEmail({
-        to: user.email,
-        name: user.name,
-        verificationUrl,
-    });
-}
+const { generateTokens, setCookies, getCustomerRoleId, issueVerificationEmail, googleClient, TRUSTED_DEVICE_MAX_AGE_MS, EMAIL_OTP_TTL_MS, MFA_MAX_ATTEMPTS, MAX_FAILED_ATTEMPTS, LOCK_STAGES_MIN, DAY_MS, } = require('../middleware/auth');
 
 async function register(req, res, next) {
     try {
@@ -1077,8 +1005,7 @@ async function verifyTotpSetup(req, res, next) {
 
         if (!code) return res.status(400).json({ error: 'Verification code is required' });
 
-        const user = await User.findById(req.user.id)
-            .select('+twoFactor.pendingTotpSecret');
+        const user = await User.findById(req.user.id).select('+twoFactor.pendingTotpSecret');
 
         if (!user.twoFactor.pendingTotpSecret) return res.status(400).json({ error: "No authenticator setup found" });
 
@@ -1328,6 +1255,125 @@ async function revokeTrustedDevice(req, res, next) {
     }
 }
 
+async function getSecurityActivity(req, res, next) {
+    try {
+        const user = await User.findById(req.user.id).select('createdAt passkeys trustedDevices securityEvents');
+
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
+        const activities = [];
+
+        if (user.createdAt) {
+            activities.push({
+                id: 'account-created',
+                title: 'Account created',
+                description: 'Your account was successfully registered',
+                date: user.createdAt,
+                type: 'account',
+            });
+        }
+
+        if (user.passkeys && Array.isArray(user.passkeys)) {
+            user.passkeys.forEach((pk, index) => {
+                activities.push({
+                    id: `passkey-${pk.credentialId || index}`,
+                    title: `Passkey Registered (${pk.name || 'Passkey'})`,
+                    description: `Device type: ${pk.deviceType || 'Unknown'}`,
+                    date: pk.createdAt || new Date(),
+                    type: 'passkey',
+                });
+            });
+        }
+
+        if (user.trustedDevices && Array.isArray(user.trustedDevices)) {
+            user.trustedDevices.forEach((device, index) => {
+                activities.push({
+                    id: `device-${index}`,
+                    title: `Trusted Device Added (${device.label || 'Unknown Device'})`,
+                    description: 'Device authorized for trusted sessions',
+                    date: device.createdAt || new Date(),
+                    type: 'device',
+                });
+            });
+        }
+
+        if (user.securityEvents && Array.isArray(user.securityEvents)) {
+            user.securityEvents.forEach((ev) => {
+                activities.push({
+                    id: `event-${ev._id}`,
+                    title: ev.title,
+                    description: ev.description,
+                    date: ev.createdAt || new Date(),
+                    type: ev.type,
+                });
+            });
+        }
+
+        try {
+            const loginAttempts = await LoginAttempt.find({ user: user._id })
+                .sort({ createdAt: -1 })
+                .limit(10);
+
+            loginAttempts.forEach((attempt) => {
+                activities.push({
+                    id: `login-attempt-${attempt._id}`,
+                    title: attempt.success ? 'Successful Login' : 'Failed Login Attempt',
+                    description: `IP: ${attempt.ip || 'Unknown'} - Reason: ${attempt.reason || 'N/A'}`,
+                    date: attempt.createdAt || new Date(),
+                    type: attempt.success ? 'login_success' : 'login_failed',
+                });
+            });
+        } catch (attemptErr) {
+            console.error('Failed to fetch login attempts for activity:', attemptErr);
+        }
+
+        activities.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        res.status(200).json({ activities });
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function generateBackupCodesRoute(req, res) {
+    try {
+        const rawCodes = Array.from({ length: 8 }, () => crypto.randomBytes(4).toString('hex').toUpperCase());
+
+        const hashedCodes = await Promise.all(
+            rawCodes.map(async (code) => ({
+                codeHash: await bcrypt.hash(code, 10),
+                usedAt: false,
+            }))
+        );
+
+        req.user.backupCodes = hashedCodes;
+        await req.user.save();
+
+        res.json({ success: true, backupCodes: rawCodes });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to generate backup codes.' });
+    }
+};
+
+async function exportSecurityLogs(req, res) {
+    try {
+        const activities = await SecurityActivity.find({ userId: req.user._id }).sort({ date: -1 });
+
+        const logData = activities.map(item => ({
+            Event: item.title,
+            Description: item.description,
+            Type: item.type,
+            Timestamp: item.date.toISOString(),
+        }));
+
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', 'attachment; filename=security-activity-log.json');
+        res.status(200).send(JSON.stringify(logData, null, 2));
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to export security logs.' });
+    }
+};
+
 async function logout(req, res) {
     const { refreshToken } = req.cookies;
 
@@ -1370,5 +1416,8 @@ module.exports = {
     updateLoginAlerts,
     getTrustedDevices,
     revokeTrustedDevice,
+    getSecurityActivity,
+    generateBackupCodesRoute,
+    exportSecurityLogs,
     logout,
 };

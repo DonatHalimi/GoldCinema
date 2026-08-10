@@ -1,11 +1,4 @@
-import {
-    Mail,
-    Phone,
-    Contact,
-    PhoneCall,
-    MailIcon,
-    Contact2,
-} from 'lucide-react';
+import { Contact2, MailIcon, PhoneCall } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { FacebookIconMonochrome, GithubIcon, InstagramIcon, LinkedInIcon } from '../ui/Icons';
 
@@ -111,7 +104,6 @@ export const Footer = () => {
                         </div>
                     </div>
 
-                    {/* Quick Links */}
                     <div>
                         <h3 className="mb-4 font-semibold text-marquee-cream">
                             Quick Links
@@ -131,7 +123,6 @@ export const Footer = () => {
                         </ul>
                     </div>
 
-                    {/* Support */}
                     <div>
                         <h3 className="mb-4 font-semibold text-marquee-cream">
                             Support
@@ -151,7 +142,6 @@ export const Footer = () => {
                         </ul>
                     </div>
 
-                    {/* Contact */}
                     <div>
                         <h3 className="mb-4 font-semibold text-marquee-cream">
                             Contact Us

@@ -6,8 +6,8 @@ const {
 } = require('@simplewebauthn/server');
 
 const User = require('../models/user');
-const { generateTokens, setCookies } = require('./auth');
 const { sendLoginAlertEmail } = require('../utils/mailer');
+const { generateTokens, setCookies } = require('./auth');
 
 const rpName = 'GoldCinema';
 const rpID = 'localhost';

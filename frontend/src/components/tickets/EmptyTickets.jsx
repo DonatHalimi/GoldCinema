@@ -7,10 +7,7 @@ export default function EmptyTickets() {
                 You haven't booked any tickets yet.
             </p>
 
-            <Link
-                to="/"
-                className="mt-4 inline-block rounded-full bg-marquee-gold px-6 py-2 font-semibold text-marquee-bg"
-            >
+            <Link to="/" className="mt-4 inline-block rounded-full bg-marquee-gold px-6 py-2 font-semibold text-marquee-bg">
                 Browse movies
             </Link>
         </div>

@@ -1,7 +1,7 @@
 import {
-    Ticket,
     Clock,
     History,
+    Ticket,
     XCircle,
 } from 'lucide-react';
 
@@ -54,23 +54,9 @@ export default function TicketSidebar({
                         <button
                             key={item.id}
                             onClick={() => setActive(item.id)}
-                            className={`
-                group flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all
-                ${isActive
-                                    ? `
-                      bg-marquee-gold
-                      text-marquee-bg
-                      shadow-[0_0_20px_rgba(212,175,55,0.25)]
-                    `
-                                    :
-                                    `
-                      text-marquee-muted
-                      hover:bg-marquee-panel2
-                      hover:text-marquee-gold
-                    `
-                                }
-              `}
-                        >
+                            className={`group flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all 
+                                ${isActive ? `bg-marquee-gold text-marquee-bg shadow-[0_0_20px_rgba(212,175,55,0.25)] `
+                                    : `text-marquee-muted hover:bg-marquee-panel2 hover:text-marquee-gold`}`}>
                             <Icon
                                 size={18}
                                 className={
@@ -91,7 +77,6 @@ export default function TicketSidebar({
                     );
                 })}
             </nav>
-
         </aside>
     );
 }

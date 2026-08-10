@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api/client';
-import StripeCheckout from '../components/checkout/StripeCheckout';
-import PaypalCheckout from '../components/checkout/PaypalCheckout';
-import PaymentSection from '../components/checkout/PaymentSelection';
-import ExpiredHold from '../components/checkout/ExpiredHold';
-import SeatHoldTimer from '../components/checkout/SeatHoldTimer';
 import CheckoutSummary from '../components/checkout/CheckoutSummary';
+import ExpiredHold from '../components/checkout/ExpiredHold';
+import PaymentSection from '../components/checkout/PaymentSelection';
+import SeatHoldTimer from '../components/checkout/SeatHoldTimer';
 
 export default function Checkout() {
   const { orderId } = useParams();
@@ -47,11 +45,7 @@ export default function Checkout() {
       }
     } catch (err) {
       console.error("ORDER LOAD ERROR:", err);
-      setLoadError(
-        err.response?.data?.error ||
-        err.message ||
-        'Failed to load order'
-      );
+      setLoadError(err.response?.data?.error || err.message || 'Failed to load order');
     } finally {
       setLoading(false);
     }

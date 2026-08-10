@@ -27,6 +27,9 @@ const {
   updateLoginAlerts,
   getTrustedDevices,
   revokeTrustedDevice,
+  getSecurityActivity,
+  generateBackupCodesRoute,
+  exportSecurityLogs,
 } = require('../controllers/auth');
 const {
   validateBody,
@@ -71,6 +74,9 @@ router.post('/2fa/login-resend', validateBody(resendLoginMfaSchema), resendLogin
 router.put('/security/login-alerts', requireAuth, validateBody(loginAlertsSchema), updateLoginAlerts);
 router.get('/devices', requireAuth, getTrustedDevices);
 router.delete('/devices/:deviceId', requireAuth, revokeTrustedDevice);
+router.get('/security/activity', requireAuth, getSecurityActivity);
+router.post('/security/backup-codes', requireAuth, generateBackupCodesRoute);
+router.get('/security/export-logs', requireAuth, exportSecurityLogs);
 router.delete('/account', requireAuth, validateBody(deleteAccountSchema), deleteAccount);
 
 module.exports = router;

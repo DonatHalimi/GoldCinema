@@ -4,8 +4,8 @@ import { Link, useParams } from 'react-router-dom';
 import api from '../api/client';
 
 import ConfirmationHeader from '../components/confirmation/ConfirmationHeader';
-import TicketDetails from '../components/confirmation/TicketDetails';
 import QRTicket from '../components/confirmation/QRTicket';
+import TicketDetails from '../components/confirmation/TicketDetails';
 import UnpaidOrder from '../components/confirmation/UnpaidOrder';
 
 export default function Confirmation() {
@@ -21,12 +21,7 @@ export default function Confirmation() {
         setOrder(data.order);
       } catch (err) {
         console.error(err);
-
-        setError(
-          err.response?.data?.error ||
-          err.message ||
-          'Something went wrong'
-        );
+        setError(err.response?.data?.error || err.message || 'Something went wrong');
       }
     }
 
@@ -84,10 +79,7 @@ export default function Confirmation() {
             {startTime && (
               <p className="mt-1 text-sm text-marquee-muted">
                 {startTime.toLocaleDateString()} ·{' '}
-                {startTime.toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
+                {startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', })}
               </p>
             )}
           </div>
@@ -100,10 +92,7 @@ export default function Confirmation() {
       </div>
 
       <div className="mt-8 text-center">
-        <Link
-          to="/account/tickets"
-          className="text-sm text-marquee-gold hover:text-marquee-goldBright"
-        >
+        <Link to="/account/tickets" className="text-sm text-marquee-gold hover:text-marquee-goldBright">
           View all my tickets →
         </Link>
       </div>

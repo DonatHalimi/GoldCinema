@@ -1,5 +1,5 @@
 import { X } from 'lucide-react';
-import React, { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function CrudModal({ isOpen, onClose, onSubmit, initialData, fields, title }) {
     const [formData, setFormData] = useState({});
@@ -97,16 +97,11 @@ export default function CrudModal({ isOpen, onClose, onSubmit, initialData, fiel
                     ))}
 
                     <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-marquee-line">
-                        <button
-                            onClick={onClose}
-                            className="rounded-full border border-marquee-line px-4 py-2 text-sm text-marquee-muted hover:border-marquee-gold"
-                        >
+                        <button onClick={onClose} className="rounded-full border border-marquee-line px-4 py-2 text-sm text-marquee-muted hover:border-marquee-gold">
                             Cancel
                         </button>
-                        <button
-                            type="submit"
-                            className="rounded-md bg-marquee-gold px-5 py-2 text-sm font-semibold text-zinc-950 hover:bg-marquee-goldBright transition-all shadow-md shadow-marquee-gold/50"
-                        >
+
+                        <button type="submit" className="rounded-md bg-marquee-gold px-5 py-2 text-sm font-semibold text-zinc-950 hover:bg-marquee-goldBright transition-all shadow-md shadow-marquee-gold/50">
                             Save Changes
                         </button>
                     </div>

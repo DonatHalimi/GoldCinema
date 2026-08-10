@@ -1,7 +1,7 @@
+import { Loader2, X } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { Loader2, X } from "lucide-react";
-import { validateForm, forgotPasswordSchema } from "../../validations";
+import { forgotPasswordSchema, validateForm } from "../../validations";
 import { Field } from "../ui/FormUI";
 
 export function ForgotPasswordModal({ isOpen, onClose }) {

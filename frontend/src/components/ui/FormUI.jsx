@@ -68,13 +68,7 @@ export function PasswordStrength({ password }) {
         <div className="mt-2 space-y-2">
             <div className="flex gap-1">
                 {[1, 2, 3, 4].map((i) => (
-                    <div
-                        key={i}
-                        className={`h-1 flex-1 rounded ${i <= score
-                            ? 'bg-marquee-gold'
-                            : 'bg-zinc-700'
-                            }`}
-                    />
+                    <div key={i} className={`h-1 flex-1 rounded ${i <= score ? 'bg-marquee-gold' : 'bg-zinc-700'}`} />
                 ))}
             </div>
 
@@ -101,7 +95,8 @@ export function SocialLoginButton({
             type="button"
             onClick={onClick}
             disabled={disabled}
-            className="flex h-[48px] w-full items-center justify-center gap-3 rounded-full border border-marquee-gold bg-transparent px-6 font-semibold text-marquee-gold disabled:opacity-40">
+            className="flex h-[48px] w-full items-center justify-center gap-3 rounded-full border border-marquee-gold bg-transparent px-6 font-semibold text-marquee-gold disabled:opacity-40"
+        >
             {icon}
             <span>{children}</span>
         </button>

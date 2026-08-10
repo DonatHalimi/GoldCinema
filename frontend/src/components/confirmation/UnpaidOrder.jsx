@@ -7,10 +7,7 @@ export default function UnpaidOrder({ orderId }) {
                 This order has not been paid yet.
             </p>
 
-            <Link
-                to={`/checkout/${orderId}`}
-                className="mt-4 inline-block rounded-full bg-marquee-gold px-6 py-2 font-semibold text-marquee-bg"
-            >
+            <Link to={`/checkout/${orderId}`} className="mt-4 inline-block rounded-full bg-marquee-gold px-6 py-2 font-semibold text-marquee-bg">
                 Go to checkout
             </Link>
         </div>

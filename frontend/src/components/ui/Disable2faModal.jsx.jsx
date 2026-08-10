@@ -1,8 +1,8 @@
+import { Loader2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
 import api from '../../api/client';
 import { PasswordField } from './FormUI';
-import { Loader2, X, ShieldCheck } from 'lucide-react';
-import { toast } from 'react-toastify';
 
 export default function Disable2faModal({
     method,
@@ -96,10 +96,7 @@ export default function Disable2faModal({
                     </p>
                 </div>
 
-                <form
-                    onSubmit={handleDisable}
-                    className="mt-5 space-y-4"
-                >
+                <form onSubmit={handleDisable} className="mt-5 space-y-4">
                     <PasswordField
                         label="Current Password"
                         value={password}
@@ -129,13 +126,9 @@ export default function Disable2faModal({
                             disabled={loading || !password.trim()}
                             className="inline-flex items-center gap-2 rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                            {loading && (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                            )}
+                            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
 
-                            {loading
-                                ? 'Disabling...'
-                                : 'Disable 2FA'}
+                            {loading ? 'Disabling...' : 'Disable 2FA'}
                         </button>
                     </div>
                 </form>
