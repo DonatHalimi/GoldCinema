@@ -11,10 +11,11 @@ const { generateVerificationToken,
     generateDeviceToken,
     hashDeviceToken,
 } = require('../utils/tokens');
-const { sendVerificationEmail, sendPasswordResetEmail, sendTwoFactorCode } = require('../utils/mailer');
+const { sendVerificationEmail, sendPasswordResetEmail, sendTwoFactorCode, sendLoginAlertEmail } = require('../utils/mailer');
 const { authenticator } = require('@otplib/preset-default');
 const LoginAttempt = require('../models/loginAttempt');
 const qrcode = require('qrcode');
+const crypto = require('crypto');
 
 const TRUSTED_DEVICE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 const EMAIL_OTP_TTL_MS = 10 * 60 * 1000;
@@ -314,6 +315,39 @@ async function login(req, res) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
+        if (user.loginAlerts !== false) {
+            const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+            sendLoginAlertEmail({
+                to: user.email,
+                name: user.name,
+                time: new Date().toUTCString(),
+                ipAddress,
+                loginMethod: 'Password',
+            }).catch((err) => console.error('[mailer] Failed to send login alert:', err));
+        }
+
+        if (rememberMe) {
+            const rawToken = crypto.randomBytes(32).toString('hex');
+            const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+
+            const label = req.headers['user-agent'] || 'Unknown Device';
+
+            user.trustedDevices.push({
+                tokenHash,
+                label,
+                expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            });
+
+            await user.save();
+
+            res.cookie('trustedDeviceToken', rawToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 30 * 24 * 60 * 60 * 1000,
+            });
+        }
+
         user.failedLoginAttempts = 0;
         user.lockUntil = null;
         user.lockStage = 0;
@@ -582,7 +616,22 @@ async function googleLogin(req, res, next) {
         user.name = user.name || name;
         user.emailVerified = true;
 
-        if (user.twoFactor?.enabled && user.twoFactor?.methods?.length) {
+        const rawDeviceToken = req.cookies?.trustedDeviceToken;
+        let isTrustedDevice = false;
+
+        if (rawDeviceToken) {
+            const tokenHash = crypto.createHash('sha256').update(rawDeviceToken).digest('hex');
+            const matchingDevice = user.trustedDevices?.find(
+                (d) => d.tokenHash === tokenHash && d.expiresAt > new Date()
+            );
+
+            if (matchingDevice) {
+                isTrustedDevice = true;
+                matchingDevice.lastUsedAt = new Date();
+            }
+        }
+
+        if (!isTrustedDevice && user.twoFactor?.enabled && user.twoFactor?.methods?.length) {
             const mfaToken = generateMfaPendingToken(user._id);
 
             return res.json({
@@ -605,6 +654,25 @@ async function googleLogin(req, res, next) {
             rememberMe: false,
         });
 
+        if (!isTrustedDevice) {
+            const newRawToken = crypto.randomBytes(32).toString('hex');
+            const newTokenHash = crypto.createHash('sha256').update(newRawToken).digest('hex');
+            const deviceLabel = req.headers['user-agent'] || 'Google Login Device';
+
+            user.trustedDevices.push({
+                tokenHash: newTokenHash,
+                label: deviceLabel,
+                expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+            });
+
+            res.cookie('trustedDeviceToken', newRawToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 30 * 24 * 60 * 60 * 1000,
+            });
+        }
+
         await user.save();
 
         setCookies(
@@ -612,6 +680,17 @@ async function googleLogin(req, res, next) {
             accessToken,
             refreshToken
         );
+
+        if (user.loginAlerts !== false) {
+            const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+            sendLoginAlertEmail({
+                to: user.email,
+                name: user.name,
+                time: new Date().toUTCString(),
+                ipAddress,
+                loginMethod: 'Google',
+            }).catch((err) => console.error('[mailer] Failed to send login alert:', err));
+        }
 
         return res.json({
             message: 'Logged in with Google successfully',
@@ -685,7 +764,22 @@ async function facebookLogin(req, res, next) {
         user.name = user.name || name;
         user.emailVerified = true;
 
-        if (user.twoFactor?.enabled && user.twoFactor?.methods?.length) {
+        const rawDeviceToken = req.cookies?.trustedDeviceToken;
+        let isTrustedDevice = false;
+
+        if (rawDeviceToken) {
+            const tokenHash = crypto.createHash('sha256').update(rawDeviceToken).digest('hex');
+            const matchingDevice = user.trustedDevices?.find(
+                (d) => d.tokenHash === tokenHash && d.expiresAt > new Date()
+            );
+
+            if (matchingDevice) {
+                isTrustedDevice = true;
+                matchingDevice.lastUsedAt = new Date();
+            }
+        }
+
+        if (!isTrustedDevice && user.twoFactor?.enabled && user.twoFactor?.methods?.length) {
             const mfaToken = generateMfaPendingToken(user._id);
 
             return res.json({
@@ -710,6 +804,25 @@ async function facebookLogin(req, res, next) {
             rememberMe: false,
         });
 
+        if (!isTrustedDevice) {
+            const newRawToken = crypto.randomBytes(32).toString('hex');
+            const newTokenHash = crypto.createHash('sha256').update(newRawToken).digest('hex');
+            const deviceLabel = req.headers['user-agent'] || 'Facebook Login Device';
+
+            user.trustedDevices.push({
+                tokenHash: newTokenHash,
+                label: deviceLabel,
+                expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+            });
+
+            res.cookie('trustedDeviceToken', newRawToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 30 * 24 * 60 * 60 * 1000,
+            });
+        }
+
         await user.save();
 
         setCookies(
@@ -717,6 +830,17 @@ async function facebookLogin(req, res, next) {
             appAccessToken,
             refreshToken
         );
+
+        if (user.loginAlerts !== false) {
+            const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+            sendLoginAlertEmail({
+                to: user.email,
+                name: user.name,
+                time: new Date().toUTCString(),
+                ipAddress,
+                loginMethod: 'Facebook',
+            }).catch((err) => console.error('[mailer] Failed to send login alert:', err));
+        }
 
         return res.json({
             message: 'Logged in with Facebook successfully',
@@ -752,6 +876,7 @@ async function me(req, res) {
                     enabled: user.twoFactor.enabled,
                     methods: user.twoFactor.methods || [],
                 },
+                loginAlerts: user.loginAlerts
             },
         });
     } catch (error) {
@@ -1043,26 +1168,6 @@ async function verifyEmail2faSetup(req, res, next) {
     }
 }
 
-const setupSms2fa = async (req, res, next) => {
-    try {
-        const { phoneNumber } = req.body;
-        await authService.sendSmsVerificationCode(req.user.id, phoneNumber);
-        res.status(200).json({ success: true, message: 'Verification code sent via SMS.' });
-    } catch (error) {
-        next(error);
-    }
-};
-
-const verifySms2faSetup = async (req, res, next) => {
-    try {
-        const { phoneNumber, code } = req.body;
-        await authService.verifyAndEnableSms(req.user.id, phoneNumber, code);
-        res.status(200).json({ success: true, message: 'SMS 2FA enabled successfully.' });
-    } catch (error) {
-        next(error);
-    }
-};
-
 async function disable2fa(req, res, next) {
     try {
         const { password } = req.body;
@@ -1160,6 +1265,69 @@ async function resendLoginMfaCode(req, res, next) {
     }
 }
 
+async function updateLoginAlerts(req, res, next) {
+    try {
+        const { loginAlerts } = req.body;
+
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
+        user.loginAlerts = loginAlerts;
+
+        await user.save();
+
+        res.json({
+            message: 'Login alerts updated successfully.',
+            loginAlerts: user.loginAlerts
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function getTrustedDevices(req, res, next) {
+    try {
+        const user = await User.findById(req.user.id).select('trustedDevices');
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
+        const devices = user.trustedDevices.map(device => ({
+            _id: device._id,
+            label: device.label || 'Unknown Device',
+            createdAt: device.createdAt,
+            lastUsedAt: device.lastUsedAt,
+            expiresAt: device.expiresAt,
+        }));
+
+        res.json({ devices });
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function revokeTrustedDevice(req, res, next) {
+    try {
+        const { deviceId } = req.params;
+
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
+        const initialLength = user.trustedDevices.length;
+        user.trustedDevices = user.trustedDevices.filter(
+            (device) => device._id.toString() !== deviceId
+        );
+
+        if (user.trustedDevices.length === initialLength) {
+            return res.status(404).json({ error: 'Device not found.' });
+        }
+
+        await user.save();
+
+        res.json({ message: 'Device removed successfully.' });
+    } catch (err) {
+        next(err);
+    }
+}
+
 async function logout(req, res) {
     const { refreshToken } = req.cookies;
 
@@ -1193,13 +1361,14 @@ module.exports = {
     updateProfile,
     setupTotp,
     verifyTotpSetup,
-    setupSms2fa,
-    verifySms2faSetup,
     enableEmail2fa,
     verifyEmail2faSetup,
     verifyLoginMfa,
     resendLoginMfaCode,
     disable2fa,
     disable2faMethod,
+    updateLoginAlerts,
+    getTrustedDevices,
+    revokeTrustedDevice,
     logout,
 };

@@ -83,6 +83,7 @@ const userSchema = new Schema(
         }],
         passkeyRegistrationChallenge: { type: String, default: null, },
         passkeyAuthenticationChallenge: { type: String, default: null, },
+        loginAlerts: { type: Boolean, default: true },
     },
     { timestamps: true }
 );
@@ -99,6 +100,7 @@ userSchema.methods.toPublicJSON = function toPublicJSON() {
             enabled: this.twoFactor?.enabled || false,
             methods: this.twoFactor?.methods || [],
         },
+        loginAlerts: this.loginAlerts ?? true,
         createdAt: this.createdAt,
     };
 };

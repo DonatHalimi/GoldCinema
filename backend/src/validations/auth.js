@@ -129,6 +129,12 @@ const resendLoginMfaSchema = yup.object({
         .required('MFA token is required.'),
 }).noUnknown(true);
 
+const loginAlertsSchema = yup.object({
+    loginAlerts: yup
+        .boolean()
+        .required('Login alerts preference must be a boolean.'),
+});
+
 module.exports = {
     registerSchema,
     loginSchema,
@@ -145,4 +151,5 @@ module.exports = {
     disable2faMethodSchema,
     verifyLoginMfaSchema,
     resendLoginMfaSchema,
+    loginAlertsSchema,
 };

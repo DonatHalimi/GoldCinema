@@ -17,16 +17,16 @@ const {
   updateProfile,
   setupTotp,
   verifyTotpSetup,
-  setupSms2fa,
-  verifySms2faSetup,
   enableEmail2fa,
   verifyEmail2faSetup,
-  enableSms2fa,
   disable2fa,
   verifyLoginMfa,
   resendLoginMfa,
   resendLoginMfaCode,
   disable2faMethod,
+  updateLoginAlerts,
+  getTrustedDevices,
+  revokeTrustedDevice,
 } = require('../controllers/auth');
 const {
   validateBody,
@@ -43,7 +43,7 @@ const {
     deleteAccountSchema
   },
 } = require('../validations');
-const { sixDigitCodeSchema, disable2faSchema, verifyLoginMfaSchema, resendLoginMfaSchema, disable2faMethodSchema } = require('../validations/auth');
+const { sixDigitCodeSchema, disable2faSchema, verifyLoginMfaSchema, resendLoginMfaSchema, loginAlertsSchema, disable2faMethodSchema } = require('../validations/auth');
 
 const router = express.Router();
 
@@ -68,6 +68,9 @@ router.post('/2fa/disable', requireAuth, validateBody(disable2faSchema), disable
 router.post('/2fa/disable-method', requireAuth, validateBody(disable2faMethodSchema), disable2faMethod);
 router.post('/2fa/verify-login', validateBody(verifyLoginMfaSchema), verifyLoginMfa);
 router.post('/2fa/login-resend', validateBody(resendLoginMfaSchema), resendLoginMfaCode);
+router.put('/security/login-alerts', requireAuth, validateBody(loginAlertsSchema), updateLoginAlerts);
+router.get('/devices', requireAuth, getTrustedDevices);
+router.delete('/devices/:deviceId', requireAuth, revokeTrustedDevice);
 router.delete('/account', requireAuth, validateBody(deleteAccountSchema), deleteAccount);
 
 module.exports = router;

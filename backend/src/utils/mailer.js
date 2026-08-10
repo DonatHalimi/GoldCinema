@@ -380,6 +380,70 @@ async function sendContactEmail({ name, email, subject, message }) {
   });
 }
 
+async function sendLoginAlertEmail({ to, name, time, ipAddress, loginMethod }) {
+  if (!to) throw new Error('No email recipient provided');
+
+  const safeName = escapeHtml(name || 'there');
+  const safeTime = escapeHtml(time || new Date().toUTCString());
+  const safeIp = escapeHtml(ipAddress || 'Unknown IP');
+  const safeMethod = escapeHtml(loginMethod || 'Standard Login');
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #0f0f12; color: #f3f3f5; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #18181c; border: 1px solid #2a2a32; border-radius: 12px; overflow: hidden; }
+        .header { background-color: #000000; text-align: center; padding: 24px; border-bottom: 2px solid #d4af37; }
+        .brand { font-size: 26px; font-weight: bold; letter-spacing: 2px; color: #d4af37; text-decoration: none; }
+        .content { padding: 30px; }
+        .alert-card { background-color: #222228; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #2a2a32; }
+        .detail-line { font-size: 14px; color: #b3b3c2; margin: 6px 0; }
+        .detail-line strong { color: #f3f3f5; }
+        .warning-text { border-top: 1px dashed #33333d; padding-top: 16px; margin-top: 20px; font-size: 13px; color: #e74c3c; }
+        .footer { text-align: center; padding: 20px; font-size: 12px; color: #666677; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="brand">GOLD<span style="color:#ffffff;">CINEMA</span></div>
+        </div>
+        <div class="content">
+          <h2 style="color: #ffffff; margin-top: 0;">New Sign-In Detected</h2>
+          <p class="detail-line">Hi <strong>${safeName}</strong>,</p>
+          <p class="detail-line">We noticed a new login to your GoldCinema account.</p>
+
+          <div class="alert-card">
+            <p class="detail-line"><strong>Method:</strong> ${safeMethod}</p>
+            <p class="detail-line"><strong>Time:</strong> ${safeTime}</p>
+            <p class="detail-line"><strong>IP Address:</strong> ${safeIp}</p>
+          </div>
+
+          <div class="warning-text">
+            If this was you, you can safely ignore this email. If you did not sign in recently, please change your password immediately to secure your account.
+          </div>
+        </div>
+        <div class="footer">
+          &copy; ${new Date().getFullYear()} GoldCinema Security Team
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const transporter = getTransporter();
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM || 'GoldCinema <no-reply@goldcinema.example>',
+    to,
+    subject: '⚠️ New Sign-In to your GoldCinema account',
+    text: `Hi ${name},\n\nWe noticed a new login to your GoldCinema account via ${loginMethod} at ${safeTime} from IP: ${safeIp}.\n\nIf this wasn't you, please secure your account immediately.`,
+    html: htmlContent,
+  });
+}
+
 module.exports = {
   getTransporter,
   sendVerificationEmail,
@@ -387,5 +451,6 @@ module.exports = {
   sendOrderEmail,
   sendTicketEmail,
   sendTwoFactorCode,
-  sendContactEmail
+  sendContactEmail,
+  sendLoginAlertEmail
 };

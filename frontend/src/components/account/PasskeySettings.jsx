@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { KeyRound, Fingerprint, Trash2, Plus, BadgeCheck, Pencil } from 'lucide-react';
+import { KeyRound, Fingerprint, Trash2, BadgeCheck, Pencil } from 'lucide-react';
 import api from '../../api/client';
 import DisablePasskeyModal from '../ui/DisablePasskeyModal';
 import RenamePasskeyModal from '../ui/RenamePasskeyModal';
@@ -147,7 +147,7 @@ export default function PasskeySettings() {
                         disabled={registering || loading}
                         className="inline-flex items-center gap-2 rounded-full border border-marquee-gold px-5 py-2 text-sm font-semibold text-marquee-gold transition hover:bg-marquee-gold hover:text-zinc-950 disabled:opacity-50"
                     >
-                        <Plus className="h-4 w-4" />
+                        <Fingerprint className="h-4 w-4" />
                         {registering ? 'Registering...' : 'Add Passkey'}
                     </button>
                 </div>

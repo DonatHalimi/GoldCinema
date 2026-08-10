@@ -13,11 +13,13 @@ import EnableTotpModal from '../ui/EnableTotpModal';
 import TwoFactorSettings from './TwoFactorSettings';
 import Disable2faModal from '../ui/Disable2faModal.jsx';
 import PasskeySettings from './PasskeySettings.jsx';
+import { toast } from 'react-toastify';
+import TrustedDevicesSettings from './TrustedDeviceSettings.jsx';
+import LoginAlertsSettings from './LoginAlertsSettings.jsx';
 
 export default function SecuritySettings() {
     const [showEmailVerify, setShowEmailVerify] = useState(false);
     const [showTotpSetup, setShowTotpSetup] = useState(false);
-    const [showSmsSetup, setShowSmsSetup] = useState(false);
     const [showDisableModal, setShowDisableModal] = useState(false);
     const [disableMethod, setDisableMethod] = useState(null);
 
@@ -26,17 +28,25 @@ export default function SecuritySettings() {
         methods: [],
     });
 
+    const [loginAlerts, setLoginAlerts] = useState(true);
     const [loading, setLoading] = useState(false);
+    const [alertsLoading, setAlertsLoading] = useState(false);
 
     useEffect(() => {
         const fetchSecurityStatus = async () => {
             try {
                 const { data } = await api.get('/auth/me');
 
+                const userData = data.user || data;
+
                 setTwoFactor({
-                    enabled: data.user?.twoFactor?.enabled || false,
-                    methods: data.user?.twoFactor?.methods || [],
+                    enabled: userData?.twoFactor?.enabled || false,
+                    methods: userData?.twoFactor?.methods || [],
                 });
+
+                if (userData?.loginAlerts !== undefined) {
+                    setLoginAlerts(userData.loginAlerts);
+                }
             } catch (err) {
                 console.error(err);
             }
@@ -44,6 +54,22 @@ export default function SecuritySettings() {
 
         fetchSecurityStatus();
     }, []);
+
+    const handleToggleLoginAlerts = async () => {
+        try {
+            setAlertsLoading(true);
+            const newValue = !loginAlerts;
+
+            await api.put('/auth/security/login-alerts', { loginAlerts: newValue });
+
+            setLoginAlerts(newValue);
+            toast.success(newValue ? 'Login alerts enabled.' : 'Login alerts disabled.');
+        } catch (err) {
+            toast.error(err.response?.data?.error || 'Failed to update login alerts.');
+        } finally {
+            setAlertsLoading(false);
+        }
+    };
 
     const enableEmail2FA = async () => {
         try {
@@ -67,7 +93,6 @@ export default function SecuritySettings() {
 
         setShowEmailVerify(false);
         setShowTotpSetup(false);
-        setShowSmsSetup(false);
     };
 
     const handleDisableClick = (method) => {
@@ -106,48 +131,9 @@ export default function SecuritySettings() {
 
                 <PasskeySettings twoFactor={twoFactor} />
 
-                <div className="rounded-xl border border-marquee-line bg-marquee-bg p-5">
-                    <div className="flex items-center gap-3">
-                        <Bell className="text-marquee-gold" />
+                <LoginAlertsSettings initialLoginAlerts={loginAlerts} onUpdate={setLoginAlerts} />
 
-                        <div>
-                            <h3 className="font-semibold text-marquee-cream">
-                                Login Alerts
-                            </h3>
-
-                            <p className="text-sm text-marquee-muted">
-                                Get notified whenever your account is accessed from a new device or location
-                            </p>
-                        </div>
-                    </div>
-
-                    <button disabled className="mt-5 cursor-not-allowed rounded-full bg-marquee-panel2 px-5 py-2 text-sm text-marquee-muted">
-                        Coming Soon
-                    </button>
-                </div>
-
-                <div className="rounded-xl border border-marquee-line bg-marquee-bg p-5">
-                    <div className="flex items-center gap-3">
-                        <Laptop className="text-marquee-gold" />
-
-                        <div>
-                            <h3 className="font-semibold text-marquee-cream">
-                                Trusted Devices
-                            </h3>
-
-                            <p className="text-sm text-marquee-muted">
-                                Manage devices you've marked as trusted for quicker and safer sign-ins
-                            </p>
-                        </div>
-                    </div>
-
-                    <button
-                        disabled
-                        className="mt-5 cursor-not-allowed rounded-full bg-marquee-panel2 px-5 py-2 text-sm text-marquee-muted"
-                    >
-                        Coming Soon
-                    </button>
-                </div>
+                <TrustedDevicesSettings />
 
                 <div className="rounded-xl border border-marquee-line bg-marquee-bg p-5">
                     <div className="flex items-center gap-3">
@@ -191,14 +177,6 @@ export default function SecuritySettings() {
                     <EnableTotpModal
                         onClose={() => setShowTotpSetup(false)}
                         onSuccess={() => handle2FASuccess('totp')}
-                    />
-                )}
-
-                {/* SMS 2FA */}
-                {showSmsSetup && (
-                    <EnableSms2faModal
-                        onClose={() => setShowSmsSetup(false)}
-                        onSuccess={() => handle2FASuccess('sms')}
                     />
                 )}
             </div>

@@ -9,7 +9,6 @@ import { toast } from 'react-toastify';
 export default function TwoFactorSettings() {
     const [showEmailVerify, setShowEmailVerify] = useState(false);
     const [showTotpSetup, setShowTotpSetup] = useState(false);
-    const [showSmsSetup, setShowSmsSetup] = useState(false);
     const [showDisableModal, setShowDisableModal] = useState(false);
 
     const [disableMethod, setDisableMethod] = useState(null);
@@ -60,7 +59,6 @@ export default function TwoFactorSettings() {
 
         setShowEmailVerify(false);
         setShowTotpSetup(false);
-        setShowSmsSetup(false);
     };
 
     const handleDisableClick = (method) => {
@@ -105,7 +103,7 @@ export default function TwoFactorSettings() {
 
                         <p className="mt-1 text-sm text-marquee-muted">
                             Add an extra layer of protection to your account
-                            using email, an authenticator app or SMS
+                            using email or an authenticator app 
                         </p>
                     </div>
                 </div>
@@ -163,32 +161,6 @@ export default function TwoFactorSettings() {
                                 </button>
                             </div>
                         )}
-
-                        {twoFactor.methods.includes('sms') && (
-                            <div className="flex items-center justify-between rounded-lg border border-marquee-line bg-marquee-panel2 px-4 py-3">
-                                <div className="flex items-center gap-3">
-                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-marquee-line/30 text-marquee-gold">
-                                        <KeyRound className="h-5 w-5" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-marquee-cream">
-                                            SMS 2FA
-                                        </p>
-                                        <p className="text-xs text-marquee-muted">
-                                            Verification codes are sent via SMS
-                                        </p>
-                                    </div>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => handleDisableClick('sms')}
-                                    className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 px-3 py-1.5 text-xs font-semibold text-red-400 transition hover:bg-red-500/10"
-                                >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                    Remove
-                                </button>
-                            </div>
-                        )}
                     </div>
                 )}
 
@@ -214,18 +186,6 @@ export default function TwoFactorSettings() {
                         >
                             <Smartphone className="h-4 w-4" />
                             Authenticator App
-                        </button>
-                    )}
-
-                    {!twoFactor.methods.includes('sms') && (
-                        <button
-                            type="button"
-                            onClick={() => setShowSmsSetup(true)}
-                            disabled={loading}
-                            className="inline-flex items-center gap-2 rounded-full border border-marquee-gold px-5 py-2 text-sm font-semibold text-marquee-gold transition hover:bg-marquee-gold hover:text-zinc-950 disabled:opacity-50"
-                        >
-                            <KeyRound className="h-4 w-4" />
-                            Enable SMS 2FA
                         </button>
                     )}
                 </div>

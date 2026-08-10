@@ -7,6 +7,7 @@ const {
 
 const User = require('../models/User');
 const { generateTokens, setCookies } = require('./auth');
+const { sendLoginAlertEmail } = require('../utils/mailer');
 
 const rpName = 'GoldCinema';
 const rpID = 'localhost';
@@ -189,6 +190,17 @@ async function verifyPasskeyAuthentication(req, res, next) {
 
         await user.save();
         setCookies(res, accessToken, refreshToken, refreshMaxAgeMs);
+
+        if (user.loginAlerts !== false) {
+            const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+            sendLoginAlertEmail({
+                to: user.email,
+                name: user.name,
+                time: new Date().toUTCString(),
+                ipAddress,
+                loginMethod: 'Passkey',
+            }).catch((err) => console.error('[mailer] Failed to send login alert:', err));
+        }
 
         return res.json({
             message: 'Logged in successfully.',

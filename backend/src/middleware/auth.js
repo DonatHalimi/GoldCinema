@@ -76,4 +76,31 @@ async function requireVerified(req, res, next) {
   }
 }
 
-module.exports = { requireAuth, optionalAuth, requireVerified };
+async function checkTrustedDevice(req, res, next) {
+  try {
+    const rawToken = req.cookies.trustedDeviceToken;
+    if (!rawToken) return next();
+
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+
+    const user = await User.findOne({
+      '_id': req.user?.id,
+      'trustedDevices.tokenHash': tokenHash,
+      'trustedDevices.expiresAt': { $gt: new Date() }
+    });
+
+    if (user) {
+      req.isTrustedDevice = true;
+      await User.updateOne(
+        { _id: user._id, 'trustedDevices.tokenHash': tokenHash },
+        { $set: { 'trustedDevices.$.lastUsedAt': new Date() } }
+      );
+    }
+
+    next();
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { requireAuth, optionalAuth, requireVerified, checkTrustedDevice };
