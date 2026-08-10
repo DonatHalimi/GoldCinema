@@ -5,7 +5,7 @@ const {
     verifyAuthenticationResponse,
 } = require('@simplewebauthn/server');
 
-const User = require('../models/User');
+const User = require('../models/user');
 const { generateTokens, setCookies } = require('./auth');
 const { sendLoginAlertEmail } = require('../utils/mailer');
 
