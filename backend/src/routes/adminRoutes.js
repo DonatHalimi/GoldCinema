@@ -19,6 +19,7 @@ const Showtime = require('../models/showtime');
 const SeatHold = require('../models/seatHold');
 const Snack = require('../models/snack');
 const Order = require('../models/order');
+const Contact = require('../models/contact');
 
 const registerAdminResource = (path, Model, populateOpts = '') => {
     router.get(`/${path}`, getAll(Model, populateOpts));
@@ -39,5 +40,6 @@ registerAdminResource('showtimes', Showtime, 'movie screen');
 registerAdminResource('seatholds', SeatHold, 'showtime user');
 registerAdminResource('snacks', Snack);
 registerAdminResource('orders', Order, 'user showtime snacks.snack');
+registerAdminResource('contacts', Contact, 'user');
 
 module.exports = router;

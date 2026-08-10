@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import api from "../../api/client";
-import { X, Loader2, Copy, Check } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
 
 export default function EnableTotpModal({
     onClose,
@@ -37,6 +37,14 @@ export default function EnableTotpModal({
     useEffect(() => {
         startSetup();
     }, []);
+
+    useEffect(() => {
+        if (qr && !backupCodes.length) {
+            setTimeout(() => {
+                inputRefs.current[0]?.focus();
+            }, 100);
+        }
+    }, [qr, backupCodes.length]);
 
     const submitCode = async (codeToSubmit) => {
         if (codeToSubmit.length !== 6 || loading) return;
@@ -103,8 +111,11 @@ export default function EnableTotpModal({
         submitCode(otp.join(""));
     };
 
+    // Format secret into chunks of 4 characters for better readability
+    const formattedSecret = secret ? secret.match(/.{1,4}/g)?.join(' ') || secret : '';
+
     return (
-        <div onClick={onClose} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div onClick={onClose} className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-sm p-4">
             <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-md rounded-xl border border-marquee-line bg-marquee-bg p-6 shadow-2xl">
                 <div className="flex justify-between items-center">
                     <h2 className="font-display text-2xl font-semibold tracking-wide text-marquee-goldBright">
@@ -128,24 +139,22 @@ export default function EnableTotpModal({
 
                 {qr && !backupCodes.length && (
                     <div className="mt-5">
-                        <p className="
-                            text-sm
-                            text-marquee-muted
-                        ">
+                        <p className="text-sm text-marquee-muted">
                             Scan this QR code with your authenticator app
                         </p>
 
                         <img src={qr} className="mx-auto mt-4 w-48 h-48" />
-                        <div className="mt-6 rounded-lg border border-marquee-line bg-marquee-panel2 p-3 space-y-1.5">
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs font-medium uppercase tracking-wider text-marquee-muted">
-                                    Can't scan? Use setup key
-                                </span>
-                            </div>
-                            <div className="overflow-x-auto py-1">
-                                <code className="block text-xs font-mono tracking-wider break-all text-marquee-cream bg-black/20 p-2 rounded">
-                                    {secret}
-                                </code>
+
+                        <div className="mt-6 rounded-lg border border-marquee-line bg-marquee-panel2 p-4 text-left space-y-2">
+                            <span className="block text-xs font-medium uppercase tracking-wider text-marquee-muted">
+                                Can't scan? Use setup key
+                            </span>
+                            <div className="text-center">
+                                <div className="inline-block rounded-md bg-black/30 border border-marquee-line/50 px-4 py-2.5">
+                                    <code className="text-sm font-mono tracking-widest text-marquee-cream">
+                                        {formattedSecret}
+                                    </code>
+                                </div>
                             </div>
                         </div>
 
@@ -210,7 +219,14 @@ export default function EnableTotpModal({
                                     transition
                                 "
                             >
-                                {loading ? <Loader2 className="animate-spin w-5 h-5" /> : "Verify & Enable"}
+                                {loading ? (
+                                    <>
+                                        <Loader2 className="animate-spin w-5 h-5" />
+                                        &nbsp;Verifying
+                                    </>
+                                ) : (
+                                    "Verify & Enable"
+                                )}
                             </button>
                         </form>
                     </div>
@@ -218,19 +234,11 @@ export default function EnableTotpModal({
 
                 {backupCodes.length > 0 && (
                     <div className="mt-5">
-                        <h3 className="
-                            font-semibold
-                            text-green-400
-                        ">
+                        <h3 className="font-semibold text-green-400">
                             Save your backup codes
                         </h3>
 
-                        <div className="
-                            mt-3
-                            grid
-                            grid-cols-2
-                            gap-2
-                        ">
+                        <div className="mt-3 grid grid-cols-2 gap-2">
                             {backupCodes.map((code) => (
                                 <div
                                     key={code}

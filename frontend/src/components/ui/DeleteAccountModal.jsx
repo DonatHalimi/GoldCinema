@@ -14,6 +14,13 @@ export default function DeleteAccountModal({ onClose }) {
     const { logout } = useAuth();
 
     useEffect(() => {
+        setTimeout(() => {
+            const inputRef = document.querySelectorAll('input');
+            inputRef[0].focus();
+        }, 100);
+    }, []);
+
+    useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === 'Escape') {
                 onClose();

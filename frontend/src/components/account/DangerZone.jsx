@@ -11,7 +11,7 @@ export default function DangerZone() {
         Danger Zone
       </h2>
       <p className="mt-1 text-sm text-marquee-muted">
-        Permanently deactivate your account. This action requires your password and can be undone only during the grace period.
+        Permanently deactivate your account. This action requires your password and can be undone only during the grace period
       </p>
       <div>
         <button

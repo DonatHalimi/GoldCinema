@@ -18,7 +18,9 @@ import DangerZone from '../../components/account/DangerZone';
 import AdminDashboard from '../../pages/AdminDashboard';
 import RequireAuth from '../guards/RequireAuth';
 import RequireAdmin from '../guards/RequireAdmin';
+import RequireGuest from '../guards/RequireGuest';
 import NotFound from '../../pages/NotFound';
+import ContactPage from '../../pages/Contact';
 
 export default function AppRoutes() {
     return (
@@ -27,10 +29,38 @@ export default function AppRoutes() {
             <Route path="/movies/:id" element={<MovieDetail />} />
             <Route path="/showtimes/:id" element={<SeatSelection />} />
 
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/verify-email" element={<VerifyEmail />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route
+                path="/login"
+                element={
+                    <RequireGuest>
+                        <Login />
+                    </RequireGuest>
+                }
+            />
+            <Route
+                path="/register"
+                element={
+                    <RequireGuest>
+                        <Register />
+                    </RequireGuest>
+                }
+            />
+            <Route
+                path="/verify-email"
+                element={
+                    <RequireGuest>
+                        <VerifyEmail />
+                    </RequireGuest>
+                }
+            />
+            <Route
+                path="/reset-password"
+                element={
+                    <RequireGuest>
+                        <ResetPassword />
+                    </RequireGuest>
+                }
+            />
 
             <Route
                 path="/checkout/:orderId"
@@ -66,6 +96,8 @@ export default function AppRoutes() {
                 <Route path="sessions" element={<Sessions />} />
                 <Route path="danger" element={<DangerZone />} />
             </Route>
+
+            <Route path="/contact" element={<ContactPage />} />
 
             <Route
                 path="/admin/:moduleName?"

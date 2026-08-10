@@ -98,9 +98,8 @@ export default function CrudModal({ isOpen, onClose, onSubmit, initialData, fiel
 
                     <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-marquee-line">
                         <button
-                            type="button"
                             onClick={onClose}
-                            className="rounded-md border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm font-medium text-zinc-300 hover:bg-zinc-700 hover:text-white transition-all"
+                            className="rounded-full border border-marquee-line px-4 py-2 text-sm text-marquee-muted hover:border-marquee-gold"
                         >
                             Cancel
                         </button>

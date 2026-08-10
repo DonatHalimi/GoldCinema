@@ -40,8 +40,7 @@ export default function DeleteConfirmModal({
                 <div className="mt-8 flex justify-end gap-3">
                     <button
                         onClick={onClose}
-                        disabled={deleting}
-                        className="rounded-lg border border-zinc-700 px-4 py-2 text-zinc-300 transition-colors hover:bg-zinc-800 disabled:opacity-50"
+                        className="rounded-full border border-marquee-line px-4 py-2 text-sm text-marquee-muted hover:border-marquee-gold"
                     >
                         Cancel
                     </button>

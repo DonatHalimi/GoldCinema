@@ -261,17 +261,84 @@ async function updatePasskeyName(req, res, next) {
     }
 }
 
+// Add this helper to generate a challenge specifically for removal actions
+async function generatePasskeyRemovalChallenge(req, res, next) {
+    try {
+        const options = await generateAuthenticationOptions({
+            rpID,
+            userVerification: 'required', // Forces OS PIN/biometrics prompt
+        });
+
+        global.pendingChallenges = global.pendingChallenges || new Map();
+        global.pendingChallenges.set(options.challenge, {
+            createdAt: Date.now(),
+            userId: req.user.id,
+        });
+
+        return res.json(options);
+    } catch (error) {
+        next(error);
+    }
+}
+
 async function removePasskey(req, res, next) {
     try {
-        const user = await User.findById(req.user.id);
+        const { assertion } = req.body;
+        const passkeyId = req.params.id;
 
+        const user = await User.findById(req.user.id);
         if (!user) return res.status(404).json({ error: 'User not found.' });
 
-        const passkey = user.passkeys?.find((item) => item.credentialId === req.params.id);
-
+        const passkey = user.passkeys?.find((item) => item.credentialId === passkeyId);
         if (!passkey) return res.status(404).json({ error: 'Passkey not found.' });
 
-        user.passkeys = user.passkeys.filter((item) => item.credentialId !== req.params.id);
+        if (!assertion) {
+            return res.status(400).json({ error: 'Device verification assertion is required.' });
+        }
+
+        // Find and validate the pending challenge
+        let matchedChallenge = null;
+        if (global.pendingChallenges) {
+            for (const [challenge, data] of global.pendingChallenges.entries()) {
+                if (Date.now() - data.createdAt > 300000 || data.userId !== req.user.id) {
+                    global.pendingChallenges.delete(challenge);
+                } else {
+                    matchedChallenge = challenge;
+                }
+            }
+        }
+
+        if (!matchedChallenge) {
+            return res.status(400).json({ error: 'Verification session expired. Please try again.' });
+        }
+
+        let verification;
+        try {
+            verification = await verifyAuthenticationResponse({
+                response: assertion,
+                expectedChallenge: matchedChallenge,
+                expectedOrigin: origin,
+                expectedRPID: rpID,
+                credential: {
+                    id: passkey.credentialId,
+                    publicKey: new Uint8Array(passkey.publicKey),
+                    counter: passkey.counter,
+                    transports: passkey.transports,
+                },
+            });
+        } catch (error) {
+            console.error('PASSKEY REMOVAL VERIFICATION ERROR:', error);
+            return res.status(400).json({ error: 'Device verification failed.' });
+        }
+
+        if (!verification.verified) {
+            return res.status(400).json({ error: 'Could not verify device identity.' });
+        }
+
+        global.pendingChallenges.delete(matchedChallenge);
+
+        // Proceed to remove the passkey
+        user.passkeys = user.passkeys.filter((item) => item.credentialId !== passkeyId);
         await user.save();
 
         return res.json({ message: 'Passkey removed successfully.' });
@@ -288,5 +355,6 @@ module.exports = {
     verifyPasskeyAuthentication,
     getPasskeys,
     updatePasskeyName,
+    generatePasskeyRemovalChallenge,
     removePasskey,
 };

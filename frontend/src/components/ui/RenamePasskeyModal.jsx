@@ -138,7 +138,7 @@ export default function RenamePasskeyModal({
                             type="button"
                             onClick={onClose}
                             disabled={loading}
-                            className="rounded-full px-4 py-2 text-sm font-medium text-marquee-muted transition hover:text-marquee-cream disabled:opacity-50"
+                            className="rounded-full border border-marquee-line px-4 py-2 text-sm text-marquee-muted hover:border-marquee-gold"
                         >
                             Cancel
                         </button>

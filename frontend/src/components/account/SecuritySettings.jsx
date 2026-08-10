@@ -169,9 +169,6 @@ export default function SecuritySettings() {
                     </button>
                 </div>
 
-                {/* Passkeys */}
-
-                {/* Email 2FA */}
                 {showEmailVerify && (
                     <EnableEmail2faModal
                         onClose={() => setShowEmailVerify(false)}

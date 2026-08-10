@@ -13,6 +13,7 @@ const paymentRoutes = require('./routes/payments');
 const adminRoutes = require('./routes/adminRoutes');
 const slideshowRoutes = require('./routes/slideshow');
 const passkeyRoutes = require('./routes/passkey');
+const contactRoutes = require('./routes/contact');
 
 const errorHandler = require('./middleware/errorHandler');
 
@@ -76,6 +77,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/slideshows', slideshowRoutes);
+app.use('/api/contact', contactRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found.' });

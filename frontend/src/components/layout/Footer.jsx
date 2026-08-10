@@ -7,29 +7,29 @@ import {
     Contact2,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { FacebookIcon, GithubIcon, InstagramIcon, LinkedInIcon } from '../ui/Icons';
+import { FacebookIconMonochrome, GithubIcon, InstagramIcon, LinkedInIcon } from '../ui/Icons';
 
 export const Footer = () => {
     const footerLinks = {
         social: [
             {
                 href: 'https://facebook.com',
-                icon: <FacebookIcon />,
+                icon: <FacebookIconMonochrome className="h-5 w-5 fill-current" />,
                 label: 'Facebook',
             },
             {
                 href: 'https://instagram.com',
-                icon: <InstagramIcon />,
+                icon: <InstagramIcon className="h-5 w-5 fill-current" />,
                 label: 'Instagram',
             },
             {
                 href: 'https://www.linkedin.com/in/donat-halimi-0719b0193/',
-                icon: <LinkedInIcon />,
+                icon: <LinkedInIcon className="h-5 w-5 fill-current" />,
                 label: 'LinkedIn',
             },
             {
                 href: 'https://github.com/DonatHalimi/GoldCinema',
-                icon: <GithubIcon />,
+                icon: <GithubIcon className="h-5 w-5 fill-current" />,
                 label: 'GitHub',
             },
         ],
@@ -52,25 +52,24 @@ export const Footer = () => {
             {
                 linkType: 'external',
                 href: 'mailto:goldcinema.info@gmail.com',
-                icon: <MailIcon />,
+                icon: <MailIcon className="h-5 w-5 shrink-0" />,
                 label: 'Email',
             },
             {
                 linkType: 'external',
                 href: 'tel:+38344111222',
-                icon: <PhoneCall />,
+                icon: <PhoneCall className="h-5 w-5 shrink-0" />,
                 label: 'Phone',
             },
             {
                 linkType: 'internal',
                 to: '/contact',
-                icon: <Contact2 />,
+                icon: <Contact2 className="h-5 w-5 shrink-0" />,
                 label: 'Contact',
             },
         ],
     };
 
-    const currentYear = new Date().getFullYear();
     const displayYear = () => {
         const currentYear = new Date().getFullYear();
         return currentYear === 2026 ? '2026' : `2026 - ${currentYear}`;

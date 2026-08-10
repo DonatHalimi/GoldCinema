@@ -14,6 +14,7 @@ import {
     Receipt,
     ChevronDown,
     LayoutDashboard,
+    Mail, // Added Mail icon for contacts
 } from 'lucide-react';
 import ModuleDataGrid from '../components/auth/ModuleDataGrid';
 
@@ -39,6 +40,23 @@ const MODULE_SECTIONS = [
                 fields: [
                     { name: 'name', label: 'Role Name' },
                     { name: 'description', label: 'Description', type: 'textarea' }
+                ]
+            },
+            {
+                key: 'contacts',
+                label: 'Contacts',
+                icon: Mail,
+                fields: [
+                    { name: 'name', label: 'Sender Name' },
+                    { name: 'email', label: 'Email', type: 'email' },
+                    { name: 'subject', label: 'Subject' },
+                    { name: 'message', label: 'Message', type: 'textarea' },
+                    {
+                        name: 'status',
+                        label: 'Status',
+                        type: 'select',
+                        options: ['unread', 'read', 'resolved']
+                    }
                 ]
             },
         ]

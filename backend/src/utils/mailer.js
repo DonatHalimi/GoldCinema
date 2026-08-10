@@ -10,180 +10,180 @@ let cachedTransporter = null;
  * registration doesn't hard-fail in a fresh dev environment.
  */
 function getTransporter() {
-    if (cachedTransporter) return cachedTransporter;
+  if (cachedTransporter) return cachedTransporter;
 
-    if (!process.env.SMTP_HOST) {
-        console.warn(
-            '[mailer] SMTP_HOST is not set — emails will be logged to the console instead of sent. ' +
-            'Run MailHog (see README) or set SMTP_* env vars to send real emails.'
-        );
-        cachedTransporter = {
-            sendMail: async (options) => {
-                console.log('\n[mailer] (dev mode, no SMTP configured) Would send email:');
-                console.log(`  To: ${options.to}`);
-                console.log(`  Subject: ${options.subject}`);
-                console.log(`  ${options.text || options.html}\n`);
-                return { messageId: 'dev-console-log' };
-            },
-        };
-        return cachedTransporter;
-    }
-
-    cachedTransporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT) || 1025,
-        secure: process.env.SMTP_SECURE === 'true',
-        auth: process.env.SMTP_USER
-            ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD }
-            : undefined,
-    });
-
+  if (!process.env.SMTP_HOST) {
+    console.warn(
+      '[mailer] SMTP_HOST is not set — emails will be logged to the console instead of sent. ' +
+      'Run MailHog (see README) or set SMTP_* env vars to send real emails.'
+    );
+    cachedTransporter = {
+      sendMail: async (options) => {
+        console.log('\n[mailer] (dev mode, no SMTP configured) Would send email:');
+        console.log(`  To: ${options.to}`);
+        console.log(`  Subject: ${options.subject}`);
+        console.log(`  ${options.text || options.html}\n`);
+        return { messageId: 'dev-console-log' };
+      },
+    };
     return cachedTransporter;
+  }
+
+  cachedTransporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT) || 1025,
+    secure: process.env.SMTP_SECURE === 'true',
+    auth: process.env.SMTP_USER
+      ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD }
+      : undefined,
+  });
+
+  return cachedTransporter;
 }
 
 async function sendVerificationEmail({ to, name, verificationUrl }) {
-    if (!to) {
-        throw new Error('No email recipient provided');
-    }
+  if (!to) {
+    throw new Error('No email recipient provided');
+  }
 
-    const transporter = getTransporter();
-    await transporter.sendMail({
-        from: process.env.SMTP_FROM || 'GoldCinema <no-reply@goldcinema.example>',
-        to,
-        subject: 'Verify your GoldCinema account',
-        text: `Hi ${name},\n\nPlease verify your email to start booking tickets:\n${verificationUrl}\n\nThis link expires in 24 hours.`,
-        html: `
+  const transporter = getTransporter();
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM || 'GoldCinema <no-reply@goldcinema.example>',
+    to,
+    subject: 'Verify your GoldCinema account',
+    text: `Hi ${name},\n\nPlease verify your email to start booking tickets:\n${verificationUrl}\n\nThis link expires in 24 hours.`,
+    html: `
       <p>Hi ${escapeHtml(name)},</p>
       <p>Please verify your email to start booking tickets on GoldCinema:</p>
       <p><a href="${verificationUrl}">${verificationUrl}</a></p>
       <p>This link expires in 24 hours.</p>
     `,
-    });
+  });
 }
 
 async function sendPasswordResetEmail({ to, name, resetUrl }) {
-    if (!to) {
-        throw new Error('No email recipient provided');
-    }
+  if (!to) {
+    throw new Error('No email recipient provided');
+  }
 
-    const transporter = getTransporter();
-    await transporter.sendMail({
-        from: process.env.SMTP_FROM || 'GoldCinema <no-reply@goldcinema.example>',
-        to,
-        subject: 'Reset your GoldCinema password',
-        text: `Hi ${name},\n\nWe received a request to reset your GoldCinema password.\n\nUse this secure link to choose a new password:\n${resetUrl}\n\nThis link expires in 1 hour. If you did not request this, you can ignore this email.`,
-        html: `
+  const transporter = getTransporter();
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM || 'GoldCinema <no-reply@goldcinema.example>',
+    to,
+    subject: 'Reset your GoldCinema password',
+    text: `Hi ${name},\n\nWe received a request to reset your GoldCinema password.\n\nUse this secure link to choose a new password:\n${resetUrl}\n\nThis link expires in 1 hour. If you did not request this, you can ignore this email.`,
+    html: `
       <p>Hi ${escapeHtml(name)},</p>
       <p>We received a request to reset your GoldCinema password.</p>
       <p>Use the secure link below to choose a new password:</p>
       <p><a href="${resetUrl}">${resetUrl}</a></p>
       <p>This link expires in 1 hour. If you did not request this, you can ignore this email.</p>
     `,
-    });
+  });
 }
 
 async function sendOrderEmail({ to, name, subject, text, html }) {
-    const transporter = getTransporter();
-    await transporter.sendMail({
-        from: process.env.SMTP_FROM || 'GoldCinema <no-reply@goldcinema.example>',
-        to,
-        subject,
-        text,
-        html,
-    });
+  const transporter = getTransporter();
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM || 'GoldCinema <no-reply@goldcinema.example>',
+    to,
+    subject,
+    text,
+    html,
+  });
 }
 
 function escapeHtml(str) {
-    return String(str).replace(/[&<>"']/g, (c) => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;',
-    })[c]);
+  return String(str).replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  })[c]);
 }
 
 const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || '127.0.0.1',
-    port: Number(process.env.SMTP_PORT) || 1025,
-    secure: false,
-    auth: process.env.SMTP_USER
-        ? {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASSWORD,
-        }
-        : undefined,
+  host: process.env.SMTP_HOST || '127.0.0.1',
+  port: Number(process.env.SMTP_PORT) || 1025,
+  secure: false,
+  auth: process.env.SMTP_USER
+    ? {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASSWORD,
+    }
+    : undefined,
 });
 
 async function sendTicketEmail(to, order, qrDataUrl) {
-    const transporter = getTransporter();
+  const transporter = getTransporter();
 
-    const rawQrDataUrl = qrDataUrl || order.qrTicket?.dataUrl;
+  const rawQrDataUrl = qrDataUrl || order.qrTicket?.dataUrl;
 
-    const movieTitle = order.movie?.title || 'Your Movie';
+  const movieTitle = order.movie?.title || 'Your Movie';
 
-    const posterUrl =
-        order.movie?.posterUrl ||
-        'https://via.placeholder.com/300x450?text=GoldCinema';
-
-
-    const cinema = order.showtime?.cinema;
-
-    const cinemaName = cinema?.name || 'GoldCinema';
-
-    const location = cinema?.location
-        ? `${cinema.location.address}, ${cinema.location.city}, ${cinema.location.country}`
-        : '';
-
-    const screenName =
-        order.showtime?.screen?.name ||
-        order.showtime?.hall ||
-        'Main Hall';
+  const posterUrl =
+    order.movie?.posterUrl ||
+    'https://via.placeholder.com/300x450?text=GoldCinema';
 
 
-    const startDate = order.showtime?.startTime
-        ? new Date(order.showtime.startTime)
-        : null;
+  const cinema = order.showtime?.cinema;
+
+  const cinemaName = cinema?.name || 'GoldCinema';
+
+  const location = cinema?.location
+    ? `${cinema.location.address}, ${cinema.location.city}, ${cinema.location.country}`
+    : '';
+
+  const screenName =
+    order.showtime?.screen?.name ||
+    order.showtime?.hall ||
+    'Main Hall';
 
 
-    const showtimeDate = startDate
-        ? startDate.toLocaleDateString('en-US', {
-            weekday: 'long',
-            month: 'long',
-            day: 'numeric',
-            year: 'numeric',
-        })
-        : 'Scheduled Date';
+  const startDate = order.showtime?.startTime
+    ? new Date(order.showtime.startTime)
+    : null;
 
 
-    const showtimeTime = startDate
-        ? startDate.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-        })
-        : 'Scheduled Time';
+  const showtimeDate = startDate
+    ? startDate.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    })
+    : 'Scheduled Date';
 
-    const seatsList = Array.isArray(order.seats) ? order.seats.join(', ') : 'Assigned Seats';
-    const totalPaid = typeof order.totalAmount === 'number'
-        ? order.totalAmount.toFixed(2)
-        : (order.ticketAmount || 0).toFixed(2);
 
-    const attachments = [];
-    let qrImgSrc = '';
+  const showtimeTime = startDate
+    ? startDate.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+    : 'Scheduled Time';
 
-    if (rawQrDataUrl) {
-        const base64Data = rawQrDataUrl.replace(/^data:image\/\w+;base64,/, '');
-        const qrBuffer = Buffer.from(base64Data, 'base64');
+  const seatsList = Array.isArray(order.seats) ? order.seats.join(', ') : 'Assigned Seats';
+  const totalPaid = typeof order.totalAmount === 'number'
+    ? order.totalAmount.toFixed(2)
+    : (order.ticketAmount || 0).toFixed(2);
 
-        attachments.push({
-            filename: 'qrcode.png',
-            content: qrBuffer,
-            cid: 'qrcode@goldcinema',
-        });
-        qrImgSrc = 'cid:qrcode@goldcinema';
-    }
+  const attachments = [];
+  let qrImgSrc = '';
 
-    const htmlContent = `
+  if (rawQrDataUrl) {
+    const base64Data = rawQrDataUrl.replace(/^data:image\/\w+;base64,/, '');
+    const qrBuffer = Buffer.from(base64Data, 'base64');
+
+    attachments.push({
+      filename: 'qrcode.png',
+      content: qrBuffer,
+      cid: 'qrcode@goldcinema',
+    });
+    qrImgSrc = 'cid:qrcode@goldcinema';
+  }
+
+  const htmlContent = `
     <!DOCTYPE html>
     <html>
     <head>
@@ -229,12 +229,12 @@ async function sendTicketEmail(to, order, qrDataUrl) {
           </div>
 
           ${qrImgSrc
-            ? `<div class="qr-section">
+      ? `<div class="qr-section">
                    <img src="${qrImgSrc}" alt="Entry QR Code" class="qr-image" />
                    <div class="qr-instruction">Scan at Cinema Entrance</div>
                  </div>`
-            : ''
-        }
+      : ''
+    }
 
           <div class="order-summary">
             <p style="margin: 4px 0;"><strong>Order Reference:</strong> #${order._id}</p>
@@ -249,23 +249,23 @@ async function sendTicketEmail(to, order, qrDataUrl) {
     </html>
   `;
 
-    await transporter.sendMail({
-        from: process.env.SMTP_FROM || 'GoldCinema <no-reply@goldcinema.example>',
-        to,
-        subject: `🎟️ Your GoldCinema Ticket: ${movieTitle}`,
-        text: `Your ticket for ${movieTitle} is confirmed! Show reference #${order._id} at entrance. Seats: ${seatsList}.`,
-        html: htmlContent,
-        attachments,
-    });
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM || 'GoldCinema <no-reply@goldcinema.example>',
+    to,
+    subject: `🎟️ Your GoldCinema Ticket: ${movieTitle}`,
+    text: `Your ticket for ${movieTitle} is confirmed! Show reference #${order._id} at entrance. Seats: ${seatsList}.`,
+    html: htmlContent,
+    attachments,
+  });
 }
 
 async function sendTwoFactorCode({ to, name, code }) {
-    if (!to) throw new Error('No email recipient provided');
+  if (!to) throw new Error('No email recipient provided');
 
-    const safeName = escapeHtml(name || 'there');
-    const safeCode = escapeHtml(code);
+  const safeName = escapeHtml(name || 'there');
+  const safeCode = escapeHtml(code);
 
-    const htmlContent = `
+  const htmlContent = `
     <!DOCTYPE html>
     <html>
     <head>
@@ -311,21 +311,81 @@ async function sendTwoFactorCode({ to, name, code }) {
     </html>
     `;
 
-    const transporter = getTransporter();
-    await transporter.sendMail({
-        from: process.env.SMTP_FROM || 'GoldCinema <no-reply@goldcinema.example>',
-        to,
-        subject: `🔒 Your GoldCinema Verification Code: ${code}`,
-        text: `Hi ${name},\n\nYour verification code is: ${code}\n\nThis code expires in 10 minutes. If you didn't request this, secure your account immediately.`,
-        html: htmlContent,
-    });
+  const transporter = getTransporter();
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM || 'GoldCinema <no-reply@goldcinema.example>',
+    to,
+    subject: `🔒 Your GoldCinema Verification Code: ${code}`,
+    text: `Hi ${name},\n\nYour verification code is: ${code}\n\nThis code expires in 10 minutes. If you didn't request this, secure your account immediately.`,
+    html: htmlContent,
+  });
+}
+
+async function sendContactEmail({ name, email, subject, message }) {
+  if (!email || !message) {
+    throw new Error('Required contact fields are missing');
+  }
+
+  const safeName = escapeHtml(name);
+  const safeEmail = escapeHtml(email);
+  const safeSubject = escapeHtml(subject || 'General Inquiry');
+  const safeMessage = escapeHtml(message);
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #0f0f12; color: #f3f3f5; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #18181c; border: 1px solid #2a2a32; border-radius: 12px; overflow: hidden; }
+        .header { background-color: #000000; text-align: center; padding: 24px; border-bottom: 2px solid #d4af37; }
+        .brand { font-size: 26px; font-weight: bold; letter-spacing: 2px; color: #d4af37; text-decoration: none; }
+        .content { padding: 30px; }
+        .detail-line { font-size: 14px; color: #b3b3c2; margin: 8px 0; }
+        .detail-line strong { color: #f3f3f5; }
+        .message-box { background-color: #222228; padding: 16px; border-radius: 8px; margin-top: 16px; border: 1px solid #2a2a32; white-space: pre-wrap; color: #f3f3f5; }
+        .footer { text-align: center; padding: 20px; font-size: 12px; color: #666677; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="brand">GOLD<span style="color:#ffffff;">CINEMA</span></div>
+        </div>
+        <div class="content">
+          <h2 style="color: #ffffff; margin-top: 0;">New Contact Message</h2>
+          <p class="detail-line"><strong>Name:</strong> ${safeName}</p>
+          <p class="detail-line"><strong>Email:</strong> ${safeEmail}</p>
+          <p class="detail-line"><strong>Subject:</strong> ${safeSubject}</p>
+          <div style="margin-top: 20px; font-size: 14px; color: #b3b3c2;">Message:</div>
+          <div class="message-box">${safeMessage}</div>
+        </div>
+        <div class="footer">
+          &copy; ${new Date().getFullYear()} GoldCinema Support System
+        </div>
+      </div>
+    </body>
+    </html>
+    `;
+
+  const transporter = getTransporter();
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM || 'GoldCinema <no-reply@goldcinema.example>',
+    to: 'donat.halimi03@gmail.com',
+    replyTo: email,
+    subject: `[Contact Us] ${subject || 'New Message'}`,
+    text: `You have received a new message from ${name} (${email}):\n\n${message}`,
+    html: htmlContent,
+  });
 }
 
 module.exports = {
-    getTransporter,
-    sendVerificationEmail,
-    sendPasswordResetEmail,
-    sendOrderEmail,
-    sendTicketEmail,
-    sendTwoFactorCode
+  getTransporter,
+  sendVerificationEmail,
+  sendPasswordResetEmail,
+  sendOrderEmail,
+  sendTicketEmail,
+  sendTwoFactorCode,
+  sendContactEmail
 };

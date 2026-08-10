@@ -1,12 +1,19 @@
 import { useState, useRef } from 'react';
 import api from '../../api/client';
 import { X } from 'lucide-react';
+import { useEffect } from 'react';
 
 export default function EnableEmail2faModal({ onSuccess, onClose }) {
     const [otp, setOtp] = useState(Array(6).fill(''));
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const inputRefs = useRef([]);
+
+    useEffect(() => {
+        setTimeout(() => {
+            inputRefs.current[0]?.focus();
+        }, 100);
+    }, []);
 
     const submitCode = async (codeToSubmit) => {
         if (codeToSubmit.length !== 6 || loading) return;

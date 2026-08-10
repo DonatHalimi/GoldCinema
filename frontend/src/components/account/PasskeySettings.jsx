@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { KeyRound, Trash2, Plus, BadgeCheck, Pencil } from 'lucide-react';
+import { KeyRound, Fingerprint, Trash2, Plus, BadgeCheck, Pencil } from 'lucide-react';
 import api from '../../api/client';
 import DisablePasskeyModal from '../ui/DisablePasskeyModal';
 import RenamePasskeyModal from '../ui/RenamePasskeyModal';
@@ -56,7 +56,6 @@ export default function PasskeySettings() {
         }
     };
 
-
     const handleRemovalSuccess = (removedId) => {
         setPasskeys((prev) => prev.filter((p) => p.id !== removedId));
         setSelectedPasskeyForRemoval(null);
@@ -102,14 +101,19 @@ export default function PasskeySettings() {
                                 key={passkey.id}
                                 className="flex items-center justify-between rounded-lg border border-marquee-line bg-marquee-panel2 px-4 py-3"
                             >
-                                <div>
-                                    <p className="text-sm font-medium text-marquee-cream">
-                                        {passkey.name || 'Passkey'}
-                                    </p>
+                                <div className="flex items-center gap-3">
+                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-marquee-line/30 text-marquee-gold">
+                                        <Fingerprint className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-marquee-cream">
+                                            {passkey.name || 'Passkey'}
+                                        </p>
 
-                                    <p className="text-xs text-marquee-muted">
-                                        Added on {new Date(passkey.createdAt).toLocaleDateString()}
-                                    </p>
+                                        <p className="text-xs text-marquee-muted">
+                                            Added on {new Date(passkey.createdAt).toLocaleDateString()}
+                                        </p>
+                                    </div>
                                 </div>
 
                                 <div className="flex items-center gap-2">
