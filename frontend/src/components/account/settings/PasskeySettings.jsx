@@ -2,9 +2,9 @@ import { startRegistration } from '@simplewebauthn/browser';
 import { BadgeCheck, Fingerprint, KeyRound, Pencil, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import api from '../../api/client';
-import DisablePasskeyModal from '../ui/DisablePasskeyModal';
-import RenamePasskeyModal from '../ui/RenamePasskeyModal';
+import api from '../../../api/client';
+import DisablePasskeyModal from '../../ui/DisablePasskeyModal';
+import RenamePasskeyModal from '../../ui/RenamePasskeyModal';
 
 export default function PasskeySettings() {
     const [passkeys, setPasskeys] = useState([]);
@@ -45,11 +45,7 @@ export default function PasskeySettings() {
             if (err.name === 'NotAllowedError') {
                 toast.info('Passkey registration cancelled or timed out.');
             } else {
-                toast.error(
-                    err.response?.data?.error ||
-                    err.response?.data?.message ||
-                    'Failed to register passkey.'
-                );
+                toast.error(err.response?.data?.error || err.response?.data?.message || 'Failed to register passkey.');
             }
         } finally {
             setRegistering(false);

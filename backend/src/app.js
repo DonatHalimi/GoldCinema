@@ -14,16 +14,15 @@ const adminRoutes = require('./routes/adminRoutes');
 const slideshowRoutes = require('./routes/slideshow');
 const passkeyRoutes = require('./routes/passkey');
 const contactRoutes = require('./routes/contact');
+const notificationRoutes = require('./routes/notifications');
 
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
-app.use(
-  helmet({
-    crossOriginResourcePolicy: { policy: 'cross-origin' },
-  })
-);
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}));
 
 const allowedOrigins = [
   'http://localhost:3000',
@@ -61,6 +60,7 @@ const strictLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
 app.use('/api/auth', strictLimiter);
 app.use('/api/payments', strictLimiter);
 
@@ -78,6 +78,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/slideshows', slideshowRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found.' });

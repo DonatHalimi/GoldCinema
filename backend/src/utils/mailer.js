@@ -35,9 +35,7 @@ function getTransporter() {
 }
 
 async function sendVerificationEmail({ to, name, verificationUrl }) {
-  if (!to) {
-    throw new Error('No email recipient provided');
-  }
+  if (!to) throw new Error('No email recipient provided');
 
   const transporter = getTransporter();
   await transporter.sendMail({
@@ -55,9 +53,7 @@ async function sendVerificationEmail({ to, name, verificationUrl }) {
 }
 
 async function sendPasswordResetEmail({ to, name, resetUrl }) {
-  if (!to) {
-    throw new Error('No email recipient provided');
-  }
+  if (!to) throw new Error('No email recipient provided');
 
   const transporter = getTransporter();
   await transporter.sendMail({
@@ -100,12 +96,7 @@ const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || '127.0.0.1',
   port: Number(process.env.SMTP_PORT) || 1025,
   secure: false,
-  auth: process.env.SMTP_USER
-    ? {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASSWORD,
-    }
-    : undefined,
+  auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD } : undefined,
 });
 
 async function sendTicketEmail(to, order, qrDataUrl) {
@@ -115,54 +106,34 @@ async function sendTicketEmail(to, order, qrDataUrl) {
 
   const movieTitle = order.movie?.title || 'Your Movie';
 
-  const posterUrl =
-    order.movie?.posterUrl ||
-    'https://via.placeholder.com/300x450?text=GoldCinema';
+  const posterUrl = order.movie?.posterUrl || 'https://via.placeholder.com/300x450?text=GoldCinema';
 
   const cinema = order.showtime?.cinema;
 
   const cinemaName = cinema?.name || 'GoldCinema';
+  const location = cinema?.location ? `${cinema.location.address}, ${cinema.location.city}, ${cinema.location.country}` : '';
+  const screenName = order.showtime?.screen?.name || order.showtime?.hall || 'GoldCinema Hall';
+  const startDate = order.showtime?.startTime ? new Date(order.showtime.startTime) : null;
 
-  const location = cinema?.location
-    ? `${cinema.location.address}, ${cinema.location.city}, ${cinema.location.country}`
-    : '';
+  const showtimeDate = startDate ? startDate.toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }) : '28.07.2026';
 
-  const screenName =
-    order.showtime?.screen?.name ||
-    order.showtime?.hall ||
-    'GoldCinema Hall';
-
-  const startDate = order.showtime?.startTime
-    ? new Date(order.showtime.startTime)
-    : null;
-
-  const showtimeDate = startDate
-    ? startDate.toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    })
-    : '28.07.2026';
-
-  const showtimeTime = startDate
-    ? startDate.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    })
-    : '17:30';
+  const showtimeTime = startDate ? startDate.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }) : '17:30';
 
   const seatsList = Array.isArray(order.seats) ? order.seats.join(', ') : '19';
-  const totalPaid = typeof order.totalAmount === 'number'
-    ? order.totalAmount.toFixed(2)
-    : (order.ticketAmount || 6.00).toFixed(2);
+  const totalPaid = typeof order.totalAmount === 'number' ? order.totalAmount.toFixed(2) : (order.ticketAmount || 6.00).toFixed(2);
 
   const customerName = order.user?.name || 'Valued Customer';
   const customerEmail = order.user?.email || to;
   const paymentType = order.paymentType || 'CREDIT';
-  const purchaseDate = order.createdAt 
-    ? new Date(order.createdAt).toLocaleDateString('en-GB') 
-    : '27.07.2026';
+  const purchaseDate = order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-GB') : '27.07.2026';
 
   const rowName = order.row || 'C';
   const ticketType = order.ticketType || `1 Regular VIP (${totalPaid})`;
@@ -348,9 +319,7 @@ async function sendTwoFactorCode({ to, name, code }) {
 }
 
 async function sendContactEmail({ name, email, subject, message }) {
-  if (!email || !message) {
-    throw new Error('Required contact fields are missing');
-  }
+  if (!email || !message) throw new Error('Required contact fields are missing');
 
   const safeName = escapeHtml(name);
   const safeEmail = escapeHtml(email);

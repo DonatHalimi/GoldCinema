@@ -10,9 +10,7 @@ const slideshowSchema = new mongoose.Schema(
         order: { type: Number, default: 0, },
         isActive: { type: Boolean, default: true, },
     },
-    {
-        timestamps: true,
-    }
+    { timestamps: true }
 );
 
 export default mongoose.model("Slideshow", slideshowSchema);

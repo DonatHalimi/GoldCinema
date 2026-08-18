@@ -30,6 +30,9 @@ const {
   getSecurityActivity,
   generateBackupCodesRoute,
   exportSecurityLogs,
+  getSessions,
+  revokeSession,
+  revokeAllOtherSessions,
 } = require('../controllers/auth');
 const {
   validateBody,
@@ -78,5 +81,8 @@ router.get('/security/activity', requireAuth, getSecurityActivity);
 router.post('/security/backup-codes', requireAuth, generateBackupCodesRoute);
 router.get('/security/export-logs', requireAuth, exportSecurityLogs);
 router.delete('/account', requireAuth, validateBody(deleteAccountSchema), deleteAccount);
+router.delete('/sessions/revoke-all', requireAuth, revokeAllOtherSessions);
+router.get('/sessions', requireAuth, getSessions);
+router.delete('/sessions/:id', requireAuth, revokeSession);
 
 module.exports = router;

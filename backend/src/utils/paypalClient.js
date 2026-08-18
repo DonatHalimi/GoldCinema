@@ -1,22 +1,15 @@
-const PAYPAL_BASE_URL =
-  process.env.PAYPAL_ENV === 'live'
-    ? 'https://api-m.paypal.com'
-    : 'https://api-m.sandbox.paypal.com';
+const PAYPAL_BASE_URL = process.env.PAYPAL_ENV === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com';
 
 let cachedToken = null;
 let cachedTokenExpiry = 0;
 
 async function getAccessToken() {
-  if (cachedToken && Date.now() < cachedTokenExpiry - 30_000) {
-    return cachedToken;
-  }
+  if (cachedToken && Date.now() < cachedTokenExpiry - 30_000) return cachedToken;
 
   const clientId = process.env.PAYPAL_CLIENT_ID;
   const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
 
-  if (!clientId || !clientSecret) {
-    throw Object.assign(new Error('PayPal is not configured on this server.'), { status: 500 });
-  }
+  if (!clientId || !clientSecret) throw Object.assign(new Error('PayPal is not configured on this server.'), { status: 500 });
 
   const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
 

@@ -108,12 +108,7 @@ export default function Login() {
         toast.info('Passkey sign-in cancelled or timed out.');
       } else {
         toast.error('Passkey login failed!');
-        setError(
-          err.response?.data?.error ||
-          err.response?.data?.message ||
-          err.message ||
-          'Passkey login failed.'
-        );
+        setError(err.response?.data?.error || err.response?.data?.message || err.message || 'Passkey login failed.');
       }
     } finally {
       setSubmitting(false);
@@ -123,6 +118,7 @@ export default function Login() {
   async function handleGoogleLogin(credential) {
     setSubmitting(true);
     setError('');
+
     try {
       const result = await loginWithGoogle(credential);
       if (result?.mfaRequired) {
@@ -158,14 +154,12 @@ export default function Login() {
         throw new Error('Facebook login cancelled.');
       }
       const result = await loginWithFacebook(response.authResponse.accessToken);
+
       if (result?.mfaRequired) {
-        setMfaState({
-          mfaToken: result.mfaToken,
-          methods: result.methods || [],
-          rememberMe: result.rememberMe ?? rememberMe,
-        });
+        setMfaState({ mfaToken: result.mfaToken, methods: result.methods || [], rememberMe: result.rememberMe ?? rememberMe });
         return;
       }
+
       navigate(from, { replace: true });
       toast.success('Facebook login successful!');
     } catch (err) {
@@ -199,6 +193,7 @@ export default function Login() {
         });
         return;
       }
+
       navigate(from, { replace: true });
       toast.success('Login successful!');
     } catch (err) {
@@ -308,9 +303,7 @@ export default function Login() {
               </Link>
             </p>
 
-            {isForgotModalOpen && (
-              <ForgotPasswordModal isOpen={isForgotModalOpen} onClose={() => setIsForgotModalOpen(false)} />
-            )}
+            <ForgotPasswordModal isOpen={isForgotModalOpen} onClose={() => setIsForgotModalOpen(false)} />
           </>
         )}
       </div>

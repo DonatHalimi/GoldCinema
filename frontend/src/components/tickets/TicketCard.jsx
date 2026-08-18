@@ -2,10 +2,9 @@ import { Link } from 'react-router-dom';
 import TicketStatus from './TicketStatus';
 
 export default function TicketCard({ order }) {
-  const checkoutPath =
-    order.paymentStatus === 'paid'
-      ? `/confirmation/${order._id}`
-      : `/checkout/${order._id}`;
+  const checkoutPath = order.paymentStatus === 'paid'
+    ? `/confirmation/${order._id}`
+    : `/checkout/${order._id}`;
 
   if (!order) return null;
 

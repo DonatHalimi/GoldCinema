@@ -24,7 +24,7 @@ export default function App() {
         autoClose={4000}
         newestOnTop
         stacked
-        theme={!toastTheme}
+        theme={toastTheme}
         hideProgressBar
         closeOnClick
       />

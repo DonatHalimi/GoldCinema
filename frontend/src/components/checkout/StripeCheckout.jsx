@@ -8,9 +8,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { useEffect, useState } from 'react';
 import api from '../../api/client';
 
-const stripePromise = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
-  ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
-  : null;
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 function StripeForm({ order, onSuccess, onError }) {
   const stripe = useStripe();
@@ -36,10 +34,7 @@ function StripeForm({ order, onSuccess, onError }) {
 
 
     if (submitError) {
-      onError(
-        submitError.message ||
-        'Payment failed. Please check your card details.'
-      );
+      onError(submitError.message || 'Payment failed. Please check your card details.');
 
       setSubmitting(false);
       return;
@@ -52,22 +47,14 @@ function StripeForm({ order, onSuccess, onError }) {
     }
 
     try {
-      const { data } = await api.post(
-        '/payments/stripe/confirm',
-        {
-          orderId: order._id,
-          paymentIntentId: paymentIntent.id,
-        }
-      );
+      const { data } = await api.post('/payments/stripe/confirm', {
+        orderId: order._id,
+        paymentIntentId: paymentIntent.id,
+      });
 
       onSuccess(data.order);
     } catch (err) {
-      console.error("STRIPE CONFIRM ERROR:", err);
-      onError(
-        err.response?.data?.error ||
-        err.message ||
-        'Payment confirmation failed.'
-      );
+      onError(err.response?.data?.error || err.message || 'Payment confirmation failed.');
     } finally {
       setSubmitting(false);
     }
@@ -105,7 +92,6 @@ export default function StripeCheckout({
         setClientSecret(data.clientSecret);
       })
       .catch((err) => {
-        console.error("STRIPE INTENT ERROR:", err);
         setLoadError(err.response?.data?.error || err.message || 'Failed to create payment');
       });
   }, [order?._id]);

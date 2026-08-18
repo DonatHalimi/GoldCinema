@@ -1,6 +1,6 @@
 import { Trash } from 'lucide-react';
 import { useState } from 'react';
-import DeleteAccountModal from '../ui/DeleteAccountModal';
+import DeleteAccountModal from '../../ui/DeleteAccountModal';
 
 export default function DangerZone() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -25,9 +25,7 @@ export default function DangerZone() {
       </div>
 
       {showDeleteModal && (
-        <DeleteAccountModal
-          onClose={() => setShowDeleteModal(false)}
-        />
+        <DeleteAccountModal onClose={() => setShowDeleteModal(false)} />
       )}
     </>
   );

@@ -28,10 +28,7 @@ export default function CheckoutSummary({ movie, showtime, order }) {
                             <p className="mt-1 text-sm text-marquee-muted">
                                 {new Date(showtime.startTime).toLocaleDateString()}
                                 {' · '}
-                                {new Date(showtime.startTime).toLocaleTimeString([], {
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                })}
+                                {new Date(showtime.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </p>
                         )}
 

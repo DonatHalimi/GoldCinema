@@ -1,9 +1,8 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/user');
 const Role = require('../models/role');
-const { generateVerificationToken,
+const {
     generatePasswordResetToken,
     generateMfaPendingToken,
     verifyMfaPendingToken,
@@ -17,15 +16,19 @@ const LoginAttempt = require('../models/loginAttempt');
 const qrcode = require('qrcode');
 const crypto = require('crypto');
 const { generateTokens, setCookies, getCustomerRoleId, issueVerificationEmail, googleClient, TRUSTED_DEVICE_MAX_AGE_MS, EMAIL_OTP_TTL_MS, MFA_MAX_ATTEMPTS, MAX_FAILED_ATTEMPTS, LOCK_STAGES_MIN, DAY_MS, } = require('../middleware/auth');
+const { createNotification } = require('../utils/notifications');
+const { issueEmailOtp } = require('../utils/mfaOtp');
+const { findOrCreateSocialUser, completeSocialLogin } = require('../services/socialAuth');
+const { notifyLoginAlert } = require('../utils/loginAlerts');
+const { issueTrustedDevice } = require('../utils/deviceTrust');
+const { addSecurityEvent, buildSessionMeta } = require('../utils/securityEvents');
 
 async function register(req, res, next) {
     try {
         const { name, email, password } = req.body;
 
         const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(400).json({ error: 'Email already registered' });
-        }
+        if (existingUser) return res.status(400).json({ error: 'Email already registered' });
 
         const defaultRole = await Role.findOne({ name: 'customers' });
         const passwordHash = await bcrypt.hash(password, 10);
@@ -39,7 +42,7 @@ async function register(req, res, next) {
             verificationToken,
         });
 
-        const { accessToken, refreshToken } = generateTokens(user._id);
+        const { accessToken, refreshToken } = generateTokens(user._id, session._id.toString());
         user.refreshTokens.push({
             token: refreshToken,
             expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
@@ -56,12 +59,203 @@ async function register(req, res, next) {
             verificationUrl,
         });
 
-        res.status(201).json({
-            message: 'Registration successful. Please check your email to verify your account.',
-            user: { id: user._id, email: user.email },
-        });
+        res.status(201).json({ message: 'Registration successful. Please check your email to verify your account.', user: { id: user._id, email: user.email } });
     } catch (err) {
         next(err);
+    }
+}
+
+async function login(req, res) {
+    const { email, password, rememberMe } = req.body;
+
+    try {
+        const user = await User.findOne({ email }).populate('role');
+
+        if (user?.isActive === false) {
+            await recordAttempt({ email, user, req, success: false, reason: 'inactive_account' });
+            return res.status(403).json({ message: 'This account has been deactivated.' });
+        }
+
+        if (user?.lockUntil && user.lockUntil > new Date()) {
+            await recordAttempt({ email, user, req, success: false, reason: 'locked' });
+            const waitMinutes = Math.ceil((user.lockUntil - Date.now()) / 60000);
+            return res.status(423).json({ message: `Too many failed attempts. Try again in ${waitMinutes} minute(s).` });
+        }
+
+        const passwordValid = user && (await bcrypt.compare(password, user.passwordHash));
+
+        if (!passwordValid) {
+            if (user) {
+                user.failedLoginAttempts += 1;
+                if (user.failedLoginAttempts >= MAX_FAILED_ATTEMPTS) {
+                    const stageIdx = Math.min(user.lockStage, LOCK_STAGES_MIN.length - 1);
+                    const minutes = LOCK_STAGES_MIN[stageIdx];
+                    user.lockUntil = new Date(Date.now() + minutes * 60 * 1000);
+                    user.lockStage += 1;
+                    user.failedLoginAttempts = 0;
+                }
+                await user.save();
+            }
+            await recordAttempt({ email, user, req, success: false, reason: 'invalid_credentials' });
+            return res.status(401).json({ message: 'Invalid credentials' });
+        }
+
+        notifyLoginAlert(user, req, 'Password');
+
+        user.failedLoginAttempts = 0;
+        user.lockUntil = null;
+        user.lockStage = 0;
+
+        if (user.twoFactor?.enabled && user.twoFactor.methods?.length > 0) {
+            const trustedEntry = findTrustedDeviceEntry(user, req);
+
+            if (trustedEntry) {
+                trustedEntry.lastUsedAt = new Date();
+            } else {
+                const mfaToken = generateMfaPendingToken(user._id);
+                const methods = user.twoFactor.methods;
+
+                if (methods.includes('email')) {
+                    await issueEmailOtp(user, { save: false });
+                }
+
+                await addSecurityEvent(user, {
+                    type: 'login_password_mfa_pending',
+                    title: 'Successful Login',
+                    description: `IP: ${req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown'} - Reason: password_ok_mfa_pending`,
+                });
+
+                await user.save();
+
+                await recordAttempt({ email, user, req, success: true, reason: 'password_ok_mfa_pending' });
+
+                return res.status(200).json({ mfaRequired: true, methods, mfaToken, rememberMe });
+            }
+        }
+
+        const refreshExpiresIn = rememberMe ? '30d' : '7d';
+        const refreshMaxAgeMs = rememberMe ? 30 * DAY_MS : 7 * DAY_MS;
+
+        if (rememberMe) await issueTrustedDevice(user, req, res);
+
+        const { accessToken, refreshToken } = generateTokens(user._id, refreshExpiresIn);
+
+        user.refreshTokens.push({
+            token: refreshToken,
+            expiresAt: new Date(Date.now() + refreshMaxAgeMs),
+            createdAt: new Date(),
+            rememberMe,
+            ...buildSessionMeta(req, 'password'),
+        });
+
+        await addSecurityEvent(user, {
+            type: 'login_password',
+            title: 'Successful Login',
+            description: `IP: ${req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown'} - Method: password`,
+        });
+
+        await user.save();
+
+        setCookies(res, accessToken, refreshToken, refreshMaxAgeMs);
+
+        await recordAttempt({ email, user, req, success: true, reason: 'success' });
+
+        createNotification({
+            userId: user._id,
+            title: 'New Login Detected',
+            message: 'You successfully logged in to GoldCinema account.',
+            type: 'login',
+            link: '/account/security',
+            metadata: {
+                ip: req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '127.0.0.1',
+                time: new Date().toISOString(),
+            },
+        });
+
+        return res.json({
+            message: 'Logged in successfully',
+            user: { id: user._id, name: user.name, email: user.email, role: user.role },
+        });
+    } catch (error) {
+        console.error('LOGIN ERROR:', error);
+        console.error('LOGIN ERROR STACK:', error.stack);
+
+        await recordAttempt({
+            email,
+            user: null,
+            req,
+            success: false,
+            reason: 'server_error',
+        });
+
+        return res.status(500).json({
+            error: error.message,
+        });
+    }
+}
+
+async function googleLogin(req, res, next) {
+    try {
+        const { credential } = req.body;
+        if (!credential) return res.status(400).json({ error: 'Google credential is required.' });
+
+        const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: process.env.GOOGLE_CLIENT_ID });
+        const payload = ticket.getPayload();
+        const email = payload?.email?.toLowerCase();
+
+        if (!email || !payload?.email_verified) return res.status(400).json({ error: 'Google account could not be verified.' });
+
+        const name = payload.name || payload.given_name || email.split('@')[0];
+        const user = await findOrCreateSocialUser(email, name, 'google');
+        const result = await completeSocialLogin({ req, res, user, provider: 'Google' });
+
+        if (result.mfaRequired) {
+            return res.json({ message: 'Two-factor authentication required.', ...result });
+        }
+
+        return res.json({
+            message: 'Logged in with Google successfully',
+            user: { id: result.user._id, name: result.user.name, email: result.user.email, role: result.user.role },
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+async function facebookLogin(req, res, next) {
+    try {
+        const { accessToken } = req.body;
+        if (!accessToken) return res.status(400).json({ error: 'Facebook access token is required.' });
+
+        const debugTokenUrl =
+            `https://graph.facebook.com/debug_token?input_token=${encodeURIComponent(accessToken)}` +
+            `&access_token=${encodeURIComponent(`${process.env.FACEBOOK_APP_ID}|${process.env.FACEBOOK_APP_SECRET}`)}`;
+        const debugResponse = await fetch(debugTokenUrl);
+        const debugData = await debugResponse.json();
+
+        if (!debugData?.data?.is_valid || debugData.data.app_id !== process.env.FACEBOOK_APP_ID) return res.status(400).json({ error: 'Facebook account could not be verified.' });
+
+        const profileUrl = `https://graph.facebook.com/me?fields=id,name,email&access_token=${encodeURIComponent(accessToken)}`;
+        const profileResponse = await fetch(profileUrl);
+        const profileData = await profileResponse.json();
+        const email = profileData?.email?.toLowerCase();
+
+        if (!email) return res.status(400).json({ error: 'Facebook email permission is required.' });
+
+        const name = profileData.name || email.split('@')[0];
+        const user = await findOrCreateSocialUser(email, name, 'facebook');
+        const result = await completeSocialLogin({ req, res, user, provider: 'Facebook' });
+
+        if (result.mfaRequired) {
+            return res.json({ message: 'Two-factor authentication required.', ...result });
+        }
+
+        return res.json({
+            message: 'Logged in with Facebook successfully',
+            user: { id: result.user._id, name: result.user.name, email: result.user.email, role: result.user.role },
+        });
+    } catch (error) {
+        next(error);
     }
 }
 
@@ -71,11 +265,7 @@ async function forgotPassword(req, res, next) {
         const normalizedEmail = String(email || '').trim().toLowerCase();
 
         const user = await User.findOne({ email: normalizedEmail });
-        if (!user) {
-            return res.status(200).json({
-                message: 'If that account exists, a password reset link has been sent to the email address on file.',
-            });
-        }
+        if (!user) return res.status(200).json({ message: 'If that account exists, a password reset link has been sent to the email address on file.' });
 
         const { token, expiresAt } = generatePasswordResetToken();
         user.passwordResetToken = token;
@@ -89,9 +279,7 @@ async function forgotPassword(req, res, next) {
             resetUrl,
         });
 
-        return res.json({
-            message: 'If that account exists, a password reset link has been sent to the email address on file.',
-        });
+        return res.json({ message: 'If that account exists, a password reset link has been sent to the email address on file.' });
     } catch (err) {
         return next(err);
     }
@@ -102,18 +290,13 @@ async function resetPassword(req, res, next) {
         const { token, password } = req.body;
 
         const user = await User.findOne({ passwordResetToken: token });
-        if (!user) {
-            return res.status(400).json({ error: 'This password reset link is invalid.' });
-        }
+        if (!user) return res.status(400).json({ error: 'This password reset link is invalid.' });
 
         if (user.passwordResetExpiresAt && user.passwordResetExpiresAt < new Date()) {
             user.passwordResetToken = null;
             user.passwordResetExpiresAt = null;
             await user.save();
-            return res.status(400).json({
-                error: 'This password reset link has expired. Please request a new one.',
-                code: 'TOKEN_EXPIRED',
-            });
+            return res.status(400).json({ error: 'This password reset link has expired. Please request a new one.', code: 'TOKEN_EXPIRED' });
         }
 
         const passwordHash = await bcrypt.hash(password, 10);
@@ -134,18 +317,12 @@ async function changePassword(req, res, next) {
         const { currentPassword, newPassword } = req.body;
 
         const user = await User.findById(req.user.id);
-        if (!user) {
-            return res.status(404).json({ error: 'User not found.' });
-        }
+        if (!user) return res.status(404).json({ error: 'User not found.' });
 
         const match = await bcrypt.compare(currentPassword, user.passwordHash);
-        if (!match) {
-            return res.status(401).json({ error: 'Current password is incorrect.' });
-        }
+        if (!match) return res.status(401).json({ error: 'Current password is incorrect.' });
 
-        if (currentPassword === newPassword) {
-            return res.status(400).json({ error: 'New password must be different from your current password.' });
-        }
+        if (currentPassword === newPassword) return res.status(400).json({ error: 'New password must be different from your current password.' });
 
         user.passwordHash = await bcrypt.hash(newPassword, 10);
         user.refreshTokens = [];
@@ -165,14 +342,10 @@ async function deleteAccount(req, res, next) {
         const { password } = req.body;
 
         const user = await User.findById(req.user.id);
-        if (!user) {
-            return res.status(404).json({ error: 'User not found.' });
-        }
+        if (!user) return res.status(404).json({ error: 'User not found.' });
 
         const match = await bcrypt.compare(password, user.passwordHash);
-        if (!match) {
-            return res.status(401).json({ error: 'Incorrect password.' });
-        }
+        if (!match) return res.status(401).json({ error: 'Incorrect password.' });
 
         user.isActive = false;
         user.deletedAt = new Date();
@@ -203,185 +376,11 @@ async function recordAttempt({ email, user, req, success, reason }) {
     }
 }
 
-async function login(req, res) {
-    const { email, password, rememberMe } = req.body;
-
-    try {
-        const user = await User.findOne({ email }).populate('role');
-
-        if (user?.isActive === false) {
-            await recordAttempt({ email, user, req, success: false, reason: 'inactive_account' });
-            return res.status(403).json({ message: 'This account has been deactivated.' });
-        }
-
-        if (user?.lockUntil && user.lockUntil > new Date()) {
-            await recordAttempt({ email, user, req, success: false, reason: 'locked' });
-            const waitMinutes = Math.ceil((user.lockUntil - Date.now()) / 60000);
-            return res.status(423).json({
-                message: `Too many failed attempts.Try again in ${waitMinutes} minute(s).`,
-            });
-        }
-
-        const passwordValid = user && (await bcrypt.compare(password, user.passwordHash));
-
-        if (!passwordValid) {
-            if (user) {
-                user.failedLoginAttempts += 1;
-
-                if (user.failedLoginAttempts >= MAX_FAILED_ATTEMPTS) {
-                    const stageIdx = Math.min(user.lockStage, LOCK_STAGES_MIN.length - 1);
-                    const minutes = LOCK_STAGES_MIN[stageIdx];
-                    user.lockUntil = new Date(Date.now() + minutes * 60 * 1000);
-                    user.lockStage += 1;
-                    user.failedLoginAttempts = 0;
-                }
-
-                await user.save();
-            }
-
-            await recordAttempt({ email, user, req, success: false, reason: 'invalid_credentials' });
-            return res.status(401).json({ message: 'Invalid credentials' });
-        }
-
-        if (user.loginAlerts !== false) {
-            const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-            sendLoginAlertEmail({
-                to: user.email,
-                name: user.name,
-                time: new Date().toUTCString(),
-                ipAddress,
-                loginMethod: 'Password',
-            }).catch((err) => console.error('[mailer] Failed to send login alert:', err));
-        }
-
-        if (rememberMe) {
-            const rawToken = crypto.randomBytes(32).toString('hex');
-            const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
-
-            const label = req.headers['user-agent'] || 'Unknown Device';
-
-            user.trustedDevices.push({
-                tokenHash,
-                label,
-                expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-            });
-
-            await user.save();
-
-            res.cookie('trustedDeviceToken', rawToken, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict',
-                maxAge: 30 * 24 * 60 * 60 * 1000,
-            });
-        }
-
-        user.failedLoginAttempts = 0;
-        user.lockUntil = null;
-        user.lockStage = 0;
-
-        if (user.twoFactor?.enabled && user.twoFactor.methods?.length > 0) {
-            const trustedEntry = findTrustedDeviceEntry(user, req);
-
-            if (trustedEntry) {
-                trustedEntry.lastUsedAt = new Date();
-            } else {
-                await user.save();
-
-                const mfaToken = generateMfaPendingToken(user._id);
-
-                const methods = user.twoFactor.methods;
-
-                if (methods.includes('email')) {
-                    const code = String(Math.floor(100000 + Math.random() * 900000));
-
-                    user.twoFactor.emailOtpHash = await bcrypt.hash(code, 10);
-                    user.twoFactor.emailOtpExpiresAt = new Date(
-                        Date.now() + EMAIL_OTP_TTL_MS
-                    );
-
-                    await user.save();
-
-                    await sendTwoFactorCode({
-                        to: user.email,
-                        name: user.name,
-                        code
-                    });
-                }
-
-                await recordAttempt({
-                    email,
-                    user,
-                    req,
-                    success: true,
-                    reason: 'password_ok_mfa_pending'
-                });
-
-                return res.status(200).json({
-                    mfaRequired: true,
-                    methods,
-                    mfaToken,
-                    rememberMe,
-                });
-            }
-        }
-
-        const refreshExpiresIn = rememberMe ? '30d' : '7d';
-        const refreshMaxAgeMs = rememberMe ? 30 * DAY_MS : 7 * DAY_MS;
-
-        const { accessToken, refreshToken } = generateTokens(
-            user._id,
-            refreshExpiresIn
-        );
-
-        user.refreshTokens.push({
-            token: refreshToken,
-            expiresAt: new Date(Date.now() + refreshMaxAgeMs),
-            createdAt: new Date(),
-            rememberMe
-        });
-
-        await user.save();
-
-        setCookies(res, accessToken, refreshToken, refreshMaxAgeMs);
-
-        await recordAttempt({
-            email,
-            user,
-            req,
-            success: true,
-            reason: 'success'
-        });
-
-        res.json({
-            message: 'Logged in successfully',
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role
-            },
-        });
-    } catch (error) {
-        await recordAttempt({
-            email,
-            user: null,
-            req,
-            success: false,
-            reason: 'server_error'
-        });
-
-        res.status(500).json({ error: error.message });
-    }
-}
-
 async function refreshToken(req, res) {
     try {
         const currentRefreshToken = req.cookies?.refreshToken;
 
-        if (!currentRefreshToken) {
-            return res.status(401).json({ message: 'No refresh token provided' });
-        }
+        if (!currentRefreshToken) return res.status(401).json({ message: 'No refresh token provided' });
 
         let decoded;
         try {
@@ -395,10 +394,7 @@ async function refreshToken(req, res) {
         const user = await User.findOne({ 'refreshTokens.token': currentRefreshToken });
 
         if (!user) {
-            await User.updateOne(
-                { _id: decoded.id },
-                { $set: { refreshTokens: [] } }
-            );
+            await User.updateOne({ _id: decoded.id }, { $set: { refreshTokens: [] } });
 
             res.clearCookie('accessToken');
             res.clearCookie('refreshToken');
@@ -406,34 +402,28 @@ async function refreshToken(req, res) {
         }
 
         const now = new Date();
-        const currentTokenData = user.refreshTokens.find(
-            (rt) => rt.token === currentRefreshToken
-        );
+        const currentTokenData = user.refreshTokens.find((rt) => rt.token === currentRefreshToken);
 
-        if (!currentTokenData) {
-            return res.status(403).json({ message: 'Invalid refresh token' });
-        }
+        if (!currentTokenData) return res.status(403).json({ message: 'Invalid refresh token' });
 
-        const updatedRefreshTokens = user.refreshTokens.filter(
-            (rt) => rt.token !== currentRefreshToken && rt.expiresAt > now
-        );
+        const updatedRefreshTokens = user.refreshTokens.filter((rt) => rt.token !== currentRefreshToken && rt.expiresAt > now);
 
         const remainingMs = currentTokenData.expiresAt - Date.now();
 
-        const remainingDays = Math.ceil(
-            remainingMs / DAY_MS
-        );
+        const remainingDays = Math.ceil(remainingMs / DAY_MS);
 
-        const newTokens = generateTokens(
-            user._id,
-            `${remainingDays} d`
-        );
+        const newTokens = generateTokens(user._id, `${remainingDays} d`);
 
         updatedRefreshTokens.push({
             token: newTokens.refreshToken,
             expiresAt: currentTokenData.expiresAt,
             createdAt: new Date(),
             rememberMe: currentTokenData.rememberMe,
+            ipAddress: currentTokenData.ipAddress || null,
+            userAgent: currentTokenData.userAgent || null,
+            deviceLabel: currentTokenData.deviceLabel || null,
+            loginMethod: currentTokenData.loginMethod || null,
+            lastActiveAt: new Date(),
         });
 
         user.refreshTokens = updatedRefreshTokens;
@@ -451,22 +441,13 @@ async function verifyEmail(req, res, next) {
     try {
         const { token } = req.query;
 
-        if (!token) {
-            return res.status(400).json({ error: 'Verification token is required.' });
-        }
+        if (!token) return res.status(400).json({ error: 'Verification token is required.' });
 
         const user = await User.findOne({ verificationToken: token });
 
-        if (!user) {
-            return res.status(400).json({ error: 'This verification link is invalid.' });
-        }
+        if (!user) return res.status(400).json({ error: 'This verification link is invalid.' });
 
-        if (user.verificationTokenExpiresAt && user.verificationTokenExpiresAt < new Date()) {
-            return res.status(400).json({
-                error: 'This verification link has expired. Please request a new one.',
-                code: 'TOKEN_EXPIRED',
-            });
-        }
+        if (user.verificationTokenExpiresAt && user.verificationTokenExpiresAt < new Date()) return res.status(400).json({ error: 'This verification link has expired. Please request a new one.', code: 'TOKEN_EXPIRED' });
 
         user.emailVerified = true;
         user.verificationToken = null;
@@ -483,304 +464,14 @@ async function resendVerification(req, res, next) {
     try {
         const user = await User.findById(req.user.id);
 
-        if (!user) {
-            return res.status(404).json({ error: 'User not found.' });
-        }
+        if (!user) return res.status(404).json({ error: 'User not found.' });
 
-        if (user.emailVerified) {
-            return res.status(400).json({ error: 'This account is already verified.' });
-        }
+        if (user.emailVerified) return res.status(400).json({ error: 'This account is already verified.' });
 
         await issueVerificationEmail(user);
         res.json({ message: 'Verification email sent.' });
     } catch (err) {
         next(err);
-    }
-}
-
-async function googleLogin(req, res, next) {
-    try {
-        const { credential } = req.body;
-
-        if (!credential) return res.status(400).json({ error: 'Google credential is required.' });
-
-        const ticket = await googleClient.verifyIdToken({
-            idToken: credential,
-            audience: process.env.GOOGLE_CLIENT_ID,
-        });
-
-        const payload = ticket.getPayload();
-        const email = payload?.email?.toLowerCase();
-
-        if (!email || !payload?.email_verified) return res.status(400).json({ error: 'Google account could not be verified.' });
-
-        const name =
-            payload.name ||
-            payload.given_name ||
-            email.split('@')[0];
-
-        let user = await User.findOne({ email }).populate('role');
-
-        if (!user) {
-            const roleId = await getCustomerRoleId();
-            const passwordHash = await bcrypt.hash(
-                `${Date.now()}-google-${Math.random()
-                    .toString(36)
-                    .slice(2)}`,
-                10
-            );
-
-            user = await User.create({
-                name,
-                email,
-                passwordHash,
-                role: roleId,
-                emailVerified: true,
-            });
-
-            user = await User.findById(user._id).populate('role');
-        }
-
-        user.name = user.name || name;
-        user.emailVerified = true;
-
-        const rawDeviceToken = req.cookies?.trustedDeviceToken;
-        let isTrustedDevice = false;
-
-        if (rawDeviceToken) {
-            const tokenHash = crypto.createHash('sha256').update(rawDeviceToken).digest('hex');
-            const matchingDevice = user.trustedDevices?.find(
-                (d) => d.tokenHash === tokenHash && d.expiresAt > new Date()
-            );
-
-            if (matchingDevice) {
-                isTrustedDevice = true;
-                matchingDevice.lastUsedAt = new Date();
-            }
-        }
-
-        if (!isTrustedDevice && user.twoFactor?.enabled && user.twoFactor?.methods?.length) {
-            const mfaToken = generateMfaPendingToken(user._id);
-
-            return res.json({
-                message: 'Two-factor authentication required.',
-                mfaRequired: true,
-                mfaToken,
-                methods: user.twoFactor.methods,
-            });
-        }
-
-        const { accessToken, refreshToken } =
-            generateTokens(user._id);
-
-        user.refreshTokens.push({
-            token: refreshToken,
-            expiresAt: new Date(
-                Date.now() + 7 * 24 * 60 * 60 * 1000
-            ),
-            createdAt: new Date(),
-            rememberMe: false,
-        });
-
-        if (!isTrustedDevice) {
-            const newRawToken = crypto.randomBytes(32).toString('hex');
-            const newTokenHash = crypto.createHash('sha256').update(newRawToken).digest('hex');
-            const deviceLabel = req.headers['user-agent'] || 'Google Login Device';
-
-            user.trustedDevices.push({
-                tokenHash: newTokenHash,
-                label: deviceLabel,
-                expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-            });
-
-            res.cookie('trustedDeviceToken', newRawToken, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict',
-                maxAge: 30 * 24 * 60 * 60 * 1000,
-            });
-        }
-
-        await user.save();
-
-        setCookies(
-            res,
-            accessToken,
-            refreshToken
-        );
-
-        if (user.loginAlerts !== false) {
-            const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-            sendLoginAlertEmail({
-                to: user.email,
-                name: user.name,
-                time: new Date().toUTCString(),
-                ipAddress,
-                loginMethod: 'Google',
-            }).catch((err) => console.error('[mailer] Failed to send login alert:', err));
-        }
-
-        return res.json({
-            message: 'Logged in with Google successfully',
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-            },
-        });
-    } catch (error) {
-        next(error);
-    }
-}
-
-async function facebookLogin(req, res, next) {
-    try {
-        const { accessToken } = req.body;
-
-        if (!accessToken) return res.status(400).json({ error: 'Facebook access token is required.' });
-
-        const debugTokenUrl =
-            `https://graph.facebook.com/debug_token` +
-            `?input_token=${encodeURIComponent(accessToken)}` +
-            `&access_token=${encodeURIComponent(
-                `${process.env.FACEBOOK_APP_ID}|${process.env.FACEBOOK_APP_SECRET}`
-            )}`;
-
-        const debugResponse = await fetch(debugTokenUrl);
-        const debugData = await debugResponse.json();
-
-        if (!debugData?.data?.is_valid || debugData.data.app_id !== process.env.FACEBOOK_APP_ID) return res.status(400).json({ error: 'Facebook account could not be verified.' });
-
-        const profileUrl =
-            `https://graph.facebook.com/me` +
-            `?fields=id,name,email` +
-            `&access_token=${encodeURIComponent(accessToken)}`;
-
-        const profileResponse = await fetch(profileUrl);
-        const profileData = await profileResponse.json();
-        const email = profileData?.email?.toLowerCase();
-
-        if (!email) return res.status(400).json({ error: 'Facebook email permission is required.' });
-
-        const name =
-            profileData.name ||
-            email.split('@')[0];
-
-        let user = await User.findOne({ email }).populate('role');
-
-        if (!user) {
-            const roleId = await getCustomerRoleId();
-            const passwordHash = await bcrypt.hash(
-                `${Date.now()}-facebook-${Math.random()
-                    .toString(36)
-                    .slice(2)}`,
-                10
-            );
-
-            user = await User.create({
-                name,
-                email,
-                passwordHash,
-                role: roleId,
-                emailVerified: true,
-            });
-
-            user = await User.findById(user._id).populate('role');
-        }
-
-        user.name = user.name || name;
-        user.emailVerified = true;
-
-        const rawDeviceToken = req.cookies?.trustedDeviceToken;
-        let isTrustedDevice = false;
-
-        if (rawDeviceToken) {
-            const tokenHash = crypto.createHash('sha256').update(rawDeviceToken).digest('hex');
-            const matchingDevice = user.trustedDevices?.find(
-                (d) => d.tokenHash === tokenHash && d.expiresAt > new Date()
-            );
-
-            if (matchingDevice) {
-                isTrustedDevice = true;
-                matchingDevice.lastUsedAt = new Date();
-            }
-        }
-
-        if (!isTrustedDevice && user.twoFactor?.enabled && user.twoFactor?.methods?.length) {
-            const mfaToken = generateMfaPendingToken(user._id);
-
-            return res.json({
-                message: 'Two-factor authentication required.',
-                mfaRequired: true,
-                mfaToken,
-                methods: user.twoFactor.methods,
-            });
-        }
-
-        const {
-            accessToken: appAccessToken,
-            refreshToken,
-        } = generateTokens(user._id);
-
-        user.refreshTokens.push({
-            token: refreshToken,
-            expiresAt: new Date(
-                Date.now() + 7 * 24 * 60 * 60 * 1000
-            ),
-            createdAt: new Date(),
-            rememberMe: false,
-        });
-
-        if (!isTrustedDevice) {
-            const newRawToken = crypto.randomBytes(32).toString('hex');
-            const newTokenHash = crypto.createHash('sha256').update(newRawToken).digest('hex');
-            const deviceLabel = req.headers['user-agent'] || 'Facebook Login Device';
-
-            user.trustedDevices.push({
-                tokenHash: newTokenHash,
-                label: deviceLabel,
-                expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-            });
-
-            res.cookie('trustedDeviceToken', newRawToken, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict',
-                maxAge: 30 * 24 * 60 * 60 * 1000,
-            });
-        }
-
-        await user.save();
-
-        setCookies(
-            res,
-            appAccessToken,
-            refreshToken
-        );
-
-        if (user.loginAlerts !== false) {
-            const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-            sendLoginAlertEmail({
-                to: user.email,
-                name: user.name,
-                time: new Date().toUTCString(),
-                ipAddress,
-                loginMethod: 'Facebook',
-            }).catch((err) => console.error('[mailer] Failed to send login alert:', err));
-        }
-
-        return res.json({
-            message: 'Logged in with Facebook successfully',
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-            },
-        });
-    } catch (error) {
-        next(error);
     }
 }
 
@@ -821,11 +512,7 @@ async function updateProfile(req, res, next) {
         if (!user) return res.status(404).json({ error: 'User not found.', });
 
         if (email && email.toLowerCase() !== user.email) {
-            const exists = await User.findOne({
-                email: email.toLowerCase(),
-                _id: { $ne: user._id },
-            });
-
+            const exists = await User.findOne({ email: email.toLowerCase(), _id: { $ne: user._id }, });
             if (exists) return res.status(400).json({ error: 'Email already in use.', });
 
             user.email = email.toLowerCase();
@@ -834,9 +521,7 @@ async function updateProfile(req, res, next) {
             await issueVerificationEmail(user);
         }
 
-        if (name) {
-            user.name = name;
-        }
+        if (name) user.name = name;
 
         await user.save();
 
@@ -872,17 +557,29 @@ function findTrustedDeviceEntry(user, req) {
 
 async function verifyLoginMfa(req, res, next) {
     try {
-        const { mfaToken, code, method, rememberMe, trustDevice } = req.body;
+        const {
+            mfaToken,
+            code,
+            method,
+            rememberMe,
+            trustDevice,
+        } = req.body;
 
         let decoded;
+
         try {
             decoded = verifyMfaPendingToken(mfaToken);
         } catch {
-            return res.status(401).json({ error: 'MFA session expired. Please log in again.' });
+            return res.status(401).json({ error: 'MFA session expired. Please log in again.', });
         }
 
         const user = await User.findById(decoded.id)
-            .select('+twoFactor.totpSecret +twoFactor.emailOtpHash +twoFactor.emailOtpExpiresAt +twoFactor.backupCodes.codeHash')
+            .select(
+                '+twoFactor.totpSecret ' +
+                '+twoFactor.emailOtpHash ' +
+                '+twoFactor.emailOtpExpiresAt ' +
+                '+twoFactor.backupCodes.codeHash'
+            )
             .populate('role');
 
         if (!user || !user.twoFactor?.enabled) {
@@ -895,34 +592,40 @@ async function verifyLoginMfa(req, res, next) {
         }
 
         let verified = false;
+        let verifiedMethod = method;
+
+        const normalizedCode = String(code || '').trim();
 
         if (method === 'totp' && user.twoFactor.methods.includes('totp')) {
-            const token = String(code || '').trim();
-
             try {
                 verified = authenticator.verify({
                     secret: user.twoFactor.totpSecret,
-                    token,
+                    token: normalizedCode,
                 });
             } catch (err) {
                 verified = false;
             }
         } else if (method === 'email' && user.twoFactor.methods.includes('email')) {
-            verified =
-                user.twoFactor.emailOtpHash &&
+            verified = !!user.twoFactor.emailOtpHash &&
                 user.twoFactor.emailOtpExpiresAt > new Date() &&
-                (await bcrypt.compare(
-                    String(code || ''),
-                    user.twoFactor.emailOtpHash
-                ));
+                (await bcrypt.compare(normalizedCode, user.twoFactor.emailOtpHash));
+
+            if (verified) {
+                verifiedMethod = 'email';
+            }
         }
 
         if (!verified && user.twoFactor.backupCodes?.length) {
-            for (const bc of user.twoFactor.backupCodes) {
-                if (!bc.usedAt && (await bcrypt.compare(code, bc.codeHash))) {
-                    bc.usedAt = new Date();
-                    verified = true;
-                    break;
+            for (const backupCode of user.twoFactor.backupCodes) {
+                if (!backupCode.usedAt && backupCode.codeHash) {
+                    const matches = await bcrypt.compare(normalizedCode, backupCode.codeHash);
+
+                    if (matches) {
+                        backupCode.usedAt = new Date();
+                        verified = true;
+                        verifiedMethod = 'backup_code';
+                        break;
+                    }
                 }
             }
         }
@@ -933,43 +636,121 @@ async function verifyLoginMfa(req, res, next) {
                 user.mfaLockUntil = new Date(Date.now() + 15 * 60 * 1000);
                 user.mfaFailedAttempts = 0;
             }
+
             await user.save();
+
             return res.status(401).json({ error: 'Invalid or expired code.' });
         }
 
         user.mfaFailedAttempts = 0;
         user.mfaLockUntil = null;
+
         user.twoFactor.emailOtpHash = undefined;
         user.twoFactor.emailOtpExpiresAt = undefined;
 
         if (trustDevice) {
             const rawToken = generateDeviceToken();
+
+            const deviceLabel = (req.headers['user-agent'] || 'Unknown device').slice(0, 120);
+
             user.trustedDevices = user.trustedDevices || [];
+
             user.trustedDevices.push({
                 tokenHash: hashDeviceToken(rawToken),
-                label: (req.headers['user-agent'] || 'Unknown device').slice(0, 120),
-                expiresAt: new Date(Date.now() + TRUSTED_DEVICE_MAX_AGE_MS),
+                label: deviceLabel,
+                expiresAt: new Date(
+                    Date.now() +
+                    TRUSTED_DEVICE_MAX_AGE_MS
+                ),
             });
-            setTrustedDeviceCookie(res, rawToken);
+
+            setTrustedDeviceCookie(
+                res,
+                rawToken
+            );
+
+            await addSecurityEvent(user, {
+                type: 'device_added',
+                title: `Trusted Device Added (${deviceLabel})`,
+                description:
+                    'Device authorized for trusted sessions',
+            });
         }
 
         const refreshExpiresIn = rememberMe ? '30d' : '7d';
         const refreshMaxAgeMs = rememberMe ? 30 * DAY_MS : 7 * DAY_MS;
-        const { accessToken, refreshToken } = generateTokens(user._id, refreshExpiresIn);
+
+        const { accessToken, refreshToken } = generateTokens(
+            user._id,
+            refreshExpiresIn,
+            session._id.toString()
+        );
 
         user.refreshTokens.push({
             token: refreshToken,
-            expiresAt: new Date(Date.now() + refreshMaxAgeMs),
+            expiresAt: new Date(
+                Date.now() +
+                refreshMaxAgeMs
+            ),
             createdAt: new Date(),
             rememberMe,
+            ...buildSessionMeta(
+                req,
+                'mfa'
+            ),
+        });
+
+        let loginMethodLabel;
+
+        switch (verifiedMethod) {
+            case 'totp':
+                loginMethodLabel = 'Authenticator App';
+                break;
+            case 'email':
+                loginMethodLabel = 'Email 2FA';
+                break;
+            case 'backup_code':
+                loginMethodLabel = 'Backup Code';
+                break;
+            default:
+                loginMethodLabel = 'MFA';
+        }
+
+        await addSecurityEvent(user, {
+            type: 'login_mfa',
+            title: 'Successful Login',
+            description: `IP: ${req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'Unknown'} - Method: ${loginMethodLabel}`,
+        });
+
+        createNotification({
+            userId: user._id,
+            title: 'New Login Detected',
+            message: 'You successfully logged in to GoldCinema account.',
+            type: 'login',
+            link: '/account/security',
+            metadata: {
+                ip: req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '127.0.0.1',
+                time: new Date().toISOString(),
+            },
         });
 
         await user.save();
-        setCookies(res, accessToken, refreshToken, refreshMaxAgeMs);
 
-        res.json({
+        setCookies(
+            res,
+            accessToken,
+            refreshToken,
+            refreshMaxAgeMs
+        );
+
+        return res.json({
             message: 'Logged in successfully',
-            user: { id: user._id, name: user.name, email: user.email, role: user.role },
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+            },
         });
     } catch (err) {
         next(err);
@@ -1018,9 +799,7 @@ async function verifyTotpSetup(req, res, next) {
 
         user.twoFactor.enabled = true;
 
-        if (!user.twoFactor.methods.includes('totp')) {
-            user.twoFactor.methods.push('totp');
-        }
+        if (!user.twoFactor.methods.includes('totp')) user.twoFactor.methods.push('totp');
 
         user.twoFactor.totpSecret = user.twoFactor.pendingTotpSecret;
 
@@ -1031,10 +810,7 @@ async function verifyTotpSetup(req, res, next) {
 
         user.twoFactor.backupCodes =
             await Promise.all(
-                backupCodes.map(async (code) => ({
-                    codeHash:
-                        await bcrypt.hash(code, 10)
-                }))
+                backupCodes.map(async (code) => ({ codeHash: await bcrypt.hash(code, 10) }))
             );
 
         await user.save();
@@ -1047,14 +823,7 @@ async function verifyTotpSetup(req, res, next) {
 async function enableEmail2fa(req, res, next) {
     try {
         const user = await User.findById(req.user.id);
-        const code = String(Math.floor(100000 + Math.random() * 900000));
-
-        user.twoFactor.pendingMethod = 'email';
-        user.twoFactor.emailOtpHash = await bcrypt.hash(code, 10);
-        user.twoFactor.emailOtpExpiresAt = new Date(Date.now() + EMAIL_OTP_TTL_MS);
-        await user.save();
-
-        await sendTwoFactorCode({ to: user.email, name: user.name, code });
+        await issueEmailOtp(user, { pending: true });
         res.json({ message: 'Verification code sent to your email.' });
     } catch (err) {
         next(err);
@@ -1075,9 +844,7 @@ async function verifyEmail2faSetup(req, res, next) {
 
         user.twoFactor.enabled = true;
 
-        if (!user.twoFactor.methods.includes('email')) {
-            user.twoFactor.methods.push('email');
-        }
+        if (!user.twoFactor.methods.includes('email')) user.twoFactor.methods.push('email');
 
         user.twoFactor.pendingMethod = null;
         user.twoFactor.emailOtpHash = undefined;
@@ -1100,9 +867,7 @@ async function disable2fa(req, res, next) {
         const { password } = req.body;
         const user = await User.findById(req.user.id);
 
-        if (!(await bcrypt.compare(password, user.passwordHash))) {
-            return res.status(401).json({ error: 'Incorrect password.' });
-        }
+        if (!(await bcrypt.compare(password, user.passwordHash))) return res.status(401).json({ error: 'Incorrect password.' });
 
         user.twoFactor = {
             enabled: false,
@@ -1129,11 +894,7 @@ async function disable2faMethod(req, res, next) {
 
         if (!user) return res.status(404).json({ error: 'User not found.' });
 
-        if (!(await bcrypt.compare(password, user.passwordHash))) {
-            return res.status(401).json({
-                error: 'Incorrect password.'
-            });
-        }
+        if (!(await bcrypt.compare(password, user.passwordHash))) return res.status(401).json({ error: 'Incorrect password.' });
 
         const currentMethods = user.twoFactor?.methods || [];
 
@@ -1194,21 +955,20 @@ async function resendLoginMfaCode(req, res, next) {
 
 async function updateLoginAlerts(req, res, next) {
     try {
+        const userId = req.user._id;
         const { loginAlerts } = req.body;
 
-        const user = await User.findById(req.user.id);
-        if (!user) return res.status(404).json({ error: 'User not found' });
+        if (typeof loginAlerts !== 'boolean') return res.status(400).json({ error: 'Invalid value for loginAlerts.' });
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ error: 'User not found.' });
 
         user.loginAlerts = loginAlerts;
-
         await user.save();
 
-        res.json({
-            message: 'Login alerts updated successfully.',
-            loginAlerts: user.loginAlerts
-        });
-    } catch (err) {
-        next(err);
+        return res.json({ message: 'Login alerts updated successfully.', loginAlerts: user.loginAlerts });
+    } catch (error) {
+        next(error);
     }
 }
 
@@ -1234,18 +994,29 @@ async function getTrustedDevices(req, res, next) {
 async function revokeTrustedDevice(req, res, next) {
     try {
         const { deviceId } = req.params;
+        const { password } = req.body;
+
+        if (!password) return res.status(400).json({ error: 'Password is required to revoke a device.' });
 
         const user = await User.findById(req.user.id);
         if (!user) return res.status(404).json({ error: 'User not found' });
 
-        const initialLength = user.trustedDevices.length;
-        user.trustedDevices = user.trustedDevices.filter(
-            (device) => device._id.toString() !== deviceId
-        );
+        if (!(await bcrypt.compare(password, user.passwordHash))) return res.status(401).json({ error: 'Incorrect password.' });
 
-        if (user.trustedDevices.length === initialLength) {
-            return res.status(404).json({ error: 'Device not found.' });
-        }
+        const device = user.trustedDevices.id(deviceId) || user.trustedDevices.find((d) => d._id.toString() === deviceId);
+        const deviceLabel = device?.label || 'Unknown Device';
+
+        const initialLength = user.trustedDevices.length;
+        user.trustedDevices = user.trustedDevices.filter((d) => d._id.toString() !== deviceId);
+
+        if (user.trustedDevices.length === initialLength) return res.status(404).json({ error: 'Device not found.' });
+
+        user.securityEvents.push({
+            title: 'Trusted Device Revoked',
+            description: `Removed trusted status for ${deviceLabel}`,
+            type: 'device_revoked',
+            createdAt: new Date(),
+        });
 
         await user.save();
 
@@ -1281,18 +1052,6 @@ async function getSecurityActivity(req, res, next) {
                     description: `Device type: ${pk.deviceType || 'Unknown'}`,
                     date: pk.createdAt || new Date(),
                     type: 'passkey',
-                });
-            });
-        }
-
-        if (user.trustedDevices && Array.isArray(user.trustedDevices)) {
-            user.trustedDevices.forEach((device, index) => {
-                activities.push({
-                    id: `device-${index}`,
-                    title: `Trusted Device Added (${device.label || 'Unknown Device'})`,
-                    description: 'Device authorized for trusted sessions',
-                    date: device.createdAt || new Date(),
-                    type: 'device',
                 });
             });
         }
@@ -1337,42 +1096,190 @@ async function getSecurityActivity(req, res, next) {
 
 async function generateBackupCodesRoute(req, res) {
     try {
-        const rawCodes = Array.from({ length: 8 }, () => crypto.randomBytes(4).toString('hex').toUpperCase());
+        const user = req.user;
+
+        if (!user.twoFactor?.enabled || !user.twoFactor?.methods?.includes('totp'))
+            return res.status(400).json({ error: 'Authenticator App 2FA must be enabled to generate backup codes.', });
+
+        const now = new Date();
+        const twentyFourHours = 24 * 60 * 60 * 1000;
+
+        const lastRegenerated = user.twoFactor.backupCodesRegeneratedAt;
+        let regenerationCount = user.twoFactor.backupCodesRegenerationCount || 0;
+
+        if (!lastRegenerated || now.getTime() - new Date(lastRegenerated).getTime() >= twentyFourHours) {
+            regenerationCount = 0;
+        }
+
+        if (regenerationCount >= 3) {
+            const resetAt = new Date(
+                new Date(lastRegenerated).getTime() + twentyFourHours
+            );
+
+            const remainingMs = resetAt.getTime() - now.getTime();
+            const remainingHours = Math.ceil(
+                remainingMs / (60 * 60 * 1000)
+            );
+
+            return res.status(429).json({
+                error: `You have reached the backup code regeneration limit. Please try again in approximately ${remainingHours} hour${remainingHours === 1 ? '' : 's'}.`,
+                limit: 3,
+                regenerationCount,
+                resetAt,
+            });
+        }
+
+        const rawCodes = Array.from({ length: 8 }, () =>
+            crypto.randomBytes(4).toString('hex').toUpperCase()
+        );
 
         const hashedCodes = await Promise.all(
             rawCodes.map(async (code) => ({
                 codeHash: await bcrypt.hash(code, 10),
-                usedAt: false,
+                usedAt: null,
             }))
         );
 
-        req.user.backupCodes = hashedCodes;
-        await req.user.save();
+        user.twoFactor.backupCodes = hashedCodes;
+        user.twoFactor.backupCodesRegenerationCount = regenerationCount + 1;
+        user.twoFactor.backupCodesRegeneratedAt = now;
 
-        res.json({ success: true, backupCodes: rawCodes });
+        await user.save();
+
+        res.json({
+            success: true,
+            backupCodes: rawCodes,
+            regenerationCount: regenerationCount + 1,
+            regenerationLimit: 3,
+            remainingRegenerations: 3 - (regenerationCount + 1),
+            resetAt: new Date(now.getTime() + twentyFourHours),
+        });
     } catch (err) {
         res.status(500).json({ error: 'Failed to generate backup codes.' });
     }
-};
+}
 
 async function exportSecurityLogs(req, res) {
     try {
-        const activities = await SecurityActivity.find({ userId: req.user._id }).sort({ date: -1 });
+        const user = await User.findById(req.user._id).select('securityEvents');
 
-        const logData = activities.map(item => ({
-            Event: item.title,
-            Description: item.description,
-            Type: item.type,
-            Timestamp: item.date.toISOString(),
-        }));
+        if (!user) return res.status(404).json({ error: 'User not found.' });
+
+        const activities = [
+            ...(user.securityEvents || []),
+        ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        const logData = activities.map(
+            (item) => ({
+                Event: item.title,
+                Description: item.description || '',
+                Type: item.type,
+                Timestamp: new Date(item.createdAt).toISOString(),
+            })
+        );
 
         res.setHeader('Content-Type', 'application/json');
-        res.setHeader('Content-Disposition', 'attachment; filename=security-activity-log.json');
-        res.status(200).send(JSON.stringify(logData, null, 2));
+        res.setHeader('Content-Disposition', 'attachment; filename="security-activity-log.json"');
+
+        return res.status(200).send(JSON.stringify(logData, null, 2));
     } catch (err) {
-        res.status(500).json({ error: 'Failed to export security logs.' });
+        return res.status(500).json({ error: 'Failed to export security logs.' });
     }
-};
+}
+
+async function getSessions(req, res, next) {
+    try {
+        const user = await User.findById(req.user.id).select('refreshTokens');
+        if (!user) return res.status(404).json({ error: 'User not found.' });
+
+        const currentRefreshToken = req.cookies?.refreshToken || null;
+        const now = new Date();
+
+        const sessions = user.refreshTokens
+            .filter((rt) => !rt.revokedAt && rt.expiresAt > now)
+            .map((rt) => ({
+                id: rt._id,
+                deviceLabel: rt.deviceLabel || 'Unknown Device',
+                ipAddress: rt.ipAddress || null,
+                userAgent: rt.userAgent || null,
+                loginMethod: rt.loginMethod || 'password',
+                rememberMe: rt.rememberMe || false,
+                createdAt: rt.createdAt,
+                expiresAt: rt.expiresAt,
+                lastActiveAt: rt.lastActiveAt || rt.createdAt,
+                isCurrent: !!(currentRefreshToken && rt.token === currentRefreshToken),
+            }))
+            .sort((a, b) => {
+                if (a.isCurrent) return -1;
+                if (b.isCurrent) return 1;
+                return new Date(b.lastActiveAt) - new Date(a.lastActiveAt);
+            });
+
+        res.json({ sessions });
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function revokeSession(req, res, next) {
+    try {
+        const { id } = req.params;
+
+        if (!req.user?.id) {
+            return res.status(401).json({ error: 'Unauthorized. Authentication required.', });
+        }
+
+        const currentRefreshToken = req.cookies?.refreshToken || null;
+
+        const user = await User.findById(req.user.id).select('refreshTokens');
+
+        if (!user) return res.status(404).json({ error: 'User not found.' });
+
+        const target = user.refreshTokens.find(
+            (rt) => rt._id.toString() === id
+        );
+
+        if (!target) return res.status(404).json({ error: 'Session not found.' });
+
+        if (currentRefreshToken && target.token === currentRefreshToken) {
+            return res.status(400).json({ error: 'You cannot revoke your current session this way. Use Sign Out instead.', });
+        }
+
+        target.revokedAt = new Date();
+
+        await user.save();
+
+        return res.json({ message: 'Session revoked successfully.' });
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function revokeAllOtherSessions(req, res, next) {
+    try {
+        const currentRefreshToken = req.cookies?.refreshToken || null;
+
+        const user = await User.findById(req.user.id).select('refreshTokens');
+        if (!user) return res.status(404).json({ error: 'User not found.' });
+
+        const beforeCount = user.refreshTokens.length;
+
+        if (currentRefreshToken) {
+            user.refreshTokens = user.refreshTokens.filter(
+                (rt) => rt.token === currentRefreshToken
+            );
+        } else {
+            user.refreshTokens = [];
+        }
+
+        const revokedCount = beforeCount - user.refreshTokens.length;
+
+        await user.save();
+        res.json({ message: `Signed out of ${revokedCount} other session(s) successfully.`, revokedCount, });
+    } catch (err) {
+        next(err);
+    }
+}
 
 async function logout(req, res) {
     const { refreshToken } = req.cookies;
@@ -1419,5 +1326,8 @@ module.exports = {
     getSecurityActivity,
     generateBackupCodesRoute,
     exportSecurityLogs,
+    getSessions,
+    revokeSession,
+    revokeAllOtherSessions,
     logout,
 };

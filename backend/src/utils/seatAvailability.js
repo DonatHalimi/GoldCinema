@@ -13,9 +13,7 @@ const HOLD_DURATION_MS = 5 * 60 * 1000;
 async function releaseExpiredHolds() {
     const now = new Date();
 
-    await SeatHold.deleteMany({
-        expiresAt: { $lt: now },
-    });
+    await SeatHold.deleteMany({ expiresAt: { $lt: now }, });
 
     await Order.updateMany(
         {
@@ -23,9 +21,7 @@ async function releaseExpiredHolds() {
             holdExpiresAt: { $lt: now },
         },
         {
-            $set: {
-                status: 'expired',
-            },
+            $set: { status: 'expired' },
         }
     );
 }
@@ -41,60 +37,33 @@ router.post(
         try {
             const errors = validationResult(req);
 
-            if (!errors.isEmpty()) {
-                return res.status(400).json({
-                    error: errors.array()[0].msg,
-                });
-            }
+            if (!errors.isEmpty()) return res.status(400).json({ error: errors.array()[0].msg });
 
             await releaseExpiredHolds();
 
             const { showtimeId, seatIds } = req.body;
 
-            const showtime = await Showtime.findById(showtimeId)
-                .populate('movie');
+            const showtime = await Showtime.findById(showtimeId).populate('movie');
 
-            if (!showtime) {
-                return res.status(404).json({
-                    error: 'Showtime not found',
-                });
-            }
+            if (!showtime) return res.status(404).json({ error: 'Showtime not found' });
 
             const movie = showtime.movie;
 
-            if (!movie) {
-                return res.status(404).json({
-                    error: 'Movie not found',
-                });
-            }
+            if (!movie) return res.status(404).json({ error: 'Movie not found' });
 
             const uniqueSeatIds = [...new Set(seatIds)];
 
-            const seatObjs = uniqueSeatIds.map((seatId) =>
-                showtime.seats.find((s) => s.seatId === seatId)
-            );
+            const seatObjs = uniqueSeatIds.map((seatId) => showtime.seats.find((s) => s.seatId === seatId));
 
             const missing = uniqueSeatIds.filter((_, i) => !seatObjs[i]);
 
-            if (missing.length) {
-                return res.status(400).json({
-                    error: `Unknown seats: ${missing.join(', ')}`,
-                });
-            }
+            if (missing.length) return res.status(400).json({ error: `Unknown seats: ${missing.join(', ')}` });
 
-            const unavailable = seatObjs.filter(
-                (s) => s.status !== 'available'
-            );
+            const unavailable = seatObjs.filter((s) => s.status !== 'available');
 
-            if (unavailable.length) {
-                return res.status(409).json({
-                    error: `These seats are no longer available`,
-                });
-            }
+            if (unavailable.length) return res.status(409).json({ error: `These seats are no longer available` });
 
-            const expiresAt = new Date(
-                Date.now() + HOLD_DURATION_MS
-            );
+            const expiresAt = new Date(Date.now() + HOLD_DURATION_MS);
 
             const hold = await SeatHold.create({
                 user: req.user.id,
@@ -103,9 +72,7 @@ router.post(
                 expiresAt,
             });
 
-            const amount = Number(
-                (movie.price * uniqueSeatIds.length).toFixed(2)
-            );
+            const amount = Number((movie.price * uniqueSeatIds.length).toFixed(2));
 
             const order = await Order.create({
                 user: req.user.id,
@@ -139,14 +106,10 @@ router.get('/mine', requireAuth, async (req, res, next) => {
     try {
         await releaseExpiredHolds();
 
-        const orders = await Order.find({
-            user: req.user.id,
-        })
+        const orders = await Order.find({ user: req.user.id })
             .populate('movie')
             .populate('showtime')
-            .sort({
-                createdAt: -1,
-            });
+            .sort({ createdAt: -1 });
 
         const enriched = orders.map((order) => ({
             ...order.toObject(),
@@ -176,15 +139,9 @@ router.get('/:id', requireAuth, async (req, res, next) => {
     try {
         await releaseExpiredHolds();
 
-        const order = await Order.findById(req.params.id)
-            .populate('movie')
-            .populate('showtime');
+        const order = await Order.findById(req.params.id).populate('movie').populate('showtime');
 
-        if (!order || order.user.toString() !== req.user.id) {
-            return res.status(404).json({
-                error: 'Order not found',
-            });
-        }
+        if (!order || order.user.toString() !== req.user.id) return res.status(404).json({ error: 'Order not found' });
 
         res.json({
             order: {
@@ -208,25 +165,11 @@ router.get('/:id', requireAuth, async (req, res, next) => {
     }
 });
 
-/**
- * Returns a Map<seatId, 'available' | 'held' | 'booked'> for a showtime,
- * combining its permanently-booked seats with any currently-active holds.
- *
- * Holds are looked up live (rather than trusted from a cached field) and
- * filtered by expiresAt > now, so an expired-but-not-yet-TTL-swept hold is
- * never mistakenly shown as "held" — Mongo's TTL monitor runs on its own
- * ~60s cycle and shouldn't be relied on for read-time correctness.
- */
 async function getAvailability(showtime) {
     const statusMap = new Map();
 
     showtime.seats.forEach((seat) => {
-        statusMap.set(
-            seat.seatId,
-            seat.status === 'booked'
-                ? 'booked'
-                : 'available'
-        );
+        statusMap.set(seat.seatId, seat.status === 'booked' ? 'booked' : 'available');
     });
 
     const paidOrders = await Order.find({
@@ -236,28 +179,15 @@ async function getAvailability(showtime) {
 
     paidOrders.forEach((order) => {
         order.seats.forEach((seatId) => {
-            statusMap.set(
-                seatId,
-                'booked'
-            );
+            statusMap.set(seatId, 'booked');
         });
     });
 
-    const activeHolds = await SeatHold.find({
-        showtime: showtime._id,
-        expiresAt: {
-            $gt: new Date()
-        },
-    });
+    const activeHolds = await SeatHold.find({ showtime: showtime._id, expiresAt: { $gt: new Date() } });
 
     activeHolds.forEach((hold) => {
         hold.seats.forEach((seatId) => {
-            if (statusMap.get(seatId) === 'available') {
-                statusMap.set(
-                    seatId,
-                    'held'
-                );
-            }
+            if (statusMap.get(seatId) === 'available') statusMap.set(seatId, 'held');
         });
     });
     return statusMap;

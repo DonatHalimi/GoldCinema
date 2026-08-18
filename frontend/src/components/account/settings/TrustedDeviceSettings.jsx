@@ -1,12 +1,13 @@
-import { Computer, Laptop, ShieldCheck, Trash2 } from 'lucide-react';
+import { Laptop, ShieldCheck, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import api from '../../api/client';
+import api from '../../../api/client';
+import RevokeDeviceModal from '../../ui/RevokeDeviceModal';
 
 export default function TrustedDevicesSettings() {
     const [devices, setDevices] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [actionLoading, setActionLoading] = useState(null);
+    const [selectedDevice, setSelectedDevice] = useState(null);
 
     useEffect(() => {
         const fetchDevices = async () => {
@@ -14,7 +15,6 @@ export default function TrustedDevicesSettings() {
                 const { data } = await api.get('/auth/devices');
                 setDevices(data.devices || []);
             } catch (err) {
-                console.error(err);
                 toast.error('Failed to load trusted devices.');
             } finally {
                 setLoading(false);
@@ -24,17 +24,10 @@ export default function TrustedDevicesSettings() {
         fetchDevices();
     }, []);
 
-    const handleRevokeDevice = async (deviceId) => {
-        try {
-            setActionLoading(deviceId);
-            await api.delete(`/auth/devices/${deviceId}`);
-            setDevices((prev) => prev.filter((d) => d._id !== deviceId));
-            toast.success('Device removed successfully.');
-        } catch (err) {
-            toast.error(err.response?.data?.error || 'Failed to remove device.');
-        } finally {
-            setActionLoading(null);
-        }
+    const handleSuccessRevoke = (deviceId) => {
+        setDevices((prev) => prev.filter((d) => d._id !== deviceId));
+        setSelectedDevice(null);
+        toast.success('Device removed successfully.');
     };
 
     return (
@@ -64,9 +57,8 @@ export default function TrustedDevicesSettings() {
                                     </div>
                                     <div>
                                         <p className="text-sm font-medium text-marquee-cream">
-                                            {device.name || 'Unknown Device'}
+                                            {device.label || device.name || 'Unknown Device'}
                                         </p>
-
                                         <p className="text-xs text-marquee-muted">
                                             Added on {new Date(device.createdAt).toLocaleDateString('en-GB')}
                                         </p>
@@ -75,18 +67,25 @@ export default function TrustedDevicesSettings() {
 
                                 <button
                                     type="button"
-                                    onClick={() => handleRevokeDevice(device._id)}
-                                    disabled={actionLoading === device._id}
+                                    onClick={() => setSelectedDevice(device)}
                                     className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 px-3 py-1.5 text-xs font-semibold text-red-400 transition hover:bg-red-500/10"
                                 >
                                     <Trash2 className="h-3.5 w-3.5" />
-                                    {actionLoading === device._id ? 'Removing...' : 'Revoke'}
+                                    Revoke
                                 </button>
                             </div>
                         ))}
                     </div>
                 )}
             </div>
+
+            {selectedDevice && (
+                <RevokeDeviceModal
+                    device={selectedDevice}
+                    onClose={() => setSelectedDevice(null)}
+                    onSuccess={handleSuccessRevoke}
+                />
+            )}
         </div>
     );
 }

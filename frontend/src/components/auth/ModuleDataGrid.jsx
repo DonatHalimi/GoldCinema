@@ -2,6 +2,7 @@ import { Check, ChevronLeft, ChevronRight, Pencil, Plus, Trash, Trash2 } from 'l
 import { useEffect, useState } from 'react';
 import { bulkDeleteItems, deleteItem, getItems } from '../../api/client';
 import CrudModal from '../ui/CrudModal';
+import { toast } from 'react-toastify';
 import DeleteConfirmModal from '../ui/DeleteConfirmModal';
 
 export default function ModuleDataGrid({ moduleConfig }) {
@@ -35,8 +36,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
             setTotalPages(res.pages || 1);
             setSelectedIds([]);
         } catch (err) {
-            console.error(err);
-            alert(`Error fetching ${moduleConfig.label}: ` + (err.response?.data?.message || err.message));
+            toast.error(`Error fetching ${moduleConfig.label}: ` + (err.response?.data?.message || err.message));
         } finally {
             setLoading(false);
         }
@@ -85,7 +85,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
             setSelectedIds([]);
             fetchModuleData();
         } catch (err) {
-            alert('Failed to delete item(s): ' + (err.response?.data?.message || err.message));
+            toast.error('Failed to delete item(s): ' + (err.response?.data?.message || err.message));
         } finally {
             setDeleting(false);
         }
@@ -114,8 +114,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
                         </button>
                     )}
 
-                    <button onClick={handleCreate} className="flex items-center gap-2 rounded-lg bg-marquee-gold hover:bg-marquee-goldBright px-4 py-2.5 text-sm font-semibold text-zinc-950 transition-all shadow-[0_0_15px_rgba(245,158,11,0.2)]"
-                    >
+                    <button onClick={handleCreate} className="flex items-center gap-2 rounded-lg bg-marquee-gold hover:bg-marquee-goldBright px-4 py-2.5 text-sm font-semibold text-zinc-950 transition-all shadow-[0_0_15px_rgba(245,158,11,0.2)]">
                         <Plus className="h-4 w-4 stroke-[2.5]" /> Add {moduleConfig.label}
                     </button>
                 </div>
@@ -179,9 +178,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
                                                         className={`inline-flex h-4 w-4 items-center justify-center rounded border transition-all ${isSelected
                                                             ? 'bg-marquee-gold border-marquee-gold text-zinc-950 shadow-[0_0_8px_rgba(245,158,11,0.4)]'
                                                             : 'border-marquee-goldBright bg-black/30 hover:border-marquee-gold'}`}>
-                                                        {isSelected && (
-                                                            <Check className="h-3 w-3 stroke-[3]" />
-                                                        )}
+                                                        {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
                                                     </button>
                                                 </td>
 
@@ -191,9 +188,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
 
                                                 {fields.map((col) => (
                                                     <td key={col.name} className="px-6 py-4 text-zinc-100">
-                                                        {col.format
-                                                            ? col.format(row[col.name])
-                                                            : String(row[col.name] ?? '-')}
+                                                        {col.format ? col.format(row[col.name]) : String(row[col.name] ?? '-')}
                                                     </td>
                                                 ))}
 
@@ -248,9 +243,8 @@ export default function ModuleDataGrid({ moduleConfig }) {
                             </button>
                         </div>
                     </div>
-                </div >
-            )
-            }
+                </div>
+            )}
 
             <CrudModal
                 isOpen={isModalOpen}

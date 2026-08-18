@@ -4,7 +4,7 @@ const Role = require('../models/role');
 const { OAuth2Client } = require('google-auth-library');
 const { sendVerificationEmail } = require('../utils/mailer');
 const { generateVerificationToken } = require('../utils/tokens');
-
+const crypto = require('crypto');
 const TRUSTED_DEVICE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 const EMAIL_OTP_TTL_MS = 10 * 60 * 1000;
 const MFA_MAX_ATTEMPTS = 5;
@@ -19,23 +19,16 @@ const requireAuth = async (req, res, next) => {
   try {
     let token = req.cookies?.accessToken;
 
-    if (!token && req.headers.authorization?.startsWith('Bearer ')) {
-      token = req.headers.authorization.split(' ')[1];
-    }
+    if (!token && req.headers.authorization?.startsWith('Bearer ')) token = req.headers.authorization.split(' ')[1];
 
-    if (!token) {
-      return res.status(401).json({ error: 'Authentication required.' });
-    }
+    if (!token) return res.status(401).json({ error: 'Authentication required.' });
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     const user = await User.findById(decoded.id).populate('role');
-    if (!user) {
-      return res.status(401).json({ error: 'User no longer exists.' });
-    }
-    if (user.isActive === false) {
-      return res.status(403).json({ error: 'This account has been deactivated.' });
-    }
+    if (!user) return res.status(401).json({ error: 'User no longer exists.' });
+
+    if (user.isActive === false) return res.status(403).json({ error: 'This account has been deactivated.' });
 
     req.user = user;
     next();
@@ -66,21 +59,12 @@ function optionalAuth(req, res, next) {
 async function requireVerified(req, res, next) {
   try {
     const userId = req.user?.id || req.user?._id;
-    if (!userId) {
-      return res.status(401).json({ error: 'Authentication required. Please log in again.' });
-    }
+    if (!userId) return res.status(401).json({ error: 'Authentication required. Please log in again.' });
 
     const user = await User.findById(userId);
-    if (!user) {
-      return res.status(401).json({ error: 'Account not found. Please log in again.' });
-    }
+    if (!user) return res.status(401).json({ error: 'Account not found. Please log in again.' });
 
-    if (!user.emailVerified) {
-      return res.status(403).json({
-        error: 'Please verify your email address before ordering tickets.',
-        code: 'EMAIL_NOT_VERIFIED',
-      });
-    }
+    if (!user.emailVerified) return res.status(403).json({ error: 'Please verify your email address before ordering tickets.', code: 'EMAIL_NOT_VERIFIED', });
 
     req.dbUser = user;
     next();
@@ -116,15 +100,15 @@ async function checkTrustedDevice(req, res, next) {
   }
 }
 
-const generateTokens = (userId, refreshExpiresIn = process.env.JWT_REFRESH_EXPIRES_IN) => {
+const generateTokens = (userId, sessionId, refreshExpiresIn = process.env.JWT_REFRESH_EXPIRES_IN) => {
   const accessToken = jwt.sign(
-    { id: userId },
+    { id: userId, sid: sessionId },
     process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRES_IN }
   );
 
   const refreshToken = jwt.sign(
-    { id: userId },
+    { id: userId, sid: sessionId },
     process.env.JWT_REFRESH_SECRET,
     { expiresIn: refreshExpiresIn }
   );
@@ -151,12 +135,7 @@ const setCookies = (res, accessToken, refreshToken, refreshMaxAgeMs = 7 * 24 * 6
 async function getCustomerRoleId() {
   const role = await Role.findOneAndUpdate(
     { name: 'customer' },
-    {
-      $setOnInsert: {
-        name: 'customer',
-        description: 'Default role for registered users.',
-      },
-    },
+    { $setOnInsert: { name: 'customer', description: 'Default role for registered users.', }, },
     { upsert: true, new: true }
   );
 

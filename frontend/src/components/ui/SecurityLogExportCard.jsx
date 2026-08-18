@@ -8,6 +8,7 @@ export default function SecurityLogExportCard() {
 
     const handleExport = async () => {
         setExporting(true);
+
         try {
             const response = await api.get('/auth/security/export-logs', { responseType: 'blob' });
             const url = window.URL.createObjectURL(new Blob([response.data]));

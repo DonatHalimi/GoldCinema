@@ -1,11 +1,15 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
+import { Loader2 } from 'lucide-react';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         api.get('/auth/me')
@@ -19,6 +23,28 @@ export function AuthProvider({ children }) {
                 setLoading(false);
             });
     }, []);
+
+    useEffect(() => {
+        const handleForcedLogout = () => {
+            setUser(null);
+
+            navigate('/login', {
+                replace: true,
+                state: {
+                    message: 'Your session has been revoked.',
+                },
+            });
+        };
+
+        window.addEventListener('auth:logout', handleForcedLogout);
+
+        return () => {
+            window.removeEventListener(
+                'auth:logout',
+                handleForcedLogout
+            );
+        };
+    }, [navigate]);
 
     async function register(name, email, password) {
         const { data } = await api.post('/auth/register', {
@@ -160,7 +186,9 @@ export function AuthProvider({ children }) {
     };
 
     if (loading) {
-        return <div>Loading session...</div>;
+        <div className="flex h-screen items-center justify-center">
+            <Loader2 className="h-12 w-12 animate-spin text-marquee-gold" />
+        </div>;
     }
 
     return (

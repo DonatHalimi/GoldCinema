@@ -13,7 +13,6 @@ export default function SecurityActivityCard() {
                 const { data } = await api.get('/auth/security/activity');
                 setActivities(data.activities || []);
             } catch (err) {
-                console.error(err);
                 toast.error('Failed to load security activity.');
             } finally {
                 setLoading(false);
@@ -57,10 +56,7 @@ export default function SecurityActivityCard() {
                             const IconComponent = getIcon(item.type);
                             const eventDate = new Date(item.date);
                             return (
-                                <div
-                                    key={item.id}
-                                    className="flex items-center justify-between rounded-lg border border-marquee-line bg-marquee-panel2 p-3 text-sm"
-                                >
+                                <div key={item.id} className="flex items-center justify-between rounded-lg border border-marquee-line bg-marquee-panel2 p-3 text-sm">
                                     <div className="flex items-center gap-3">
                                         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-marquee-line/30 text-marquee-gold">
                                             <IconComponent className="h-4 w-4" />

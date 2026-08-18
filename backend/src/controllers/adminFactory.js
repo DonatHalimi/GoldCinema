@@ -33,9 +33,7 @@ function getOne(Model, populateOpts = '') {
             if (populateOpts) query.populate(populateOpts);
 
             const doc = await query.exec();
-            if (!doc) {
-                return res.status(404).json({ success: false, message: 'Resource not found' });
-            }
+            if (!doc) return res.status(404).json({ success: false, message: 'Resource not found' });
 
             res.status(200).json({ success: true, data: doc });
         } catch (error) {
@@ -63,9 +61,7 @@ function updateOne(Model) {
                 runValidators: true,
             });
 
-            if (!doc) {
-                return res.status(404).json({ success: false, message: 'Resource not found' });
-            }
+            if (!doc) return res.status(404).json({ success: false, message: 'Resource not found' });
 
             res.status(200).json({ success: true, data: doc });
         } catch (error) {
@@ -78,9 +74,7 @@ function deleteOne(Model) {
     return async function deleteOneResource(req, res, next) {
         try {
             const doc = await Model.findByIdAndDelete(req.params.id);
-            if (!doc) {
-                return res.status(404).json({ success: false, message: 'Resource not found' });
-            }
+            if (!doc) return res.status(404).json({ success: false, message: 'Resource not found' });
 
             res.status(200).json({ success: true, data: null });
         } catch (error) {
@@ -94,24 +88,13 @@ function deleteMany(Model) {
         try {
             const { ids } = req.body;
 
-            if (!Array.isArray(ids) || ids.length === 0) {
-                return res.status(400).json({
-                    error: 'Please provide an array of IDs to delete',
-                });
-            }
+            if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: 'Please provide an array of IDs to delete' });
 
-            const validIds = ids.filter((id) =>
-                mongoose.Types.ObjectId.isValid(id)
-            );
+            const validIds = ids.filter((id) => mongoose.Types.ObjectId.isValid(id));
 
-            const result = await Model.deleteMany({
-                _id: { $in: validIds },
-            });
+            const result = await Model.deleteMany({ _id: { $in: validIds } });
 
-            res.status(200).json({
-                success: true,
-                deletedCount: result.deletedCount,
-            });
+            res.status(200).json({ success: true, deletedCount: result.deletedCount });
         } catch (error) {
             next(error);
         }

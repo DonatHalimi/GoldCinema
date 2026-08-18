@@ -28,10 +28,7 @@ const items = [
     },
 ];
 
-export default function TicketSidebar({
-    active,
-    setActive,
-}) {
+export default function TicketSidebar({ active, setActive }) {
     return (
         <aside className="sticky top-24 w-64 rounded-xl border border-marquee-line bg-marquee-panel p-4">
             <div className="mb-6 px-3">
@@ -43,7 +40,6 @@ export default function TicketSidebar({
                     Manage your bookings
                 </p>
             </div>
-
 
             <nav className="space-y-2">
                 {items.map((item) => {
@@ -70,9 +66,7 @@ export default function TicketSidebar({
                                 {item.label}
                             </span>
 
-                            {isActive && (
-                                <span className="ml-auto h-1.5 w-1.5 rounded-full bg-marquee-bg" />
-                            )}
+                            {isActive && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-marquee-bg" />}
                         </button>
                     );
                 })}

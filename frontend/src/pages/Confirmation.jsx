@@ -20,7 +20,6 @@ export default function Confirmation() {
         const { data } = await api.get(`/orders/${orderId}`);
         setOrder(data.order);
       } catch (err) {
-        console.error(err);
         setError(err.response?.data?.error || err.message || 'Something went wrong');
       }
     }
@@ -64,7 +63,7 @@ export default function Confirmation() {
           <img
             src={movie?.posterUrl}
             alt={movie?.title}
-            className="h-28 w-20 flex-shrink-0 rounded object-cover"
+            className="h-38 w-28 flex-shrink-0 rounded object-cover"
           />
 
           <div>

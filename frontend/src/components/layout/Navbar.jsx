@@ -1,18 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { Link } from 'react-router-dom';
 import NavLinks from './NavLinks';
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef(null);
-
-  const displayName = user?.name
-    ? user.name.split(' ')[0]
-    : user?.email?.split('@')[0] || 'User';
 
   useEffect(() => {
     function handleClickOutside(e) {

@@ -33,9 +33,7 @@ export default function SeatSelection() {
     try {
       const parsed = JSON.parse(saved);
 
-      if (
-        parsed.expiresAt && new Date(parsed.expiresAt) > new Date()
-      ) {
+      if (parsed.expiresAt && new Date(parsed.expiresAt) > new Date()) {
         setSelected(parsed.seats);
       } else {
         sessionStorage.removeItem(`selectedSeats-${id}`);

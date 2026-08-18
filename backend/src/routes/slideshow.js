@@ -9,10 +9,7 @@ const {
     deleteSlide,
 } = require('../controllers/slideshow');
 
-const {
-    validateParams,
-    slideshow: { slideshowIdSchema },
-} = require('../validations');
+const { validateParams, slideshow: { slideshowIdSchema } } = require('../validations');
 
 const upload = require('../middleware/upload');
 

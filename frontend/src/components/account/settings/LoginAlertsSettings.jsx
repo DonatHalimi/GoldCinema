@@ -1,17 +1,23 @@
 import { Bell } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
-import api from '../../api/client';
+import api from '../../../api/client';
 
 export default function LoginAlertsSettings({ initialLoginAlerts = true, onUpdate }) {
     const [loginAlerts, setLoginAlerts] = useState(initialLoginAlerts);
     const [alertsLoading, setAlertsLoading] = useState(false);
 
+    useEffect(() => {
+        setLoginAlerts(initialLoginAlerts);
+    }, [initialLoginAlerts]);
+
     const handleToggleLoginAlerts = async () => {
         const nextState = !loginAlerts;
         setAlertsLoading(true);
+
         try {
-            const { data } = await api.put('/auth/security/login-alerts', { loginAlerts: nextState, });
+            const { data } = await api.put('/auth/security/login-alerts', { loginAlerts: nextState });
             setLoginAlerts(data.loginAlerts);
             if (onUpdate) onUpdate(data.loginAlerts);
             toast.success(data.message || 'Login alerts updated successfully.');
@@ -37,14 +43,19 @@ export default function LoginAlertsSettings({ initialLoginAlerts = true, onUpdat
                     </div>
                 </div>
 
-                <button
+                <motion.button
                     type="button"
                     onClick={handleToggleLoginAlerts}
                     disabled={alertsLoading}
-                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 ${loginAlerts ? 'bg-marquee-gold' : 'bg-marquee-panel2'}`}
-                >
-                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-zinc-950 shadow ring-0 transition duration-200 ease-in-out ${loginAlerts ? 'translate-x-5' : 'translate-x-0'}`} />
-                </button>
+                    animate={{ backgroundColor: loginAlerts ? 'var(--color-marquee-gold, #cca43b)' : 'var(--color-marquee-panel2, #27272a)' }}
+                    transition={{ duration: 0.2 }}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent focus:outline-none disabled:opacity-50 ${loginAlerts ? 'bg-marquee-gold' : 'bg-marquee-panel2'}`}>
+                    <motion.span
+                        className="pointer-events-none inline-block h-5 w-5 rounded-full bg-zinc-950 shadow ring-0"
+                        animate={{ x: loginAlerts ? 20 : 0 }}
+                        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                    />
+                </motion.button>
             </div>
         </div>
     );

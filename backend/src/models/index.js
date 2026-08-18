@@ -9,4 +9,5 @@ module.exports = {
     Snack: require('./snack'),
     Order: require('./order'),
     LoginAttempt: require('./loginAttempt'),
+    Notification: require('./notification'),
 };

@@ -1,10 +1,10 @@
 import { BadgeCheck, Mail, ShieldCheck, Smartphone, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import api from '../../api/client';
-import Disable2faModal from '../ui/Disable2faModal.jsx';
-import EnableEmail2faModal from '../ui/EnableEmail2faModal';
-import EnableTotpModal from '../ui/EnableTotpModal';
+import api from '../../../api/client.js';
+import Disable2faModal from '../../ui/Disable2faModal.jsx.jsx';
+import EnableEmail2faModal from '../../ui/EnableEmail2faModal.jsx';
+import EnableTotpModal from '../../ui/EnableTotpModal.jsx';
 
 export default function TwoFactorSettings() {
     const [showEmailVerify, setShowEmailVerify] = useState(false);
@@ -13,9 +13,7 @@ export default function TwoFactorSettings() {
 
     const [disableMethod, setDisableMethod] = useState(null);
 
-    const [twoFactor, setTwoFactor] = useState({
-        methods: [],
-    });
+    const [twoFactor, setTwoFactor] = useState({ methods: [] });
 
     const [loading, setLoading] = useState(false);
 
@@ -27,11 +25,9 @@ export default function TwoFactorSettings() {
                 const { data } = await api.get('/auth/me');
                 const activeMethods = data.user?.twoFactor?.methods || [];
 
-                setTwoFactor({
-                    methods: activeMethods,
-                });
+                setTwoFactor({ methods: activeMethods });
             } catch (err) {
-                console.error('Failed to load 2FA status:', err);
+                toast.error('Failed to load 2FA status.');
             }
         };
 
@@ -72,9 +68,7 @@ export default function TwoFactorSettings() {
                 (method) => method !== disableMethod
             );
 
-            return {
-                methods,
-            };
+            return { methods };
         });
 
         setDisableMethod(null);

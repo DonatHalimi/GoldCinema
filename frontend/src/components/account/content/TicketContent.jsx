@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import api from "../../api/client";
-import EmptyTickets from '../../components/tickets/EmptyTickets';
-import TicketCard from "../../components/tickets/TicketCard";
+import api from "../../../api/client";
+import EmptyTickets from '../../tickets/EmptyTickets';
+import TicketCard from "../../tickets/TicketCard";
 
 export default function TicketContent() {
     const [orders, setOrders] = useState([]);
@@ -17,11 +17,7 @@ export default function TicketContent() {
                 setOrders(data.orders || []);
             } catch (err) {
                 console.error('ORDERS LOAD ERROR:', err);
-                setError(
-                    err.response?.data?.error ||
-                    err.message ||
-                    'Failed to load tickets'
-                );
+                setError(err.response?.data?.error || err.message || 'Failed to load tickets');
             } finally {
                 setLoading(false);
             }
@@ -31,25 +27,17 @@ export default function TicketContent() {
     }, []);
 
     const filteredOrders = orders.filter((order) => {
-        if (active === 'all') {
-            return true;
-        }
+        if (active === 'all') return true;
 
         const showtime = order.showtime?.startTime
             ? new Date(order.showtime.startTime)
             : null;
 
-        if (active === 'upcoming') {
-            return showtime && showtime > new Date();
-        }
+        if (active === 'upcoming') return showtime && showtime > new Date();
 
-        if (active === 'past') {
-            return showtime && showtime < new Date();
-        }
+        if (active === 'past') return showtime && showtime < new Date();
 
-        if (active === 'cancelled') {
-            return order.status === 'cancelled';
-        }
+        if (active === 'cancelled') return order.status === 'cancelled';
 
         return true;
     });
@@ -79,7 +67,7 @@ export default function TicketContent() {
                                 <button
                                     key={filter.value}
                                     onClick={() => setActive(filter.value)}
-                                    className={`relative rounded-full px-5 py-2 text-sm font-medium transition-colors duration-200 ${isActive ? 'text-white' : 'text-marquee-muted hover:text-marquee-gold'}`}>
+                                    className={`relative rounded-full px-5 py-2 text-sm font-medium transition-colors duration-200 ${isActive ? 'text-marquee-line' : 'text-marquee-muted hover:text-marquee-gold'}`}>
                                     {isActive && (
                                         <motion.div
                                             layoutId="activeFilterPill"
@@ -99,21 +87,11 @@ export default function TicketContent() {
                     </div>
                 </div>
 
-                {loading && (
-                    <p className="text-marquee-muted">
-                        Loading your tickets...
-                    </p>
-                )}
+                {loading && <p className="text-marquee-muted">Loading your tickets...</p>}
 
-                {error && (
-                    <p className="text-red-400">
-                        {error}
-                    </p>
-                )}
+                {error && <p className="text-red-400">{error}</p>}
 
-                {!loading && filteredOrders.length === 0 && (
-                    <EmptyTickets />
-                )}
+                {!loading && filteredOrders.length === 0 && <EmptyTickets />}
 
                 <div key={active} className="flex flex-col gap-4">
                     {filteredOrders.map((ticket) => (

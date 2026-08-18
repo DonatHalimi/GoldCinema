@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronDown, LayoutDashboard, LogOut, Ticket, User2 } from 'lucide-react';
+import { Bell, ChevronDown, LayoutDashboard, LogOut, Ticket, User2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -18,10 +18,7 @@ export default function UserDropdown() {
 
     useEffect(() => {
         function handleClickOutside(e) {
-            if (
-                dropdownRef.current &&
-                !dropdownRef.current.contains(e.target)
-            ) {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
                 setOpen(false);
             }
         }
@@ -33,9 +30,7 @@ export default function UserDropdown() {
         };
     }, []);
 
-    const isAdmin =
-        user.role === 'admin' ||
-        user.role?.name?.toLowerCase() === 'admin';
+    const isAdmin = user.role === 'admin' || user.role?.name?.toLowerCase() === 'admin';
 
     return (
         <div ref={dropdownRef} className="relative">
@@ -106,6 +101,15 @@ export default function UserDropdown() {
                             >
                                 <Ticket size={18} />
                                 My Tickets
+                            </Link>
+
+                            <Link
+                                to="/account/notifications"
+                                onClick={() => setOpen(false)}
+                                className="flex items-center gap-3 px-4 py-3 text-sm text-marquee-muted transition hover:bg-marquee-panel2 hover:text-marquee-gold"
+                            >
+                                <Bell size={18} />
+                                Notifications
                             </Link>
 
                             <button

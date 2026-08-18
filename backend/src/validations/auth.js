@@ -117,10 +117,18 @@ const disable2faMethodSchema = yup.object({
 });
 
 const verifyLoginMfaSchema = yup.object({
-    mfaToken: yup.string().required(),
-    code: yup.string().required(),
-    rememberMe: yup.boolean().optional(),
-    trustDevice: yup.boolean().optional(),
+    mfaToken: yup
+        .string()
+        .required(),
+    code: yup
+        .string()
+        .required(),
+    rememberMe: yup
+        .boolean()
+        .optional(),
+    trustDevice: yup
+        .boolean()
+        .optional(),
 });
 
 const resendLoginMfaSchema = yup.object({

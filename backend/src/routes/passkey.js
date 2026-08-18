@@ -21,4 +21,5 @@ router.get('/passkeys', requireAuth, getPasskeys);
 router.put('/passkeys/:id/name', requireAuth, updatePasskeyName);
 router.post('/passkeys/reauth-challenge', requireAuth, generatePasskeyRemovalChallenge);
 router.delete('/passkeys/:id', requireAuth, removePasskey);
+
 module.exports = router;

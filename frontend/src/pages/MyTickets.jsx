@@ -10,23 +10,15 @@ export default function MyTickets() {
   const [active, setActive] = useState('all');
 
   const filteredOrders = orders.filter((order) => {
-    if (active === 'all') {
-      return true;
-    }
+    if (active === 'all') return true;
 
     const showtime = order.showtime?.startTime ? new Date(order.showtime.startTime) : null;
 
-    if (active === 'upcoming') {
-      return showtime && showtime > new Date();
-    }
+    if (active === 'upcoming') return showtime && showtime > new Date();
 
-    if (active === 'past') {
-      return showtime && showtime < new Date();
-    }
+    if (active === 'past') return showtime && showtime < new Date();
 
-    if (active === 'cancelled') {
-      return order.status === 'cancelled';
-    }
+    if (active === 'cancelled') return order.status === 'cancelled';
 
     return true;
   });

@@ -14,21 +14,8 @@ const {
 
 const router = express.Router();
 
-router.post(
-    '/hold-seat',
-    requireAuth,
-    requireVerified,
-    validateBody(holdSeatSchema),
-    holdSeat
-);
-
-router.post(
-    '/extend-hold',
-    requireAuth,
-    requireVerified,
-    validateBody(extendHoldSchema),
-    extendHold
-);
+router.post('/hold-seat', requireAuth, requireVerified, validateBody(holdSeatSchema), holdSeat);
+router.post('/extend-hold', requireAuth, requireVerified, validateBody(extendHoldSchema), extendHold);
 
 router.post('/release-hold', requireAuth, validateBody(releaseHoldSchema), releaseHold);
 router.get('/holds/:id', requireAuth, validateParams(holdIdSchema), getHoldById);

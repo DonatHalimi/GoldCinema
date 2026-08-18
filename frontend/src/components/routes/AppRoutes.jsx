@@ -1,26 +1,26 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-import DangerZone from '../../components/account/DangerZone';
-import Notifications from '../../components/account/Notifications';
-import ProfileSettings from '../../components/account/ProfileSettings';
-import SecuritySettings from '../../components/account/SecuritySettings';
-import Sessions from '../../components/account/Sessions';
-import TicketsContent from '../../components/account/TicketContent';
-import Account from '../../pages/Account';
-import AdminDashboard from '../../pages/AdminDashboard';
+import Home from '../../pages/Home';
+import MovieDetail from '../../pages/MovieDetail';
+import SeatSelection from '../../pages/SeatSelection';
+import Login from '../../pages/Login';
+import Register from '../../pages/Register';
+import VerifyEmail from '../../pages/VerifyEmail';
+import ResetPassword from '../../pages/ResetPassword';
 import Checkout from '../../pages/Checkout';
 import Confirmation from '../../pages/Confirmation';
-import ContactPage from '../../pages/Contact';
-import Home from '../../pages/Home';
-import Login from '../../pages/Login';
-import MovieDetail from '../../pages/MovieDetail';
+import Account from '../../pages/Account';
 import NotFound from '../../pages/NotFound';
-import Register from '../../pages/Register';
-import ResetPassword from '../../pages/ResetPassword';
-import SeatSelection from '../../pages/SeatSelection';
-import VerifyEmail from '../../pages/VerifyEmail';
-import RequireAdmin from '../guards/RequireAdmin';
 import RequireAuth from '../guards/RequireAuth';
 import RequireGuest from '../guards/RequireGuest';
+import RequireAdmin from '../guards/RequireAdmin';
+import ProfileSettings from '../../components/account/settings/ProfileSettings';
+import SecuritySettings from '../../components/account/settings/SecuritySettings';
+import Notifications from '../../components/account/content/Notifications';
+import TicketsContent from '../../components/account/content/TicketContent';
+import Sessions from '../../components/account/session/Sessions';
+import DangerZone from '../../components/account/content/DangerZone';
+import ContactPage from '../../pages/Contact';
+import AdminDashboard from '../../pages/AdminDashboard';
 
 export default function AppRoutes() {
     return (

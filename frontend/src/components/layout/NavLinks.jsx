@@ -1,13 +1,14 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import NotificationBell from './NotificationBell';
 import UserDropdown from './UserDropdown';
 
 export default function NavLinks() {
     const { user } = useAuth();
 
     return (
-        <nav className="flex items-center gap-6 font-body text-sm">
-            <Link to="/" className="text-marquee-muted transition hover:text-marquee-gold">
+        <nav className="flex items-center gap-4 font-body text-sm">
+            <Link to="/" className="text-marquee-muted transition hover:text-marquee-gold mr-2">
                 Now Showing
             </Link>
 
@@ -16,7 +17,10 @@ export default function NavLinks() {
                     Sign in
                 </Link>
             ) : (
-                <UserDropdown />
+                <div className="flex items-center gap-3">
+                    <NotificationBell />
+                    <UserDropdown />
+                </div>
             )}
         </nav>
     );

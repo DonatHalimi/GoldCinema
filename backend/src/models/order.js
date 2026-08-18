@@ -24,22 +24,14 @@ const orderSchema = new Schema(
         currency: { type: String, default: 'USD' },
 
         paymentProvider: { type: String, enum: ['stripe', 'paypal', null], default: null },
-        paymentStatus: {
-            type: String,
-            enum: ['pending', 'paid', 'failed', 'refunded'],
-            default: 'pending',
-            index: true,
-        },
+        paymentStatus: { type: String, enum: ['pending', 'paid', 'failed', 'refunded'], default: 'pending', index: true, },
         holdId: { type: mongoose.Schema.Types.ObjectId, ref: 'SeatHold' },
         holdExpiresAt: { type: Date },
 
         stripePaymentIntentId: { type: String },
         paypalOrderId: { type: String },
 
-        qrTicket: {
-            dataUrl: { type: String, default: null },
-            issuedAt: { type: Date, default: null },
-        },
+        qrTicket: { dataUrl: { type: String, default: null }, issuedAt: { type: Date, default: null }, },
 
         paidAt: { type: Date },
     },

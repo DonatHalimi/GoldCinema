@@ -8,6 +8,7 @@ const {
 const User = require('../models/user');
 const { sendLoginAlertEmail } = require('../utils/mailer');
 const { generateTokens, setCookies } = require('./auth');
+const { createNotification } = require('../utils/notifications');
 
 const rpName = 'GoldCinema';
 const rpID = 'localhost';
@@ -202,6 +203,25 @@ async function verifyPasskeyAuthentication(req, res, next) {
             }).catch((err) => console.error('[mailer] Failed to send login alert:', err));
         }
 
+        user.securityEvents.push({
+            title: 'Logged in with Passkey',
+            description: `IP: ${req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown'}`,
+            type: 'login_passkey',
+            createdAt: new Date(),
+        });
+
+        createNotification({
+            userId: user._id,
+            title: 'Passkey Login Detected',
+            message: 'You logged in to GoldCinema using a Passkey.',
+            type: 'login',
+            link: '/account/security',
+            metadata: {
+                method: 'Passkey',
+                time: new Date().toISOString(),
+            },
+        });
+
         return res.json({
             message: 'Logged in successfully.',
             user: {
@@ -268,17 +288,15 @@ async function updatePasskeyName(req, res, next) {
             }
         });
     } catch (error) {
-        console.error('Error updating passkey name:', error);
         next(error);
     }
 }
 
-// Add this helper to generate a challenge specifically for removal actions
 async function generatePasskeyRemovalChallenge(req, res, next) {
     try {
         const options = await generateAuthenticationOptions({
             rpID,
-            userVerification: 'required', // Forces OS PIN/biometrics prompt
+            userVerification: 'required',
         });
 
         global.pendingChallenges = global.pendingChallenges || new Map();
@@ -308,7 +326,6 @@ async function removePasskey(req, res, next) {
             return res.status(400).json({ error: 'Device verification assertion is required.' });
         }
 
-        // Find and validate the pending challenge
         let matchedChallenge = null;
         if (global.pendingChallenges) {
             for (const [challenge, data] of global.pendingChallenges.entries()) {
@@ -320,9 +337,7 @@ async function removePasskey(req, res, next) {
             }
         }
 
-        if (!matchedChallenge) {
-            return res.status(400).json({ error: 'Verification session expired. Please try again.' });
-        }
+        if (!matchedChallenge) return res.status(400).json({ error: 'Verification session expired. Please try again.' });
 
         let verification;
         try {
@@ -339,17 +354,13 @@ async function removePasskey(req, res, next) {
                 },
             });
         } catch (error) {
-            console.error('PASSKEY REMOVAL VERIFICATION ERROR:', error);
             return res.status(400).json({ error: 'Device verification failed.' });
         }
 
-        if (!verification.verified) {
-            return res.status(400).json({ error: 'Could not verify device identity.' });
-        }
+        if (!verification.verified) return res.status(400).json({ error: 'Could not verify device identity.' });
 
         global.pendingChallenges.delete(matchedChallenge);
 
-        // Proceed to remove the passkey
         user.passkeys = user.passkeys.filter((item) => item.credentialId !== passkeyId);
         await user.save();
 

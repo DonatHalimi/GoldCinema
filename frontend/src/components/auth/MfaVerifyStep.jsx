@@ -110,20 +110,13 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
 
         const fullCode = newOtp.join('');
 
-        if (
-            fullCode.length === 6 &&
-            newOtp.every((digit) => digit !== '')
-        ) {
+        if (fullCode.length === 6 && newOtp.every((digit) => digit !== '')) {
             submitVerification(fullCode);
         }
     };
 
     const handleOtpKeyDown = (index, e) => {
-        if (
-            e.key === 'Backspace' &&
-            !otp[index] &&
-            index > 0
-        ) {
+        if (e.key === 'Backspace' && !otp[index] && index > 0) {
             otpRefs.current[index - 1]?.focus();
         }
     };
@@ -163,9 +156,7 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
         setError('');
 
         try {
-            await api.post('/auth/2fa/login-resend', {
-                mfaToken: mfaState.mfaToken,
-            });
+            await api.post('/auth/2fa/login-resend', { mfaToken: mfaState.mfaToken });
 
             setResendCooldown(RESEND_COOLDOWN_SECONDS);
         } catch (err) {
@@ -340,24 +331,20 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
                         {useBackupCode ? 'Use verification code instead' : 'Use a backup code instead'}
                     </button>
 
-                    {selectedMethod === 'email' &&
-                        !useBackupCode && (
-                            <button
-                                type="button"
-                                onClick={handleResend}
-                                disabled={
-                                    resending ||
-                                    resendCooldown > 0
-                                }
-                                className="text-marquee-muted hover:text-marquee-gold disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                {resendCooldown > 0
-                                    ? `Resend in ${resendCooldown} s`
-                                    : resending
-                                        ? 'Sending...'
-                                        : 'Resend code'}
-                            </button>
-                        )}
+                    {selectedMethod === 'email' && !useBackupCode && (
+                        <button
+                            type="button"
+                            onClick={handleResend}
+                            disabled={resending || resendCooldown > 0}
+                            className="text-marquee-muted hover:text-marquee-gold disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            {resendCooldown > 0
+                                ? `Resend in ${resendCooldown} s`
+                                : resending
+                                    ? 'Sending...'
+                                    : 'Resend code'}
+                        </button>
+                    )}
                 </div>
             </form>
         </div>

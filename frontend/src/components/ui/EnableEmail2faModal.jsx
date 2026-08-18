@@ -1,17 +1,21 @@
-import { X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import api from '../../api/client';
+import Modal from '../ui/Modal';
 
 export default function EnableEmail2faModal({ onSuccess, onClose }) {
     const [otp, setOtp] = useState(Array(6).fill(''));
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+
     const inputRefs = useRef([]);
 
     useEffect(() => {
-        setTimeout(() => {
+        const timer = setTimeout(() => {
             inputRefs.current[0]?.focus();
         }, 100);
+
+        return () => clearTimeout(timer);
     }, []);
 
     const submitCode = async (codeToSubmit) => {
@@ -21,14 +25,11 @@ export default function EnableEmail2faModal({ onSuccess, onClose }) {
             setLoading(true);
             setError('');
 
-            await api.post('/auth/2fa/email/verify', { code: codeToSubmit });
+            await api.post('/auth/2fa/email/verify', { code: codeToSubmit, });
 
             onSuccess();
         } catch (err) {
-            setError(
-                err.response?.data?.error ||
-                'Invalid verification code'
-            );
+            setError(err.response?.data?.error || 'Invalid verification code');
         } finally {
             setLoading(false);
         }
@@ -38,14 +39,15 @@ export default function EnableEmail2faModal({ onSuccess, onClose }) {
         if (!/^\d*$/.test(value)) return;
 
         const newOtp = [...otp];
+
         newOtp[index] = value.substring(value.length - 1);
+
         setOtp(newOtp);
 
-        if (value && index < 5) {
-            inputRefs.current[index + 1]?.focus();
-        }
+        if (value && index < 5) inputRefs.current[index + 1]?.focus();
 
         const fullCode = newOtp.join('');
+
         if (fullCode.length === 6 && newOtp.every((digit) => digit !== '')) {
             submitCode(fullCode);
         }
@@ -59,12 +61,18 @@ export default function EnableEmail2faModal({ onSuccess, onClose }) {
 
     const handlePaste = (e) => {
         e.preventDefault();
-        const pastedData = e.clipboardData.getData('text').trim();
+
+        const pastedData = e.clipboardData
+            .getData('text')
+            .trim();
 
         if (/^\d{6}$/.test(pastedData)) {
             const digits = pastedData.split('');
+
             setOtp(digits);
+
             inputRefs.current[5]?.focus();
+
             submitCode(pastedData);
         }
     };
@@ -75,59 +83,60 @@ export default function EnableEmail2faModal({ onSuccess, onClose }) {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <div className="relative w-full max-w-md rounded-xl border border-marquee-line bg-marquee-bg p-6 shadow-2xl">
-                <div className="flex items-center justify-between pb-3 border-b border-marquee-line/50">
-                    <h2 className="font-display text-2xl font-semibold tracking-wide text-marquee-goldBright">
-                        Verify Email 2FA
-                    </h2>
+        <Modal
+            isOpen={true}
+            onClose={onClose}
+            title="Verify Email 2FA"
+            closeDisabled={loading}
+        >
+            <p className="mt-2 text-sm text-marquee-muted">
+                Enter the 6-digit code sent to your email.
+            </p>
 
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition-colors"
-                    >
-                        <X />
-                    </button>
+            <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+                <div onPaste={handlePaste} className="flex justify-between gap-2">
+                    {otp.map((digit, index) => (
+                        <input
+                            key={index}
+                            ref={(el) =>
+                                (inputRefs.current[index] = el)
+                            }
+                            type="text"
+                            inputMode="numeric"
+                            maxLength={1}
+                            value={digit}
+                            disabled={loading}
+                            onChange={(e) =>
+                                handleChange(
+                                    index,
+                                    e.target.value
+                                )
+                            }
+                            onKeyDown={(e) =>
+                                handleKeyDown(index, e)
+                            }
+                            className="h-12 w-12 rounded-md border border-marquee-line bg-marquee-panel2 text-center text-lg font-semibold text-marquee-cream outline-none transition focus:border-marquee-gold disabled:opacity-50"
+                        />
+                    ))}
                 </div>
 
-                <p className="mt-2 text-sm text-marquee-muted">
-                    Enter the 6-digit code sent to your email
-                </p>
+                {error && (
+                    <p className="text-sm text-red-400">
+                        {error}
+                    </p>
+                )}
 
-                <form onSubmit={handleSubmit} className="mt-5 space-y-4">
-                    <div onPaste={handlePaste} className="flex gap-2 justify-between">
-                        {otp.map((digit, index) => (
-                            <input
-                                key={index}
-                                ref={(el) => (inputRefs.current[index] = el)}
-                                type="text"
-                                inputMode="numeric"
-                                maxLength={1}
-                                value={digit}
-                                disabled={loading}
-                                onChange={(e) => handleChange(index, e.target.value)}
-                                onKeyDown={(e) => handleKeyDown(index, e)}
-                                className="h-12 w-12 rounded-md border border-marquee-line bg-marquee-panel2 text-center text-lg font-semibold text-marquee-cream outline-none transition focus:border-marquee-gold disabled:opacity-50 "
-                            />
-                        ))}
-                    </div>
-
-                    {error && (
-                        <p className="text-sm text-red-400">
-                            {error}
-                        </p>
-                    )}
-
-                    <button
-                        type="submit"
-                        disabled={loading || otp.join('').length < 6}
-                        className="w-full rounded-full bg-marquee-gold py-3 font-semibold text-marquee-bg hover:bg-marquee-goldBright disabled:opacity-50transition"
-                    >
-                        {loading ? 'Verifying...' : 'Enable 2FA'}
-                    </button>
-                </form>
-            </div>
-        </div>
+                <button
+                    type="submit"
+                    disabled={
+                        loading ||
+                        otp.join('').length < 6
+                    }
+                    className="w-full rounded-full bg-marquee-gold py-3 font-semibold text-marquee-bg transition hover:bg-marquee-goldBright disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                    {loading ? 'Verifying...' : 'Enable 2FA'}
+                </button>
+            </form>
+        </Modal>
     );
 }

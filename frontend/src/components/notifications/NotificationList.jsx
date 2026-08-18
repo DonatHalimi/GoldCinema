@@ -1,0 +1,61 @@
+import { AnimatePresence } from 'framer-motion';
+import { Archive, Bell, MailCheck, RefreshCw } from 'lucide-react';
+import NotificationItem from './NotificationItem';
+
+export default function NotificationList({
+    notifications,
+    loading,
+    filter,
+    onMarkRead,
+    onToggleArchive,
+    onDelete,
+    onDeleteRequest,
+}) {
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center justify-center py-12 text-marquee-muted">
+                <RefreshCw size={24} className="animate-spin mb-2 text-marquee-gold" />
+                <p className="text-sm">Loading notifications...</p>
+            </div>
+        );
+    }
+
+    if (notifications.length === 0) {
+        return (
+            <div className="rounded-xl border border-dashed border-marquee-line bg-marquee-panel/40 p-10 text-center">
+                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-marquee-panel2 text-marquee-gold">
+                    {filter === 'archived' ? <Archive size={24} /> :
+                        filter === 'unread' ? <MailCheck size={24} /> :
+                            <Bell size={24} />}
+                </div>
+                <h3 className="text-base font-semibold text-marquee-cream">
+                    {filter === 'archived' ? 'No archived notifications' :
+                        filter === 'unread' ? 'No unread notifications' :
+                            'No notifications yet'}
+                </h3>
+                <p className="mt-1 text-xs text-marquee-muted">
+                    {filter === 'archived'
+                        ? 'Archived notifications will be stored here for future reference.'
+                        : filter === 'unread'
+                            ? 'You have read all your notifications.'
+                            : 'Notifications regarding ticket purchases and login activity will appear here.'}
+                </p>
+            </div>
+        );
+    }
+
+    return (
+        <AnimatePresence mode="popLayout">
+            {notifications.map((item) => (
+                <NotificationItem
+                    key={item._id}
+                    notification={item}
+                    onMarkRead={onMarkRead}
+                    onToggleArchive={onToggleArchive}
+                    onDelete={onDelete}
+                    onDeleteRequest={onDeleteRequest}
+                />
+            ))}
+        </AnimatePresence>
+    );
+}

@@ -6,8 +6,15 @@ const refreshTokenSchema = new Schema(
         token: { type: String, required: true },
         expiresAt: { type: Date, required: true },
         createdAt: { type: Date, default: Date.now },
+        rememberMe: { type: Boolean, default: false },
+        ipAddress: { type: String, default: null },
+        userAgent: { type: String, default: null },
+        deviceLabel: { type: String, default: null },
+        loginMethod: { type: String, enum: ['password', 'google', 'facebook', 'passkey', 'mfa', 'register', null], default: null, },
+        lastActiveAt: { type: Date, default: Date.now },
+        revokedAt: { type: Date, default: null, },
     },
-    { _id: false }
+    { _id: true }
 );
 
 const userSchema = new Schema(
@@ -44,22 +51,19 @@ const userSchema = new Schema(
 
         twoFactor: {
             enabled: { type: Boolean, default: false },
-            methods: {
-                type: [{
-                    type: String,
-                    enum: ['email', 'totp', 'sms'],
-                }],
-                default: [],
-            },
+            methods: { type: [{ type: String, enum: ['email', 'totp', 'sms'], }], default: [], },
             totpSecret: { type: String, select: false },
             pendingMethod: { type: String, enum: ['email', 'totp', null], default: null },
             pendingTotpSecret: { type: String, select: false },
             emailOtpHash: { type: String, select: false },
             emailOtpExpiresAt: { type: Date, select: false },
+
             backupCodes: [{
                 codeHash: { type: String, select: false },
                 usedAt: { type: Date, default: null },
             }],
+            backupCodesRegenerationCount: { type: Number, default: 0, },
+            backupCodesRegeneratedAt: { type: Date, default: null, },
         },
         mfaFailedAttempts: { type: Number, default: 0 },
         mfaLockUntil: { type: Date, default: null },

@@ -6,6 +6,7 @@ const stripe = require('../utils/stripeClient');
 const paypal = require('../utils/paypalClient');
 const { generateQRTicket } = require('../utils/qr');
 const { sendTicketEmail } = require('../utils/mailer');
+const { createNotification } = require('../utils/notifications');
 
 async function getOwnedActiveHold(req, res) {
     const { holdId } = req.body;
@@ -52,6 +53,18 @@ async function finalizeOrder({ hold, userId, provider, reference, amount }) {
     });
 
     await hold.deleteOne();
+
+    const movieObj = await Movie.findById(showtime?.movie);
+    const seatStr = hold.seats ? hold.seats.join(', ') : '';
+    createNotification({
+        userId,
+        title: 'Ticket Purchase Confirmed!',
+        message: `Your booking for "${movieObj?.title || 'Movie'}" (Seats: ${seatStr}) has been confirmed. Total: $${Number(amount || 0).toFixed(2)}`,
+        type: 'purchase',
+        link: '/account/tickets',
+        metadata: { orderId: order._id, amount, seats: hold.seats },
+    });
+
     return order;
 }
 
@@ -154,6 +167,18 @@ async function confirmStripePayment(req, res, next) {
         }
 
         await sendTicketEmail(order.user.email, order, qrDataUrl);
+
+        const movieTitle = order.movie?.title || 'Movie';
+        const seatStr = order.seats ? order.seats.join(', ') : '';
+        createNotification({
+            userId: order.user._id,
+            title: 'Ticket Purchase Confirmed!',
+            message: `Your booking for "${movieTitle}" (Seats: ${seatStr}) has been confirmed. Total: $${Number(order.totalAmount || 0).toFixed(2)}`,
+            type: 'purchase',
+            link: '/account/tickets',
+            metadata: { orderId: order._id, amount: order.totalAmount, seats: order.seats },
+        });
+
         res.json({ order });
     } catch (err) {
         next(err);

@@ -44,7 +44,6 @@ export default function Checkout() {
         });
       }
     } catch (err) {
-      console.error("ORDER LOAD ERROR:", err);
       setLoadError(err.response?.data?.error || err.message || 'Failed to load order');
     } finally {
       setLoading(false);
@@ -79,11 +78,7 @@ export default function Checkout() {
         holdExpiresAt: data.hold.expiresAt
       }));
     } catch (err) {
-      setPayError(
-        err.response?.data?.error ||
-        err.message ||
-        'Failed to extend hold'
-      );
+      setPayError(err.response?.data?.error || err.message || 'Failed to extend hold');
     } finally {
       setExtending(false);
     }

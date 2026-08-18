@@ -6,9 +6,7 @@ export default function RequireGuest({ children }) {
 
     if (loading) return null;
 
-    if (user) {
-        return <Navigate to="/" replace />;
-    }
+    if (user) return <Navigate to="/" replace />;
 
     return children;
 }

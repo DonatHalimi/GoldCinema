@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import api from '../../api/client';
-import Disable2faModal from '../ui/Disable2faModal.jsx';
-import EnableEmail2faModal from '../ui/EnableEmail2faModal';
-import EnableTotpModal from '../ui/EnableTotpModal';
+import api from '../../../api/client.js';
+import Disable2faModal from '../../ui/Disable2faModal.jsx.jsx';
+import EnableEmail2faModal from '../../ui/EnableEmail2faModal.jsx';
+import EnableTotpModal from '../../ui/EnableTotpModal.jsx';
 import LoginAlertsSettings from './LoginAlertsSettings.jsx';
 import PasskeySettings from './PasskeySettings.jsx';
-import SecurityActivityCard from './SecurityActivityCard.jsx';
+import SecurityActivityCard from '../SecurityActivityCard.jsx';
 import TrustedDevicesSettings from './TrustedDeviceSettings.jsx';
 import TwoFactorSettings from './TwoFactorSettings';
-import BackupCodesCard from '../ui/BackupCodesCard.jsx';
-import SecurityLogExportCard from '../ui/SecurityLogExportCard.jsx';
+import BackupCodesCard from '../../ui/BackupCodesCard.jsx';
+import SecurityLogExportCard from '../../ui/SecurityLogExportCard.jsx';
 
 export default function SecuritySettings() {
     const [showEmailVerify, setShowEmailVerify] = useState(false);
@@ -43,40 +43,12 @@ export default function SecuritySettings() {
                     setLoginAlerts(userData.loginAlerts);
                 }
             } catch (err) {
-                console.error(err);
+                toast.error('Failed to load security status.');
             }
         };
 
         fetchSecurityStatus();
     }, []);
-
-    const handleToggleLoginAlerts = async () => {
-        try {
-            setAlertsLoading(true);
-            const newValue = !loginAlerts;
-
-            await api.put('/auth/security/login-alerts', { loginAlerts: newValue });
-
-            setLoginAlerts(newValue);
-            toast.success(newValue ? 'Login alerts enabled.' : 'Login alerts disabled.');
-        } catch (err) {
-            toast.error(err.response?.data?.error || 'Failed to update login alerts.');
-        } finally {
-            setAlertsLoading(false);
-        }
-    };
-
-    const enableEmail2FA = async () => {
-        try {
-            setLoading(true);
-            await api.post('/auth/2fa/email/enable');
-            setShowEmailVerify(true);
-        } catch (err) {
-            alert(err.response?.data?.error || err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handle2FASuccess = (method = 'email') => {
         setTwoFactor((prev) => ({
@@ -88,11 +60,6 @@ export default function SecuritySettings() {
 
         setShowEmailVerify(false);
         setShowTotpSetup(false);
-    };
-
-    const handleDisableClick = (method) => {
-        setDisableMethod(method);
-        setShowDisableModal(true);
     };
 
     const handle2FADisableSuccess = () => {
@@ -124,13 +91,13 @@ export default function SecuritySettings() {
             <div className="mt-6 space-y-5">
                 <TwoFactorSettings />
 
-                {/* <BackupCodesCard /> */}
+                <BackupCodesCard twoFactor={twoFactor} />
 
                 <PasskeySettings twoFactor={twoFactor} />
 
                 <SecurityActivityCard />
 
-                {/* <SecurityLogExportCard /> */}
+                <SecurityLogExportCard />
 
                 <TrustedDevicesSettings />
 

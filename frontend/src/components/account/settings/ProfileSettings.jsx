@@ -1,8 +1,8 @@
 import { BadgeAlert, BadgeCheck, Lock, Mail, Save, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import api from '../../api/client';
-import { Field, PasswordField } from '../ui/FormUI';
+import api from '../../../api/client';
+import { Field, PasswordField } from '../../ui/FormUI';
 
 export default function ProfileSettings() {
     const [loading, setLoading] = useState(true);
@@ -36,7 +36,6 @@ export default function ProfileSettings() {
                 emailVerified: userData.emailVerified || false,
             });
         } catch (error) {
-            console.error('Failed to load profile:', error);
             toast.error('Failed to load profile.');
         } finally {
             setLoading(false);
