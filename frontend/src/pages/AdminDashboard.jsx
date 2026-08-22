@@ -30,7 +30,7 @@ const MODULE_SECTIONS = [
                 fields: [
                     { name: 'name', label: 'Name' },
                     { name: 'email', label: 'Email', type: 'email' },
-                    { name: 'role', label: 'Role ID' }
+                    { name: 'role.name', label: 'Role' }
                 ]
             },
             {
@@ -84,8 +84,7 @@ const MODULE_SECTIONS = [
                                     year: 'numeric',
                                     month: 'short',
                                     day: 'numeric',
-                                })
-                                : '-',
+                                }) : '-',
                     },
                 ],
             },
@@ -171,12 +170,40 @@ const MODULE_SECTIONS = [
                 label: 'Orders',
                 icon: Receipt,
                 fields: [
-                    { name: 'user', label: 'User ID' },
-                    { name: 'movie', label: 'Movie ID' },
-                    { name: 'showtime', label: 'Showtime ID' },
-                    { name: 'totalAmount', label: 'Total Amount ($)', type: 'number' },
-                    { name: 'paymentStatus', label: 'Payment Status' },
-                    { name: 'paymentProvider', label: 'Payment Provider' }
+                    {
+                        name: 'user',
+                        label: 'User',
+                        format: (value) => value?.name || value?.fullName || '-',
+                    },
+                    {
+                        name: 'movie',
+                        label: 'Movie',
+                        format: (value) => value?.title || '-',
+                    },
+                    {
+                        name: 'showtime',
+                        label: 'Showtime',
+                        format: (value) =>
+                            value?.startTime
+                                ? new Date(value.startTime).toLocaleString('en-US', {
+                                    dateStyle: 'medium',
+                                    timeStyle: 'short',
+                                })
+                                : '-',
+                    },
+                    {
+                        name: 'totalAmount',
+                        label: 'Total Amount ($)',
+                        type: 'number',
+                    },
+                    {
+                        name: 'paymentStatus',
+                        label: 'Payment Status',
+                    },
+                    {
+                        name: 'paymentProvider',
+                        label: 'Payment Provider',
+                    },
                 ]
             }
         ]

@@ -94,6 +94,7 @@ const userSchema = new Schema(
             description: { type: String },
             createdAt: { type: Date, default: Date.now },
         }],
+        stripeCustomerId: { type: String, default: null },
     },
     { timestamps: true }
 );

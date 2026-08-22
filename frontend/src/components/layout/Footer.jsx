@@ -29,9 +29,9 @@ export const Footer = () => {
 
         quick: [
             { to: '/', label: 'Home' },
-            { to: '/movies', label: 'Movies' },
-            { to: '/my-tickets', label: 'My Tickets' },
-            { to: '/account', label: 'Account' },
+            { to: '/', label: 'Movies' },
+            { to: '/account/tickets', label: 'My Tickets' },
+            { to: '/account/profile', label: 'Account' },
         ],
 
         support: [

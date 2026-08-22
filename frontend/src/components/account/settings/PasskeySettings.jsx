@@ -68,7 +68,9 @@ export default function PasskeySettings() {
         <>
             <div className="rounded-xl border border-marquee-line bg-marquee-bg p-5">
                 <div className="flex items-start gap-3">
-                    <KeyRound className="h-6 w-6 shrink-0 text-marquee-gold" />
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-marquee-line/30 text-marquee-gold">
+                        <KeyRound className="h-5 w-5" />
+                    </div>
 
                     <div className="flex-1">
                         <div className="flex flex-wrap items-center gap-2">

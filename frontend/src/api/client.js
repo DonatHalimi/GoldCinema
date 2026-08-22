@@ -93,4 +93,34 @@ export async function bulkDeleteItems(resource, ids) {
   return data;
 }
 
+export async function toggleFavourite(itemType, itemId) {
+  const { data } = await api.post('/favourites/toggle', { itemType, itemId });
+  return data;
+}
+
+export async function getMyFavourites(type) {
+  const { data } = await api.get('/favourites/mine', { params: type ? { type } : {} });
+  return data;
+}
+
+export async function getPaymentMethods() {
+  const { data } = await api.get('/payments/methods');
+  return data;
+}
+
+export async function createSetupIntent() {
+  const { data } = await api.post('/payments/setup');
+  return data;
+}
+
+export async function setDefaultPaymentMethod(id) {
+  const { data } = await api.post(`/payments/methods/${id}/default`);
+  return data;
+}
+
+export async function deletePaymentMethod(id) {
+  const { data } = await api.delete(`/payments/methods/${id}`);
+  return data;
+}
+
 export default api;

@@ -1,7 +1,7 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
-import { Loader2 } from 'lucide-react';
 
 const AuthContext = createContext(null);
 
@@ -27,13 +27,7 @@ export function AuthProvider({ children }) {
     useEffect(() => {
         const handleForcedLogout = () => {
             setUser(null);
-
-            navigate('/login', {
-                replace: true,
-                state: {
-                    message: 'Your session has been revoked.',
-                },
-            });
+            navigate('/login', { replace: true, state: { message: 'Your session has been revoked.' } });
         };
 
         window.addEventListener('auth:logout', handleForcedLogout);

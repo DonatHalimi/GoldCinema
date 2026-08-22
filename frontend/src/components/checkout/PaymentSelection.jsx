@@ -9,10 +9,15 @@ export default function PaymentSection({
     onSuccess,
     onError,
     payError,
+    paymentMethods,
+    paymentMethodsLoading,
 }) {
     return (
         <div className="rounded-xl border border-marquee-line bg-marquee-panel p-6">
-            <PaymentTabs provider={provider} setProvider={setProvider} />
+            <PaymentTabs
+                provider={provider}
+                setProvider={setProvider}
+            />
 
             {payError && (
                 <p className="mb-4 rounded-md border border-marquee-marquee/40 bg-marquee-marquee/10 px-4 py-2 text-sm text-marquee-marquee">
@@ -25,6 +30,8 @@ export default function PaymentSection({
                     order={order}
                     onSuccess={onSuccess}
                     onError={onError}
+                    paymentMethods={paymentMethods}
+                    paymentMethodsLoading={paymentMethodsLoading}
                 />
             ) : (
                 <PaypalCheckout

@@ -1,9 +1,14 @@
 import { Check, ChevronLeft, ChevronRight, Pencil, Plus, Trash, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { bulkDeleteItems, deleteItem, getItems } from '../../api/client';
-import CrudModal from '../ui/CrudModal';
 import { toast } from 'react-toastify';
+import { bulkDeleteItems, deleteItem, getItems } from '../../api/client';
+import useEscapeKey from '../../hooks/useEscKey';
+import CrudModal from '../ui/CrudModal';
 import DeleteConfirmModal from '../ui/DeleteConfirmModal';
+
+const getNestedValue = (obj, path) => {
+    return path.split('.').reduce((value, key) => value?.[key], obj);
+};
 
 export default function ModuleDataGrid({ moduleConfig }) {
     const [data, setData] = useState([]);
@@ -18,15 +23,14 @@ export default function ModuleDataGrid({ moduleConfig }) {
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [deleting, setDeleting] = useState(false);
 
-    useEffect(() => {
-        const handleKeyDown = (e) => {
-            if (e.key === 'Escape' && deleteTarget && !deleting) {
+    useEscapeKey(
+        () => {
+            if (deleteTarget && !deleting) {
                 setDeleteTarget(null);
             }
-        };
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [deleteTarget, deleting]);
+        },
+        deleteTarget && !deleting
+    );
 
     const fetchModuleData = async () => {
         setLoading(true);
@@ -36,7 +40,14 @@ export default function ModuleDataGrid({ moduleConfig }) {
             setTotalPages(res.pages || 1);
             setSelectedIds([]);
         } catch (err) {
-            toast.error(`Error fetching ${moduleConfig.label}: ` + (err.response?.data?.message || err.message));
+            console.error('getItems ERROR:', err);
+            console.error('Error response:', err.response);
+            console.error('Error response data:', err.response?.data);
+
+            toast.error(
+                `Error fetching ${moduleConfig.label}: ` +
+                (err.response?.data?.message || err.message)
+            );
         } finally {
             setLoading(false);
         }
@@ -125,97 +136,94 @@ export default function ModuleDataGrid({ moduleConfig }) {
                     <p className="animate-pulse text-sm">Loading {moduleConfig.label} records...</p>
                 </div>
             ) : (
-                <div className="rounded-xl border border-zinc-800 bg-[#0b0b0b]/95 overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm text-zinc-200">
-                            <thead className="bg-black/60 border-b border-zinc-800 uppercase text-[11px] font-semibold text-marquee-cream tracking-wider">
-                                <tr>
-                                    <th className="px-4 py-4 w-12 text-center">
-                                        <button
-                                            type="button"
-                                            onClick={handleSelectAll}
-                                            aria-label="Select all rows"
-                                            className={`inline-flex h-4 w-4 items-center justify-center rounded border transition-all ${isAllSelected
-                                                ? 'bg-marquee-gold border-marquee-gold text-zinc-950 shadow-[0_0_8px_rgba(245,158,11,0.4)]'
-                                                : isSomeSelected ? 'bg-marquee-gold border-marquee-goldBright text-marquee-gold' : 'border-marquee-cream bg-black/30 hover:border-marquee-goldBright hover:text-marquee-gold'}`}>
-                                            {isAllSelected && <Check className="h-3 w-3 stroke-[3]" />}
-                                            {isSomeSelected && (
-                                                <span className="h-1.5 w-1.5 rounded-sm bg-marquee-gold"></span>
-                                            )}
-                                        </button>
+                <div className="overflow-hidden rounded-xl border border-marquee-line bg-marquee-panel shadow-[0_0_20px_-10px_rgba(230,199,115,0.175)]">                    <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm text-marquee-cream">
+                        <thead className="bg-black/60 border-b border-zinc-800 uppercase text-[11px] font-semibold text-marquee-cream tracking-wider">
+                            <tr>
+                                <th className="px-4 py-4 w-12 text-center">
+                                    <button
+                                        type="button"
+                                        onClick={handleSelectAll}
+                                        aria-label="Select all rows"
+                                        className={`inline-flex h-4 w-4 items-center justify-center rounded border border-marquee-gold transition-all ${isAllSelected
+                                            ? 'bg-marquee-gold border-marquee-gold text-zinc-950 shadow-[0_0_8px_rgba(245,158,11,0.4)]'
+                                            : isSomeSelected ? 'bg-marquee-gold border-marquee-goldBright text-marquee-gold' : 'border-marquee-cream bg-black/30 hover:border-marquee-goldBright hover:text-marquee-gold'}`}>
+                                        {isAllSelected && <Check className="h-3 w-3 stroke-[3]" />}
+                                        {isSomeSelected && (
+                                            <span className="h-1.5 w-1.5 rounded-sm bg-marquee-gold"></span>
+                                        )}
+                                    </button>
+                                </th>
+
+                                {fields.map((col) => (
+                                    <th key={col.name} className="px-6 py-4">
+                                        {col.label}
                                     </th>
+                                ))}
 
-                                    <th className="px-6 py-4">ID</th>
+                                <th className="px-6 py-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
 
-                                    {fields.map((col) => (
-                                        <th key={col.name} className="px-6 py-4">
-                                            {col.label}
-                                        </th>
-                                    ))}
-
-                                    <th className="px-6 py-4 text-right">Actions</th>
+                        <tbody className="divide-y divide-zinc-800">
+                            {data.length === 0 ? (
+                                <tr>
+                                    <td colSpan={fields.length + 3} className="px-6 py-8 text-center text-zinc-500">
+                                        No {moduleConfig.label.toLowerCase()} found.
+                                    </td>
                                 </tr>
-                            </thead>
+                            ) : (
+                                data.map((row) => {
+                                    const isSelected = selectedIds.includes(row._id);
 
-                            <tbody className="divide-y divide-zinc-800">
-                                {data.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={fields.length + 3} className="px-6 py-8 text-center text-zinc-500">
-                                            No {moduleConfig.label.toLowerCase()} found.
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    data.map((row) => {
-                                        const isSelected = selectedIds.includes(row._id);
+                                    return (
+                                        <tr key={row._id} className={`transition-colors ${isSelected ? 'bg-marquee-gold/10 hover:bg-marquee-gold/20' : 'hover:bg-zinc-800/50'}`}>
+                                            <td className="px-4 py-4 w-12 text-center">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleSelectRow(row._id)}
+                                                    aria-label={`Select row ${row._id}`}
+                                                    className={`inline-flex h-4 w-4 items-center justify-center rounded border transition-all ${isSelected
+                                                        ? 'bg-marquee-gold border-marquee-gold text-zinc-950 shadow-[0_0_8px_rgba(245,158,11,0.4)]'
+                                                        : 'border-marquee-goldBright bg-black/30 hover:border-marquee-gold'}`}>
+                                                    {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
+                                                </button>
+                                            </td>
 
-                                        return (
-                                            <tr key={row._id} className={`transition-colors ${isSelected ? 'bg-marquee-gold/10 hover:bg-marquee-gold/20' : 'hover:bg-zinc-800/50'}`}>
-                                                <td className="px-4 py-4 w-12 text-center">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleSelectRow(row._id)}
-                                                        aria-label={`Select row ${row._id}`}
-                                                        className={`inline-flex h-4 w-4 items-center justify-center rounded border transition-all ${isSelected
-                                                            ? 'bg-marquee-gold border-marquee-gold text-zinc-950 shadow-[0_0_8px_rgba(245,158,11,0.4)]'
-                                                            : 'border-marquee-goldBright bg-black/30 hover:border-marquee-gold'}`}>
-                                                        {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
-                                                    </button>
-                                                </td>
+                                            {fields.map((col) => {
+                                                const value = getNestedValue(row, col.name);
 
-                                                <td className="px-6 py-4 font-mono text-xs text-marquee-muted">
-                                                    {row._id}
-                                                </td>
-
-                                                {fields.map((col) => (
+                                                return (
                                                     <td key={col.name} className="px-6 py-4 text-zinc-100">
-                                                        {col.format ? col.format(row[col.name]) : String(row[col.name] ?? '-')}
+                                                        {col.format ? col.format(value) : String(value ?? '-')}
                                                     </td>
-                                                ))}
+                                                );
+                                            })}
 
-                                                <td className="px-6 py-4 text-right space-x-2">
-                                                    <button
-                                                        onClick={() => handleEdit(row)}
-                                                        title="Edit"
-                                                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-marquee-gold bg-marquee-gold/10 text-marquee-gold hover:bg-marquee-gold/20 hover:border-marquee-gold transition-all"
-                                                    >
-                                                        <Pencil className="h-4 w-4" />
-                                                    </button>
+                                            <td className="px-6 py-4 text-right space-x-2">
+                                                <button
+                                                    onClick={() => handleEdit(row)}
+                                                    title="Edit"
+                                                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-marquee-gold bg-marquee-gold/10 text-marquee-gold hover:bg-marquee-gold/20 hover:border-marquee-gold transition-all"
+                                                >
+                                                    <Pencil className="h-4 w-4" />
+                                                </button>
 
-                                                    <button
-                                                        onClick={() => setDeleteTarget(row._id)}
-                                                        title="Delete"
-                                                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all"
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                                <button
+                                                    onClick={() => setDeleteTarget(row._id)}
+                                                    title="Delete"
+                                                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
+                            )}
+                        </tbody>
+                    </table>
+                </div>
 
                     <div className="flex items-center justify-between border-t border-marquee-line bg-[#0d0c0a]/90 px-6 py-4 text-xs text-zinc-400">
                         <span>

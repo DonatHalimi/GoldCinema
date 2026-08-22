@@ -1,5 +1,5 @@
-import { Clock, Globe, Key, Shield, Wifi } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Clock, Globe, Key, Shield, Wifi } from 'lucide-react';
 import { formatSessionDate, timeAgo } from '../../../utils/sessionUtils';
 import SessionDeviceIcon from './SessionDeviceIcon';
 import SessionMethodBadge from './SessionMethodBadge';
@@ -23,17 +23,22 @@ export default function SessionCard({
     return (
         <motion.div
             layout
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{
+            initial={{
                 opacity: 0,
                 x: -20,
-                transition: { duration: 0.2 },
+            }}
+            animate={{
+                opacity: 1,
+                x: 0,
+            }}
+            exit={{
+                opacity: 0,
+                x: '-100vw',
+                scale: 0.95,
             }}
             transition={{
-                type: 'spring',
-                stiffness: 340,
-                damping: 28,
+                duration: 0.4,
+                ease: 'easeInOut',
             }}
             className={`relative flex flex-col gap-4 rounded-xl border p-4 transition-colors sm:flex-row sm:items-start sm:justify-between ${isCurrent
                 ? 'border-marquee-gold/35 bg-marquee-gold/5'

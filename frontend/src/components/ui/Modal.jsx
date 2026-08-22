@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
+import { useEffect } from 'react';
 import useEscapeKey from '../../hooks/useEscKey';
 
 export default function Modal({
@@ -20,6 +21,18 @@ export default function Modal({
         },
         isOpen && !closeDisabled
     );
+
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const originalOverflow = document.body.style.overflow;
+
+        document.body.style.overflow = 'hidden';
+
+        return () => {
+            document.body.style.overflow = originalOverflow;
+        };
+    }, [isOpen]);
 
     if (!isOpen) {
         return null;

@@ -107,8 +107,8 @@ router.get('/mine', requireAuth, async (req, res, next) => {
         await releaseExpiredHolds();
 
         const orders = await Order.find({ user: req.user.id })
-            .populate('movie')
-            .populate('showtime')
+            .populate('movie', 'title poster')
+            .populate('showtime', 'startTime endTime')
             .sort({ createdAt: -1 });
 
         const enriched = orders.map((order) => ({

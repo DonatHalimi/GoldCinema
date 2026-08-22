@@ -10,4 +10,5 @@ module.exports = {
     Order: require('./order'),
     LoginAttempt: require('./loginAttempt'),
     Notification: require('./notification'),
+    Favourite: require('./favourite'),
 };

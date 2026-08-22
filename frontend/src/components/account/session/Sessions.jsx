@@ -92,7 +92,7 @@ export default function Sessions() {
 
             <p className="mt-2 text-sm text-marquee-muted">
                 Every device or browser that's currently signed into
-                your account. Revoke any session you don't recognise.
+                your account. Revoke any session you don't recognise
             </p>
 
             {!loading && (

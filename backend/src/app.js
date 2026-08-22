@@ -15,6 +15,7 @@ const slideshowRoutes = require('./routes/slideshow');
 const passkeyRoutes = require('./routes/passkey');
 const contactRoutes = require('./routes/contact');
 const notificationRoutes = require('./routes/notifications');
+const favouriteRoutes = require('./routes/favourites');
 
 const errorHandler = require('./middleware/errorHandler');
 
@@ -79,6 +80,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/slideshows', slideshowRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/favourites', favouriteRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found.' });

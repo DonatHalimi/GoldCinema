@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion';
 import {
     Bell,
+    CreditCard,
+    Heart,
     Monitor,
     Shield,
     Ticket,
@@ -19,6 +21,16 @@ const items = [
         id: 'tickets',
         label: 'Tickets',
         icon: Ticket,
+    },
+    {
+        id: 'favourites',
+        label: 'Favourites',
+        icon: Heart,
+    },
+    {
+        id: 'payments',
+        label: 'Payment Methods',
+        icon: CreditCard,
     },
     {
         id: 'security',

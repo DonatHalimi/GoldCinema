@@ -1,5 +1,5 @@
-import { Laptop } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Laptop } from 'lucide-react';
 
 export default function SessionEmptyState() {
     return (

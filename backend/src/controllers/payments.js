@@ -2,11 +2,12 @@ const SeatHold = require('../models/seatHold');
 const Showtime = require('../models/showtime');
 const Movie = require('../models/movie');
 const Order = require('../models/order');
+const User = require('../models/user');
 const stripe = require('../utils/stripeClient');
 const paypal = require('../utils/paypalClient');
 const { generateQRTicket } = require('../utils/qr');
 const { sendTicketEmail } = require('../utils/mailer');
-const { createNotification } = require('../utils/notifications');
+const { getOrCreateStripeCustomer } = require('./paymentMethods');
 
 async function getOwnedActiveHold(req, res) {
     const { holdId } = req.body;
@@ -53,18 +54,6 @@ async function finalizeOrder({ hold, userId, provider, reference, amount }) {
     });
 
     await hold.deleteOne();
-
-    const movieObj = await Movie.findById(showtime?.movie);
-    const seatStr = hold.seats ? hold.seats.join(', ') : '';
-    createNotification({
-        userId,
-        title: 'Ticket Purchase Confirmed!',
-        message: `Your booking for "${movieObj?.title || 'Movie'}" (Seats: ${seatStr}) has been confirmed. Total: $${Number(amount || 0).toFixed(2)}`,
-        type: 'purchase',
-        link: '/account/tickets',
-        metadata: { orderId: order._id, amount, seats: hold.seats },
-    });
-
     return order;
 }
 
@@ -76,38 +65,106 @@ async function computeAmount(hold) {
 
 async function createStripeIntent(req, res, next) {
     try {
-        const { orderId } = req.body;
+        const { orderId, paymentMethodId } = req.body;
+
         const order = await Order.findById(orderId);
 
         if (!order || order.user.toString() !== req.user.id) {
-            return res.status(404).json({ error: 'Order not found.' });
+            return res.status(404).json({
+                error: 'Order not found.',
+            });
         }
 
         if (order.paymentStatus === 'paid') {
-            return res.status(400).json({ error: 'Order already paid.' });
+            return res.status(400).json({
+                error: 'Order already paid.',
+            });
         }
+
+        const user = await User.findById(req.user.id);
+        const customerId = await getOrCreateStripeCustomer(user);
+
+        let intent;
 
         if (order.stripePaymentIntentId) {
-            const existingIntent = await stripe.paymentIntents.retrieve(order.stripePaymentIntentId);
-            return res.json({ clientSecret: existingIntent.client_secret });
+            intent = await stripe.paymentIntents.retrieve(
+                order.stripePaymentIntentId
+            );
+
+            if (paymentMethodId) {
+                const paymentMethod =
+                    await stripe.paymentMethods.retrieve(
+                        paymentMethodId
+                    );
+
+                if (
+                    paymentMethod.customer &&
+                    paymentMethod.customer.toString() !==
+                    customerId.toString()
+                ) {
+                    return res.status(403).json({
+                        error:
+                            'Payment method does not belong to your account.',
+                    });
+                }
+
+                intent = await stripe.paymentIntents.update(
+                    intent.id,
+                    {
+                        payment_method: paymentMethodId,
+                    }
+                );
+            }
+        } else {
+            const intentParams = {
+                amount: Math.round(
+                    order.totalAmount * 100
+                ),
+                currency:
+                    order.currency?.toLowerCase() || 'usd',
+                customer: customerId,
+                metadata: {
+                    orderId: order._id.toString(),
+                    userId: req.user.id,
+                },
+            };
+
+            if (paymentMethodId) {
+                const paymentMethod =
+                    await stripe.paymentMethods.retrieve(
+                        paymentMethodId
+                    );
+
+                if (
+                    paymentMethod.customer &&
+                    paymentMethod.customer.toString() !==
+                    customerId.toString()
+                ) {
+                    return res.status(403).json({
+                        error:
+                            'Payment method does not belong to your account.',
+                    });
+                }
+
+                intentParams.payment_method =
+                    paymentMethodId;
+            } else {
+                intentParams.automatic_payment_methods = {
+                    enabled: true,
+                };
+            }
+
+            intent = await stripe.paymentIntents.create(
+                intentParams
+            );
+
+            order.stripePaymentIntentId = intent.id;
+            await order.save();
         }
 
-        const intent = await stripe.paymentIntents.create({
-            amount: Math.round(order.totalAmount * 100),
-            currency: order.currency?.toLowerCase() || 'usd',
-            metadata: {
-                orderId: order._id.toString(),
-                userId: req.user.id,
-            },
-            automatic_payment_methods: {
-                enabled: true,
-            },
+        res.json({
+            clientSecret: intent.client_secret,
         });
-
-        order.stripePaymentIntentId = intent.id;
-        await order.save();
-
-        res.json({ clientSecret: intent.client_secret });
     } catch (err) {
         next(err);
     }
@@ -167,18 +224,6 @@ async function confirmStripePayment(req, res, next) {
         }
 
         await sendTicketEmail(order.user.email, order, qrDataUrl);
-
-        const movieTitle = order.movie?.title || 'Movie';
-        const seatStr = order.seats ? order.seats.join(', ') : '';
-        createNotification({
-            userId: order.user._id,
-            title: 'Ticket Purchase Confirmed!',
-            message: `Your booking for "${movieTitle}" (Seats: ${seatStr}) has been confirmed. Total: $${Number(order.totalAmount || 0).toFixed(2)}`,
-            type: 'purchase',
-            link: '/account/tickets',
-            metadata: { orderId: order._id, amount: order.totalAmount, seats: order.seats },
-        });
-
         res.json({ order });
     } catch (err) {
         next(err);

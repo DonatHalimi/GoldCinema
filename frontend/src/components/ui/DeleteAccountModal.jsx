@@ -4,9 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
+import ConfirmationInput from '../account/ConfirmInput';
 import { PasswordField } from './FormUI';
 import Modal from './Modal';
-import ConfirmationInput from '../account/ConfirmInput';
 
 export default function DeleteAccountModal({ onClose }) {
     const [password, setPassword] = useState('');

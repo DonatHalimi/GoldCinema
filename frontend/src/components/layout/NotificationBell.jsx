@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { Bell, CheckCheck, ChevronRight, Key, Shield, Ticket, Tag } from 'lucide-react';
+import { Bell, CheckCheck, ChevronRight, Shield, Tag, Ticket } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useNotifications } from '../../context/NotificationContext';

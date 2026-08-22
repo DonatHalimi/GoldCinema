@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNotifications } from '../../../context/NotificationContext';
+import DeleteNotificationModal from '../../notifications/DeleteNotificationModal';
 import NotificationHeader from '../../notifications/NotificationHeader';
-import NotificationToolbar from '../../notifications/NotificationToolbar';
 import NotificationList from '../../notifications/NotificationList';
 import NotificationPagination from '../../notifications/NotificationPagination';
-import DeleteNotificationModal from '../../notifications/DeleteNotificationModal';
+import NotificationToolbar from '../../notifications/NotificationToolbar';
 
 export default function Notifications() {
     const {

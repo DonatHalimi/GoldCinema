@@ -30,16 +30,24 @@ const registerAdminResource = (path, Model, populateOpts = '') => {
     router.delete(`/${path}`, deleteMany(Model));
 };
 
-registerAdminResource('users', User, 'role');
+registerAdminResource('users', User, {
+    path: 'role',
+    select: 'name',
+});
 registerAdminResource('roles', Role);
 registerAdminResource('movies', Movie);
 registerAdminResource('cinemas', Cinema);
-registerAdminResource('screens', Screen, 'cinema');
+registerAdminResource('screens', Screen);
 registerAdminResource('seats', Seat, 'screen');
 registerAdminResource('showtimes', Showtime, 'movie screen');
 registerAdminResource('seatholds', SeatHold, 'showtime user');
 registerAdminResource('snacks', Snack);
-registerAdminResource('orders', Order, 'user showtime snacks.snack');
+registerAdminResource('orders', Order, [
+    { path: 'user', select: 'name fullName' },
+    { path: 'movie', select: 'title posterUrl' },
+    { path: 'showtime', select: 'startTime' },
+    { path: 'snacks.snack' },
+]);
 registerAdminResource('contacts', Contact, 'user');
 
 module.exports = router;

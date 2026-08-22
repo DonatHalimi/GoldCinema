@@ -1,33 +1,37 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-import Home from '../../pages/Home';
-import MovieDetail from '../../pages/MovieDetail';
-import SeatSelection from '../../pages/SeatSelection';
-import Login from '../../pages/Login';
-import Register from '../../pages/Register';
-import VerifyEmail from '../../pages/VerifyEmail';
-import ResetPassword from '../../pages/ResetPassword';
-import Checkout from '../../pages/Checkout';
-import Confirmation from '../../pages/Confirmation';
-import Account from '../../pages/Account';
-import NotFound from '../../pages/NotFound';
-import RequireAuth from '../guards/RequireAuth';
-import RequireGuest from '../guards/RequireGuest';
-import RequireAdmin from '../guards/RequireAdmin';
-import ProfileSettings from '../../components/account/settings/ProfileSettings';
-import SecuritySettings from '../../components/account/settings/SecuritySettings';
+import DangerZone from '../../components/account/content/DangerZone';
 import Notifications from '../../components/account/content/Notifications';
 import TicketsContent from '../../components/account/content/TicketContent';
 import Sessions from '../../components/account/session/Sessions';
-import DangerZone from '../../components/account/content/DangerZone';
-import ContactPage from '../../pages/Contact';
+import ProfileSettings from '../../components/account/settings/ProfileSettings';
+import SecuritySettings from '../../components/account/settings/SecuritySettings';
+import Account from '../../pages/Account';
 import AdminDashboard from '../../pages/AdminDashboard';
+import Checkout from '../../pages/Checkout';
+import Cinema from '../../pages/Cinema';
+import Confirmation from '../../pages/Confirmation';
+import ContactPage from '../../pages/Contact';
+import Favourites from '../../pages/Favourites';
+import Home from '../../pages/Home';
+import Login from '../../pages/Login';
+import MovieDetails from '../../pages/MovieDetails';
+import NotFound from '../../pages/NotFound';
+import Register from '../../pages/Register';
+import ResetPassword from '../../pages/ResetPassword';
+import SeatSelection from '../../pages/SeatSelection';
+import VerifyEmail from '../../pages/VerifyEmail';
+import RequireAdmin from '../guards/RequireAdmin';
+import RequireAuth from '../guards/RequireAuth';
+import RequireGuest from '../guards/RequireGuest';
+import PaymentMethods from '../PaymentMethods';
 
 export default function AppRoutes() {
     return (
         <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/movies/:id" element={<MovieDetail />} />
+            <Route path="/movies/:id" element={<MovieDetails />} />
             <Route path="/showtimes/:id" element={<SeatSelection />} />
+            <Route path="/cinemas/:id" element={<Cinema />} />
 
             <Route
                 path="/login"
@@ -93,6 +97,8 @@ export default function AppRoutes() {
                 <Route path="security" element={<SecuritySettings />} />
                 <Route path="notifications" element={<Notifications />} />
                 <Route path="tickets" element={<TicketsContent />} />
+                <Route path="favourites" element={<Favourites />} />
+                <Route path="payments" element={<PaymentMethods />} />
                 <Route path="sessions" element={<Sessions />} />
                 <Route path="danger" element={<DangerZone />} />
             </Route>

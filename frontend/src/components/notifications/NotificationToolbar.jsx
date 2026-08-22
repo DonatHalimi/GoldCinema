@@ -1,8 +1,8 @@
 import {
     Archive,
+    ArchiveRestore,
     CheckCheck,
     Trash2,
-    ArchiveRestore,
 } from 'lucide-react';
 import { useState } from 'react';
 import DeleteNotificationModal from './DeleteNotificationModal';

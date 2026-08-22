@@ -33,7 +33,10 @@ export default function TrustedDevicesSettings() {
     return (
         <div className="rounded-xl border border-marquee-line bg-marquee-bg p-5">
             <div className="flex items-center gap-3">
-                <Laptop className="h-6 w-6 text-marquee-gold" />
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-marquee-line/30 text-marquee-gold">
+                    <Laptop className="h-5 w-5" />
+                </div>
+
                 <div>
                     <h3 className="font-semibold text-marquee-cream">Trusted Devices</h3>
                     <p className="text-sm text-marquee-muted">

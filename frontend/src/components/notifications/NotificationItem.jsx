@@ -8,7 +8,7 @@ import {
     Trash2,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { getTypeIcon, formatDate } from '../../utils/notificationHelpers';
+import { formatDate, getTypeIcon } from '../../utils/notificationHelpers';
 
 export default function NotificationItem({
     notification,

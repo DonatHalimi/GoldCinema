@@ -2,11 +2,10 @@ const QRCode = require('qrcode');
 
 const generateQRTicket = async (ticketPayload) => {
     try {
-        const compactPayload = JSON.stringify({
-            orderId: ticketPayload.orderId,
-            userId: ticketPayload.userId,
-            seats: ticketPayload.seats,
-        });
+        const compactPayload = JSON.stringify([
+            ticketPayload.orderId,
+            ticketPayload.seats,
+        ]);
 
         const dataUrl = await QRCode.toDataURL(compactPayload, {
             errorCorrectionLevel: 'L',

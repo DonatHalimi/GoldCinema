@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import api from '../../../api/client.js';
+import BackupCodesCard from '../../ui/BackupCodesCard.jsx';
 import Disable2faModal from '../../ui/Disable2faModal.jsx.jsx';
 import EnableEmail2faModal from '../../ui/EnableEmail2faModal.jsx';
 import EnableTotpModal from '../../ui/EnableTotpModal.jsx';
+import SecurityLogExportCard from '../../ui/SecurityLogExportCard.jsx';
+import SecurityActivityCard from '../SecurityActivityCard.jsx';
 import LoginAlertsSettings from './LoginAlertsSettings.jsx';
 import PasskeySettings from './PasskeySettings.jsx';
-import SecurityActivityCard from '../SecurityActivityCard.jsx';
 import TrustedDevicesSettings from './TrustedDeviceSettings.jsx';
 import TwoFactorSettings from './TwoFactorSettings';
-import BackupCodesCard from '../../ui/BackupCodesCard.jsx';
-import SecurityLogExportCard from '../../ui/SecurityLogExportCard.jsx';
 
 export default function SecuritySettings() {
     const [showEmailVerify, setShowEmailVerify] = useState(false);
@@ -24,8 +24,6 @@ export default function SecuritySettings() {
     });
 
     const [loginAlerts, setLoginAlerts] = useState(true);
-    const [loading, setLoading] = useState(false);
-    const [alertsLoading, setAlertsLoading] = useState(false);
 
     useEffect(() => {
         const fetchSecurityStatus = async () => {

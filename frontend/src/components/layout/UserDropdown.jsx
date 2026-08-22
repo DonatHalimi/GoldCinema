@@ -1,5 +1,12 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { Bell, ChevronDown, LayoutDashboard, LogOut, Ticket, User2 } from 'lucide-react';
+import {
+    ChevronDown,
+    Heart,
+    LayoutDashboard,
+    LogOut,
+    Ticket,
+    User2
+} from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -104,12 +111,12 @@ export default function UserDropdown() {
                             </Link>
 
                             <Link
-                                to="/account/notifications"
+                                to="/account/favourites"
                                 onClick={() => setOpen(false)}
                                 className="flex items-center gap-3 px-4 py-3 text-sm text-marquee-muted transition hover:bg-marquee-panel2 hover:text-marquee-gold"
                             >
-                                <Bell size={18} />
-                                Notifications
+                                <Heart size={18} />
+                                Favourites
                             </Link>
 
                             <button
