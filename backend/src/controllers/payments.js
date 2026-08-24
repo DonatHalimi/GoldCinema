@@ -8,6 +8,7 @@ const paypal = require('../utils/paypalClient');
 const { generateQRTicket } = require('../utils/qr');
 const { sendTicketEmail } = require('../utils/mailer');
 const { getOrCreateStripeCustomer } = require('./paymentMethods');
+const { notifyPurchase } = require('../utils/notifications');
 
 async function getOwnedActiveHold(req, res) {
     const { holdId } = req.body;
@@ -218,6 +219,14 @@ async function confirmStripePayment(req, res, next) {
         order.paymentProvider = 'stripe';
         order.paidAt = now;
         await order.save();
+
+        await notifyPurchase({
+            userId: order.user,
+            orderId: order._id,
+            movieTitle: order.movie?.title || 'Movie',
+            seats: order.seats || [],
+            amount: order.totalAmount || 0,
+        });
 
         if (order.holdId) {
             await SeatHold.findByIdAndDelete(order.holdId);

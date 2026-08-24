@@ -3,10 +3,8 @@ import { loadStripe } from '@stripe/stripe-js';
 import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import { createSetupIntent } from '../api/client';
+import { createSetupIntent } from '../../api/client';
 
-// Reuses the same publishable key as the rest of checkout — no second
-// Stripe configuration is introduced.
 const stripePromise = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
     ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
     : null;
@@ -46,9 +44,7 @@ function AddCardForm({ onSuccess, onClose }) {
         setCardError('');
 
         const { error, setupIntent } = await stripe.confirmCardSetup(clientSecret, {
-            payment_method: {
-                card: elements.getElement(CardElement),
-            },
+            payment_method: { card: elements.getElement(CardElement), },
         });
 
         if (error) {

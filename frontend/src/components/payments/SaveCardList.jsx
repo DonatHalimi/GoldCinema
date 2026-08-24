@@ -7,7 +7,7 @@ import {
 import { loadStripe } from '@stripe/stripe-js';
 import { CreditCard } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import api, { getPaymentMethods } from '../api/client';
+import api, { getPaymentMethods } from '../../api/client';
 
 const stripePromise = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
     ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)

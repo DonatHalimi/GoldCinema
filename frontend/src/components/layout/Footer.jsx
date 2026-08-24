@@ -151,7 +151,7 @@ export const Footer = () => {
                             Need help with your booking? We're here to assist.
                         </p>
 
-                        <div className="space-y-3">
+                        <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
                             {footerLinks.contact.map(
                                 ({ linkType, href, to, icon, label }) =>
                                     linkType === 'external' ? (

@@ -20,6 +20,7 @@ const SeatHold = require('../models/seatHold');
 const Snack = require('../models/snack');
 const Order = require('../models/order');
 const Contact = require('../models/contact');
+const { Review } = require('../models');
 
 const registerAdminResource = (path, Model, populateOpts = '') => {
     router.get(`/${path}`, getAll(Model, populateOpts));
@@ -49,5 +50,6 @@ registerAdminResource('orders', Order, [
     { path: 'snacks.snack' },
 ]);
 registerAdminResource('contacts', Contact, 'user');
+registerAdminResource('reviews', Review, 'user movie');
 
 module.exports = router;

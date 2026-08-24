@@ -47,7 +47,7 @@ async function notifyPurchase({ userId, orderId, movieTitle = 'Movie', seats = [
 
     return createNotification({
         userId,
-        title: 'Ticket Purchase Confirmed!',
+        title: 'Ticket Purchase Confirmed',
         message: `Your booking for "${movieTitle}" (Seats: ${seatStr}) has been confirmed. Total: $${formattedAmount}`,
         type: 'purchase',
         link: '/account/tickets',

@@ -84,7 +84,7 @@ export default function MyFavourites() {
                 {error && <p className="text-red-400">{error}</p>}
 
                 {!loading && !error && list.length === 0 && (
-                    <div className="rounded-xl border border-dashed border-marquee-line bg-marquee-bg/50 p-12 text-center">
+                    <div className="rounded-xl border border-dashed border-marquee-line bg-marquee-bg p-12 text-center">
                         {tab === 'movies' ? (
                             <Film size={36} className="mx-auto mb-4 text-marquee-goldDim" strokeWidth={1.2} />
                         ) : (
@@ -125,7 +125,7 @@ export default function MyFavourites() {
                                         duration: 0.4,
                                         ease: 'easeInOut',
                                     }}
-                                    className="flex items-center gap-4 rounded-lg border border-marquee-line bg-marquee-panel p-4"
+                                    className="flex items-center gap-4 rounded-lg border border-marquee-line bg-marquee-bg p-4"
                                 >
                                     {tab === 'movies' ? (
                                         <>

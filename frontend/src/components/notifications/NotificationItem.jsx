@@ -50,7 +50,7 @@ export default function NotificationItem({
             }}
             className={`group flex flex-col justify-between gap-4 rounded-xl border p-4 shadow-lg transition-colors duration-200 hover:-translate-y-0.5 sm:flex-row sm:items-center ${!read && !archived
                 ? 'border-marquee-gold/50 bg-marquee-gold/5 hover:border-marquee-gold'
-                : 'border-marquee-line bg-marquee-panel hover:border-marquee-gold'
+                : 'border-marquee-line bg-marquee-bg hover:border-marquee-gold'
                 }`}
         >
             <div className="flex min-w-0 items-start gap-3">

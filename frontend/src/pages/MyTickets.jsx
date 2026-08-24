@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import TicketContent from '../components/account/TicketContent';
+import TicketContent from '../components/account/content/TicketContent';
 import TicketSidebar from '../components/tickets/TicketSidebar';
 
 export default function MyTickets() {

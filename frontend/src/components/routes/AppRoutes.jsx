@@ -23,7 +23,7 @@ import VerifyEmail from '../../pages/VerifyEmail';
 import RequireAdmin from '../guards/RequireAdmin';
 import RequireAuth from '../guards/RequireAuth';
 import RequireGuest from '../guards/RequireGuest';
-import PaymentMethods from '../PaymentMethods';
+import PaymentMethods from '../payments/PaymentMethods';
 
 export default function AppRoutes() {
     return (

@@ -11,4 +11,5 @@ module.exports = {
     LoginAttempt: require('./loginAttempt'),
     Notification: require('./notification'),
     Favourite: require('./favourite'),
+    Review: require('./review')
 };

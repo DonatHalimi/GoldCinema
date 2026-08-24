@@ -8,6 +8,8 @@ import { loadStripe } from '@stripe/stripe-js';
 import { CreditCard, Star } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import api from '../../api/client';
+import { Plus } from 'lucide-react';
+import AddPaymentMethodModal from '../payments/AddPaymentMethodModal';
 
 const stripePromise = loadStripe(
   import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
@@ -37,7 +39,10 @@ function SavedPaymentMethods({
   selectedPaymentMethod,
   setSelectedPaymentMethod,
   paymentMethodsLoading,
+  onPaymentMethodAdded,
 }) {
+  const [isAddOpen, setIsAddOpen] = useState(false);
+
   if (paymentMethodsLoading) {
     return (
       <div className="mb-6 rounded-lg border border-marquee-line bg-marquee-panel2 p-4">
@@ -49,7 +54,39 @@ function SavedPaymentMethods({
   }
 
   if (!methods.length) {
-    return null;
+    return (
+      <div className="mb-6 rounded-xl border border-dashed border-marquee-line bg-marquee-panel2 p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-marquee-cream">
+              No saved payment methods
+            </p>
+
+            <p className="mt-1 text-xs text-marquee-muted">
+              You can enter a new card below or save a card for faster checkout next time
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsAddOpen(true)}
+            className="flex shrink-0 items-center gap-2 rounded-full bg-marquee-gold px-4 py-2 text-xs font-semibold text-marquee-bg transition hover:bg-marquee-goldBright"
+          >
+            <Plus className="h-4 w-4" />
+            Add card
+          </button>
+        </div>
+
+        <AddPaymentMethodModal
+          isOpen={isAddOpen}
+          onClose={() => setIsAddOpen(false)}
+          onAdded={() => {
+            setIsAddOpen(false);
+            onPaymentMethodAdded?.();
+          }}
+        />
+      </div>
+    );
   }
 
   return (
@@ -60,7 +97,7 @@ function SavedPaymentMethods({
         </p>
 
         <p className="mt-1 text-xs text-marquee-muted">
-          Select a saved card or use a new card below.
+          Select a saved card or use a new card below
         </p>
       </div>
 
@@ -305,6 +342,7 @@ export default function StripeCheckout({
   onError,
   paymentMethods = [],
   paymentMethodsLoading = false,
+  onPaymentMethodAdded,
 }) {
   const [clientSecret, setClientSecret] = useState(null);
   const [loadError, setLoadError] = useState('');
@@ -388,6 +426,7 @@ export default function StripeCheckout({
         selectedPaymentMethod={selectedPaymentMethod}
         setSelectedPaymentMethod={setSelectedPaymentMethod}
         paymentMethodsLoading={paymentMethodsLoading}
+        onPaymentMethodAdded={onPaymentMethodAdded}
       />
 
       <Elements

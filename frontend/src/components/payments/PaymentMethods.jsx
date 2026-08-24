@@ -6,9 +6,9 @@ import {
     deletePaymentMethod,
     getPaymentMethods,
     setDefaultPaymentMethod,
-} from '../api/client';
-import AddPaymentMethodModal from './AddPaymentMethodModal';
-import ConfirmDialog from './PaymentConfirmDialog';
+} from '../../api/client';
+import AddPaymentMethodModal from '../payments/AddPaymentMethodModal';
+import RemovePaymentMethodModal from '../payments/RemovePaymentMethodModal';
 
 const BRAND_LABELS = {
     visa: 'Visa',
@@ -123,7 +123,7 @@ export default function PaymentMethods() {
             )}
 
             {!loading && !error && methods.length === 0 && (
-                <div className="rounded-xl border border-dashed border-marquee-line p-10 text-center">
+                <div className="rounded-xl border border-dashed border-marquee-line bg-marquee-bg p-10 text-center">
                     <CreditCard className="mx-auto mb-3 h-8 w-8 text-marquee-goldDim" />
                     <p className="font-serif text-lg text-marquee-cream">No saved payment methods</p>
                     <p className="mx-auto mt-1 max-w-sm text-sm text-marquee-muted">
@@ -150,8 +150,8 @@ export default function PaymentMethods() {
                                 exit={{ opacity: 0, x: -20 }}
                                 transition={{ duration: 0.2 }}
                                 className={`rounded-xl border p-5 transition-colors ${method.isDefault
-                                    ? 'border-marquee-gold/50 bg-marquee-panel'
-                                    : 'border-marquee-line bg-marquee-panel hover:border-marquee-line/80'
+                                    ? 'border-marquee-gold/50 bg-marquee-bg'
+                                    : 'border-marquee-line bg-marquee-bq hover:border-marquee-line/80'
                                     }`}
                             >
                                 <div className="flex items-start justify-between">
@@ -209,7 +209,7 @@ export default function PaymentMethods() {
                 }}
             />
 
-            <ConfirmDialog
+            <RemovePaymentMethodModal
                 isOpen={Boolean(removeTarget)}
                 title="Remove payment method?"
                 description={
@@ -219,6 +219,7 @@ export default function PaymentMethods() {
                 }
                 confirmLabel="Remove"
                 isSubmitting={removing}
+                confirmationText="REMOVE"
                 onConfirm={confirmRemove}
                 onClose={() => !removing && setRemoveTarget(null)}
             />
