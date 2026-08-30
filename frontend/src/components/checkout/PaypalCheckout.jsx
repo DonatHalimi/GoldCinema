@@ -1,5 +1,5 @@
 import { PayPalButtons, PayPalScriptProvider } from '@paypal/react-paypal-js';
-import api from '../../api/client';
+import { confirmPaypalPayment, createPaypalOrder } from '../../api/payments';
 
 const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID;
 
@@ -19,17 +19,12 @@ export default function PaypalCheckout({ booking, onSuccess, onError }) {
         style={{ layout: 'vertical', color: 'gold', shape: 'pill', label: 'pay' }}
         createOrder={async () => {
           onError('');
-          const { data } = await api.post('/payments/paypal/create-order', {
-            bookingId: booking.id,
-          });
+          const { data } = await createPaypalOrder(booking.id);
           return data.orderID;
         }}
         onApprove={async (data) => {
           try {
-            const { data: result } = await api.post('/payments/paypal/capture-order', {
-              bookingId: booking.id,
-              orderID: data.orderID,
-            });
+            const { data: result } = await confirmPaypalPayment(booking.id, data.orderID);
             onSuccess(result.booking);
           } catch (err) {
             onError(err.message);

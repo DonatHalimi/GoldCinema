@@ -2,8 +2,7 @@ import { ArrowLeft, Film, MapPin, MonitorPlay } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
-
-import { getItemById } from '../api/client';
+import { getItemById } from '../api/admin';
 import FavouriteButton from '../components/FavouriteButton';
 
 export default function Cinema() {
@@ -63,7 +62,6 @@ export default function Cinema() {
 
     return (
         <main className="min-h-screen bg-marquee-bg text-marquee-cream">
-            {/* Hero */}
             <section className="relative overflow-hidden border-b border-marquee-line">
                 <div className="absolute inset-0 bg-gradient-to-br from-marquee-panel2 via-marquee-bg to-black" />
 
@@ -133,10 +131,8 @@ export default function Cinema() {
                 </div>
             </section>
 
-            {/* Content */}
             <section className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
                 <div className="grid gap-6 md:grid-cols-2">
-                    {/* Cinema types */}
                     <div className="rounded-xl border border-marquee-line bg-marquee-panel p-6">
                         <div className="mb-5 flex items-center gap-3">
                             <Film
@@ -167,7 +163,6 @@ export default function Cinema() {
                         )}
                     </div>
 
-                    {/* Features */}
                     <div className="rounded-xl border border-marquee-line bg-marquee-panel p-6">
                         <div className="mb-5 flex items-center gap-3">
                             <MonitorPlay
@@ -199,7 +194,6 @@ export default function Cinema() {
                     </div>
                 </div>
 
-                {/* Screens */}
                 <div className="mt-6 rounded-xl border border-marquee-line bg-marquee-panel p-6">
                     <div className="mb-6 flex items-center justify-between">
                         <div>

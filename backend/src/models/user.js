@@ -41,6 +41,7 @@ const userSchema = new Schema(
         failedLoginAttempts: { type: Number, default: 0 },
         lockUntil: { type: Date, default: null },
         lockStage: { type: Number, default: 0 },
+        tokensInvalidatedAt: { type: Date, default: null },
 
         isActive: { type: Boolean, default: true },
         deletedAt: { type: Date, default: null },

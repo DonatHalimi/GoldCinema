@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useEffect } from 'react';
-import useEscapeKey from '../../hooks/useEscKey';
+import useEscapeKey from '../../../hooks/useEscKey';
 
 export default function Modal({
     isOpen,

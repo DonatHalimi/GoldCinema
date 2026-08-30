@@ -104,15 +104,28 @@ async function updateReview(req, res, next) {
         const { rating, comment } = req.body;
 
         const review = await Review.findById(reviewId);
-        if (!review) return res.status(404).json({ error: 'Review not found.' });
-        if (review.user.toString() !== req.user.id) return res.status(403).json({ error: 'You can only edit your own reviews.' });
+
+        if (!review) return res.status(404).json({ error: 'Review not found.', });
+
+        if (review.user.toString() !== req.user.id) return res.status(403).json({ error: 'You can only edit your own reviews.', });
 
         if (rating !== undefined) review.rating = rating;
         if (comment !== undefined) review.comment = comment;
+
         await review.save();
 
         await recalculateMovieRating(review.movie);
-        await review.populate('user', 'name');
+
+        await review.populate([
+            {
+                path: 'user',
+                select: 'name',
+            },
+            {
+                path: 'movie',
+                select: 'title posterUrl rating duration genres',
+            },
+        ]);
 
         res.json({ review });
     } catch (err) {

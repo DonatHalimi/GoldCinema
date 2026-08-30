@@ -28,6 +28,8 @@ const requireAuth = async (req, res, next) => {
     const user = await User.findById(decoded.id).populate('role');
     if (!user) return res.status(401).json({ error: 'User no longer exists.' });
 
+    if (user.tokensInvalidatedAt && decoded.iat * 1000 < user.tokensInvalidatedAt.getTime()) return res.status(401).json({ error: 'Session invalidated. Please log in again.' });
+
     if (user.isActive === false) return res.status(403).json({ error: 'This account has been deactivated.' });
 
     req.user = user;

@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { getMyFavourites, toggleFavourite as toggleFavouriteApi } from '../api/client';
+import { getMyFavourites, toggleFavourite as toggleFavouriteApi } from '../api/favourites';
 import { useAuth } from './AuthContext';
 
 const FavouritesContext = createContext(null);
@@ -23,8 +23,8 @@ export function FavouritesProvider({ children }) {
                 setMovieIds(new Set(movies.map((m) => m._id)));
                 setCinemaIds(new Set(cinemas.map((c) => c._id)));
             })
-            .catch(() => {
-                // Non-critical: favourite state just stays empty/stale on failure.
+            .catch((err) => {
+                console.log(err)
             })
             .finally(() => setLoading(false));
     }, [user]);
@@ -35,7 +35,6 @@ export function FavouritesProvider({ children }) {
     );
 
     const toggleFavourite = useCallback(async (itemType, itemId) => {
-        // Optimistic update, rolled back if the request fails.
         const setFn = itemType === 'movie' ? setMovieIds : setCinemaIds;
         const wasFavourited = (itemType === 'movie' ? movieIds : cinemaIds).has(itemId);
 

@@ -11,6 +11,7 @@ import SocialLoginButtons from '../components/auth/SocialLoginButtons';
 import { Field, PasswordField } from '../components/ui/FormUI';
 import { useAuth } from '../context/AuthContext';
 import { loginSchema, validateForm } from '../validations';
+import { getPasskeyLoginOptions, verifyPasskeyLogin } from '../api/auth';
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const facebookAppId = import.meta.env.VITE_FACEBOOK_APP_ID;
@@ -81,15 +82,12 @@ export default function Login() {
     setSubmitting(true);
 
     try {
-      const optRes = await api.post('/auth/passkeys/login/options', {});
+      const optRes = await getPasskeyLoginOptions();
       const optionsJSON = optRes.data;
 
       const authResponse = await startAuthentication({ optionsJSON });
 
-      const verifyRes = await api.post('/auth/passkeys/login/verify', {
-        rememberMe: rememberMe,
-        ...authResponse,
-      });
+      const verifyRes = await verifyPasskeyLogin(rememberMe, authResponse);
 
       if (verifyRes.data?.mfaRequired) {
         setMfaState({

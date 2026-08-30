@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import api from '../api/client';
+import { verifyUserEmail } from '../api/auth';
 
 export default function VerifyEmail() {
     const [searchParams] = useSearchParams();
@@ -20,7 +20,7 @@ export default function VerifyEmail() {
             }
 
             try {
-                await api.get(`/auth/verify-email?token=${token}`);
+                await verifyUserEmail(token);
 
                 toast.success('Email verified successfully! You can now log in');
                 navigate('/login');

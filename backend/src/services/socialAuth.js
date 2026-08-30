@@ -41,7 +41,14 @@ async function completeSocialLogin({ req, res, user, provider }) {
         rememberMe: false,
     });
 
-    if (!trustedEntry) issueTrustedDevice(user, req, res, { label: `${provider} Login Device` });
+    if (!trustedEntry) {
+        await issueTrustedDevice(
+            user,
+            req,
+            res,
+            { label: `${provider} Login Device` }
+        );
+    }
 
     user.securityEvents.push({
         title: `Logged in with ${provider}`,

@@ -7,7 +7,8 @@ import {
 import { loadStripe } from '@stripe/stripe-js';
 import { CreditCard } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import api, { getPaymentMethods } from '../../api/client';
+import api from '../../api/client';
+import { confirmStripePayment, getPaymentMethods } from '../../api/payments';
 
 const stripePromise = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
     ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
@@ -62,10 +63,7 @@ function StripeForm({ order, savedMethods, onSuccess, onError }) {
     const [submitting, setSubmitting] = useState(false);
 
     async function confirmOrderOnBackend(paymentIntent) {
-        const { data } = await api.post('/payments/stripe/confirm', {
-            orderId: order._id,
-            paymentIntentId: paymentIntent.id,
-        });
+        const { data } = await confirmStripePayment(order, paymentIntent);
         onSuccess(data.order);
     }
 
@@ -197,9 +195,6 @@ export default function StripeCheckout({
 
             });
 
-        // Saved payment methods are optional context for checkout — if this
-        // fails (e.g. user has none yet), checkout still proceeds with the
-        // regular new-card form.
         getPaymentMethods()
             .then((data) => setSavedMethods(data.paymentMethods || []))
             .catch(() => setSavedMethods([]));
@@ -214,7 +209,6 @@ export default function StripeCheckout({
                 in the frontend .env file to enable card payments.
             </p>
         );
-
     }
 
     if (loadError) {

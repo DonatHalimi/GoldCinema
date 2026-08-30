@@ -18,4 +18,14 @@ const notificationSchema = new Schema(
 notificationSchema.index({ user: 1, createdAt: -1 });
 notificationSchema.index({ user: 1, archived: 1, read: 1 });
 
+notificationSchema.index(
+    { archivedAt: 1 },
+    {
+        expireAfterSeconds: 60 * 60 * 24 * 30,
+        partialFilterExpression: {
+            archivedAt: { $type: 'date' },
+        },
+    }
+);
+
 module.exports = mongoose.models.Notification || model('Notification', notificationSchema);

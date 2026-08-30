@@ -1,10 +1,10 @@
+import { MessageSquare } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageSquare } from 'lucide-react';
-import { getMyReviews } from '../../api/client';
-import ReviewCard from '../../components/reviews/ReviewCard';
-import EditReviewModal from '../../components/reviews/EditReviewModal';
-import DeleteReviewModal from '../../components/reviews/DeleteReviewModal';
+import { getMyReviews } from '../api/reviews';
+import DeleteReviewModal from '../components/reviews/DeleteReviewModal';
+import EditReviewModal from '../components/reviews/EditReviewModal';
+import ReviewCard from '../components/reviews/ReviewCard';
 
 export default function MyReviews() {
     const navigate = useNavigate();
@@ -46,11 +46,13 @@ export default function MyReviews() {
     }
 
     return (
-        <div className="mx-auto max-w-3xl px-6 py-12">
-            <h1 className="mb-1 font-serif text-3xl font-bold text-marquee-cream">My Reviews</h1>
-            <p className="mb-8 text-sm text-marquee-muted">
-                Reviews you've shared about movies you've watched.
-            </p>
+        <>
+            <div>
+                <h2 className="whitespace-nowrap font-display text-2xl font-semibold tracking-wide text-marquee-goldBright">My Reviews</h2>
+                <p className="mt-1 mb-8 text-sm text-marquee-muted">
+                    Reviews you've shared about movies you've watched
+                </p>
+            </div>
 
             {loading && <p className="text-marquee-muted">Loading your reviews...</p>}
 
@@ -61,7 +63,7 @@ export default function MyReviews() {
                     <MessageSquare className="mx-auto mb-3 h-10 w-10 text-marquee-goldDim" />
                     <p className="text-marquee-cream">No reviews yet</p>
                     <p className="mt-1 text-sm text-marquee-muted">
-                        Reviews you leave for movies you've watched will appear here.
+                        Reviews you leave for movies you've watched will appear here
                     </p>
                     <button
                         onClick={() => navigate('/')}
@@ -100,6 +102,6 @@ export default function MyReviews() {
                     onDeleted={handleDeleted}
                 />
             )}
-        </div>
+        </>
     );
 }

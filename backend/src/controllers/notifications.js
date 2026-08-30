@@ -113,6 +113,7 @@ async function archiveAll(req, res, next) {
             {
                 $set: {
                     archived: true,
+                    archivedAt: new Date(),
                 },
             }
         );
@@ -145,6 +146,7 @@ async function unarchiveAll(req, res, next) {
             {
                 $set: {
                     archived: false,
+                    archivedAt: null,
                 },
             }
         );
@@ -172,11 +174,14 @@ async function toggleArchiveStatus(req, res, next) {
         const { archived } = req.body;
 
         const notification = await Notification.findOne({ _id: id, user: userId });
-        if (!notification) {
-            return res.status(404).json({ error: 'Notification not found.' });
-        }
+        if (!notification) return res.status(404).json({ error: 'Notification not found.' });
 
         notification.archived = typeof archived === 'boolean' ? archived : !notification.archived;
+
+        notification.archivedAt = notification.archived
+            ? new Date()
+            : null; archivedAt
+
         await notification.save();
 
         const unreadCount = await Notification.countDocuments({
@@ -196,7 +201,7 @@ async function archiveAllRead(req, res, next) {
         const userId = req.user.id;
         const result = await Notification.updateMany(
             { user: userId, archived: false, read: true },
-            { $set: { archived: true } }
+            { $set: { archived: true, archivedAt: new Date() } }
         );
 
         const unreadCount = await Notification.countDocuments({

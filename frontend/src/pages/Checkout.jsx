@@ -2,12 +2,15 @@ import { useEffect, useState } from 'react';
 
 import { useNavigate, useParams } from 'react-router-dom';
 
-import api, { getPaymentMethods } from '../api/client';
+import api from '../api/client';
 
+import { getPaymentMethods } from '../api/payments';
 import CheckoutSummary from '../components/checkout/CheckoutSummary';
 import ExpiredHold from '../components/checkout/ExpiredHold';
 import PaymentSection from '../components/checkout/PaymentSelection';
 import SeatHoldTimer from '../components/checkout/SeatHoldTimer';
+import { getOrderById } from '../api/orders';
+import { extendSeatHold } from '../api/seatHolds';
 
 export default function Checkout() {
   const { orderId } = useParams();
@@ -38,9 +41,23 @@ export default function Checkout() {
 
   async function loadOrder() {
     try {
-      const { data } = await api.get(`/orders/${orderId}`);
+      console.log('Checkout orderId:', orderId);
+
+      const result = await getOrderById(orderId);
+
+      console.log('Checkout getOrderById result:', result);
+
+      const data = result.data ?? result;
+
+      console.log('Checkout order data:', data);
 
       const loadedOrder = data.order;
+
+      console.log('Checkout loaded order:', loadedOrder);
+
+      if (!loadedOrder) {
+        throw new Error('Order was not returned by the API');
+      }
 
       setOrder(loadedOrder);
       setMovie(loadedOrder.movie);
@@ -52,6 +69,9 @@ export default function Checkout() {
         });
       }
     } catch (err) {
+      console.error('Checkout loadOrder failed:', err);
+      console.error('Response:', err.response?.data);
+
       setLoadError(
         err.response?.data?.error ||
         err.message ||
@@ -70,8 +90,6 @@ export default function Checkout() {
 
       setPaymentMethods(data.paymentMethods || []);
     } catch (err) {
-      // Saved payment methods are optional.
-      // The user can still use a new card.
       console.error('Failed to load saved payment methods:', err);
       setPaymentMethods([]);
     } finally {
@@ -106,20 +124,14 @@ export default function Checkout() {
     try {
       setExtending(true);
 
-      const { data } = await api.post('/extend-hold', {
-        holdId: order.holdId,
-      });
+      const { data } = await extendSeatHold(order.holdId);
 
       setOrder((prev) => ({
         ...prev,
         holdExpiresAt: data.hold.expiresAt,
       }));
     } catch (err) {
-      setPayError(
-        err.response?.data?.error ||
-        err.message ||
-        'Failed to extend hold'
-      );
+      setPayError(err.response?.data?.error || err.message || 'Failed to extend hold');
     } finally {
       setExtending(false);
     }

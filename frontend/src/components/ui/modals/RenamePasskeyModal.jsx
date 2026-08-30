@@ -1,9 +1,10 @@
 import { KeyRound, Loader2, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import api from '../../api/client';
-import { useAuth } from '../../context/AuthContext';
+import api from '../../../api/client';
+import { useAuth } from '../../../context/AuthContext';
 import Modal from './Modal';
+import { renamePasskey } from '../../../api/auth';
 
 export default function RenamePasskeyModal({ passkey, onClose, onSuccess }) {
     const { user } = useAuth();
@@ -47,9 +48,7 @@ export default function RenamePasskeyModal({ passkey, onClose, onSuccess }) {
         setError('');
 
         try {
-            const response = await api.put(`/auth/passkeys/${passkey.id}/name`, {
-                name: name.trim(),
-            });
+            const response = await renamePasskey(id, name);
 
             toast.success('Passkey renamed successfully');
 

@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import api, { getMovieReviews } from '../api/client';
-import { useAuth } from '../context/AuthContext';
+import api from '../api/client';
+import { getMovieReviews } from '../api/reviews';
+import FavouriteButton from '../components/FavouriteButton';
+import EditReviewModal from '../components/reviews/EditReviewModal';
 import StarRating from '../components/reviews/StarRating';
 import WriteReviewModal from '../components/reviews/WriteReviewModal';
-import EditReviewModal from '../components/reviews/EditReviewModal';
-import FavouriteButton from '../components/FavouriteButton';
+import { useAuth } from '../context/AuthContext';
 import useEscapeKey from '../hooks/useEscKey';
+import { getMovieById, getMovieShowtimes } from '../api/movies';
 
 export default function MovieDetail() {
   const { id } = useParams();
@@ -33,11 +35,13 @@ export default function MovieDetail() {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([api.get(`/movies/${id}`), api.get(`/movies/${id}/showtimes`)])
-      .then(([movieRes, showtimeRes]) => {
-        setMovie(movieRes.data.movie);
-        setShowtimes(showtimeRes.data.showtimes);
-        const dates = [...new Set(showtimeRes.data.showtimes.map((s) => s.date))].sort();
+    Promise.all([getMovieById(id), getMovieShowtimes(id)])
+      .then(([movieData, showtimeData]) => {
+        setMovie(movieData.movie);
+        setShowtimes(showtimeData.showtimes);
+        const dates = [
+          ...new Set(showtimeData.showtimes.map((s) => s.date))
+        ].sort();
         setSelectedDate(dates[0]);
       })
       .catch((err) => setError(err.message))
@@ -104,13 +108,13 @@ export default function MovieDetail() {
   function handleReviewCreated(review) {
     setShowWriteModal(false);
     setReviews((prev) => [review, ...prev]);
-    api.get(`/movies/${id}`).then(({ data }) => setMovie(data.movie));
+    getMovieById(id).then(({ data }) => setMovie(data.movie));
   }
 
   function handleReviewSaved(updated) {
     setEditingOwnReview(null);
     setReviews((prev) => prev.map((r) => (r._id === updated._id ? updated : r)));
-    api.get(`/movies/${id}`).then(({ data }) => setMovie(data.movie));
+    getMovieById(id).then(({ data }) => setMovie(data.movie));
   }
 
   const dates = useMemo(

@@ -1,7 +1,9 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000/api',
+  baseURL:
+    import.meta.env.VITE_API_URL ||
+    'http://localhost:4000/api',
   withCredentials: true,
 });
 
@@ -10,24 +12,18 @@ api.interceptors.response.use(
   async (err) => {
     const originalRequest = err.config;
 
-    if (!originalRequest) {
-      return Promise.reject(err);
-    }
+    if (!originalRequest) return Promise.reject(err);
 
     const is401 = err.response?.status === 401;
 
-    const isLoginRequest =
-      originalRequest.url?.includes('/auth/login');
+    const isLoginRequest = originalRequest.url?.includes('/auth/login');
 
-    const isRefreshRequest =
-      originalRequest.url?.includes('/auth/refresh-token');
+    const isRefreshRequest = originalRequest.url?.includes('/auth/refresh-token');
 
     if (is401 && isRefreshRequest) {
       window.dispatchEvent(new Event('auth:logout'));
 
-      return Promise.reject(
-        new Error('Session expired. Please log in again.')
-      );
+      return Promise.reject(new Error('Session expired. Please log in again.'));
     }
 
     if (
@@ -39,13 +35,20 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        await axios.post(`${api.defaults.baseURL}/auth/refresh-token`, {}, { withCredentials: true, });
+        await axios.post(`${api.defaults.baseURL}/auth/refresh-token`,
+          {},
+          {
+            withCredentials: true,
+          }
+        );
 
         return api(originalRequest);
       } catch (refreshErr) {
         window.dispatchEvent(new Event('auth:logout'));
 
-        return Promise.reject(new Error('Session expired. Please log in again.'));
+        return Promise.reject(
+          new Error('Session expired. Please log in again.')
+        );
       }
     }
 
@@ -58,94 +61,5 @@ api.interceptors.response.use(
     return Promise.reject(new Error(message));
   }
 );
-
-export async function getItems(resource, page = 1, limit = 10) {
-  const { data } = await api.get(
-    `/admin/${resource}?page=${page}&limit=${limit}`
-  );
-
-  return data;
-}
-
-export async function getItemById(resource, id) {
-  const { data } = await api.get(`/admin/${resource}/${id}`);
-  return data;
-}
-
-export async function createItem(resource, payload) {
-  const { data } = await api.post(`/admin/${resource}`, payload);
-  return data;
-}
-
-export async function updateItem(resource, id, payload) {
-  const { data } = await api.put(`/admin/${resource}/${id}`, payload);
-  return data;
-}
-
-export async function deleteItem(resource, id) {
-  const { data } = await api.delete(`/admin/${resource}/${id}`);
-  return data;
-}
-
-export async function bulkDeleteItems(resource, ids) {
-  const { data } = await api.delete(`/admin/${resource}/bulk-delete`, { data: { ids }, });
-
-  return data;
-}
-
-export async function toggleFavourite(itemType, itemId) {
-  const { data } = await api.post('/favourites/toggle', { itemType, itemId });
-  return data;
-}
-
-export async function getMyFavourites(type) {
-  const { data } = await api.get('/favourites/mine', { params: type ? { type } : {} });
-  return data;
-}
-
-export async function getPaymentMethods() {
-  const { data } = await api.get('/payments/methods');
-  return data;
-}
-
-export async function createSetupIntent() {
-  const { data } = await api.post('/payments/setup');
-  return data;
-}
-
-export async function setDefaultPaymentMethod(id) {
-  const { data } = await api.post(`/payments/methods/${id}/default`);
-  return data;
-}
-
-export async function deletePaymentMethod(id) {
-  const { data } = await api.delete(`/payments/methods/${id}`);
-  return data;
-}
-
-export async function getMovieReviews(movieId, page = 1, limit = 10) {
-  const { data } = await api.get(`/reviews/movie/${movieId}?page=${page}&limit=${limit}`);
-  return data;
-}
-
-export async function getMyReviews() {
-  const { data } = await api.get('/reviews/my');
-  return data;
-}
-
-export async function createReview(payload) {
-  const { data } = await api.post('/reviews', payload);
-  return data;
-}
-
-export async function updateReview(reviewId, payload) {
-  const { data } = await api.put(`/reviews/${reviewId}`, payload);
-  return data;
-}
-
-export async function deleteReview(reviewId) {
-  const { data } = await api.delete(`/reviews/${reviewId}`);
-  return data;
-}
 
 export default api;

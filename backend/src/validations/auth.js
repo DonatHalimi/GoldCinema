@@ -89,7 +89,7 @@ const changePasswordSchema = yup.object({
 const deleteAccountSchema = yup.object({
     password: yup
         .string()
-        .required('Password confirmation is required.'),
+        .required('Password is required.')
 }).noUnknown(true);
 
 const sixDigitCodeSchema = yup.object({

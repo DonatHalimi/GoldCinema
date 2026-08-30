@@ -1,7 +1,8 @@
 import { Download, Loader2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import api from '../../api/client';
+import api from '../../../api/client';
 import Modal from './Modal';
+import { setupTotp2FA, verifyTotp2FA } from '../../../api/auth';
 
 export default function EnableTotpModal({ onClose, onSuccess }) {
     const [qr, setQr] = useState(null);
@@ -20,7 +21,7 @@ export default function EnableTotpModal({ onClose, onSuccess }) {
             setLoading(true);
             setError('');
 
-            const { data } = await api.post('/auth/2fa/totp/setup');
+            const { data } = await setupTotp2FA();
 
             setQr(data.qrDataUrl);
             setSecret(data.secret);
@@ -40,9 +41,7 @@ export default function EnableTotpModal({ onClose, onSuccess }) {
 
     useEffect(() => {
         if (qr && !backupCodes.length) {
-            const timer = setTimeout(() => {
-                inputRefs.current[0]?.focus();
-            }, 100);
+            const timer = setTimeout(() => { inputRefs.current[0]?.focus(); }, 100);
 
             return () => clearTimeout(timer);
         }
@@ -55,7 +54,7 @@ export default function EnableTotpModal({ onClose, onSuccess }) {
             setLoading(true);
             setError('');
 
-            const { data } = await api.post('/auth/2fa/totp/verify', { code: codeToSubmit });
+            const { data } = await verifyTotp2FA(codeToSubmit);
 
             setBackupCodes(data.backupCodes);
         } catch (err) {
@@ -116,12 +115,7 @@ export default function EnableTotpModal({ onClose, onSuccess }) {
     };
 
     const handleDownload = () => {
-        const blob = new Blob(
-            [backupCodes.join('\n')],
-            {
-                type: 'text/plain',
-            }
-        );
+        const blob = new Blob([backupCodes.join('\n')], { type: 'text/plain' });
 
         const url = URL.createObjectURL(blob);
 
@@ -197,46 +191,20 @@ export default function EnableTotpModal({ onClose, onSuccess }) {
                                 className="flex justify-between gap-2"
                                 onPaste={handlePaste}
                             >
-                                {otp.map(
-                                    (
-                                        digit,
-                                        index
-                                    ) => (
-                                        <input
-                                            key={index}
-                                            ref={(element) => {
-                                                inputRefs.current[
-                                                    index
-                                                ] =
-                                                    element;
-                                            }}
-                                            type="text"
-                                            inputMode="numeric"
-                                            maxLength={1}
-                                            value={digit}
-                                            disabled={loading}
-                                            onChange={(
-                                                event
-                                            ) =>
-                                                handleChange(
-                                                    index,
-                                                    event
-                                                        .target
-                                                        .value
-                                                )
-                                            }
-                                            onKeyDown={(
-                                                event
-                                            ) =>
-                                                handleKeyDown(
-                                                    index,
-                                                    event
-                                                )
-                                            }
-                                            className="h-12 w-12 rounded-md border border-marquee-line bg-marquee-panel2 text-center text-lg font-semibold text-marquee-cream outline-none transition focus:border-marquee-gold disabled:opacity-50"
-                                        />
-                                    )
-                                )}
+                                {otp.map((digit, index) => (
+                                    <input
+                                        key={index}
+                                        ref={(element) => { inputRefs.current[index] = element; }}
+                                        type="text"
+                                        inputMode="numeric"
+                                        maxLength={1}
+                                        value={digit}
+                                        disabled={loading}
+                                        onChange={(event) => handleChange(index, event.target.value)}
+                                        onKeyDown={(event) => handleKeyDown(index, event)}
+                                        className="h-12 w-12 rounded-md border border-marquee-line bg-marquee-panel2 text-center text-lg font-semibold text-marquee-cream outline-none transition focus:border-marquee-gold disabled:opacity-50"
+                                    />
+                                ))}
                             </div>
                         </div>
 

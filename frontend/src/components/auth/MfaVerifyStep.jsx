@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import RememberMeCheckbox from './RememberMeCheckbox';
+import { resendMfaCode } from '../../api/auth';
 
 const RESEND_COOLDOWN_SECONDS = 30;
 
@@ -156,7 +157,7 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
         setError('');
 
         try {
-            await api.post('/auth/2fa/login-resend', { mfaToken: mfaState.mfaToken });
+            await resendMfaCode(mfaState.mfaToken);
 
             setResendCooldown(RESEND_COOLDOWN_SECONDS);
         } catch (err) {

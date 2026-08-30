@@ -2,13 +2,9 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { CreditCard, Plus, Star, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import {
-    deletePaymentMethod,
-    getPaymentMethods,
-    setDefaultPaymentMethod,
-} from '../../api/client';
 import AddPaymentMethodModal from '../payments/AddPaymentMethodModal';
 import RemovePaymentMethodModal from '../payments/RemovePaymentMethodModal';
+import { deletePaymentMethod, getPaymentMethods, setDefaultPaymentMethod } from '../../api/payments';
 
 const BRAND_LABELS = {
     visa: 'Visa',
@@ -42,7 +38,7 @@ export default function PaymentMethods() {
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [removeTarget, setRemoveTarget] = useState(null);
     const [removing, setRemoving] = useState(false);
-    const [busyId, setBusyId] = useState(null); // id of card currently being set as default
+    const [busyId, setBusyId] = useState(null);
 
     useEffect(() => {
         loadMethods();
@@ -97,6 +93,7 @@ export default function PaymentMethods() {
                     <h2 className="whitespace-nowrap font-display text-2xl font-semibold tracking-wide text-marquee-goldBright">
                         Payment Methods
                     </h2>
+                    <p className="mt-1 text-sm text-marquee-muted">Manage your saved payment methods</p>
                 </div>
 
                 {!loading && methods.length > 0 && (

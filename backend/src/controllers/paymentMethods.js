@@ -1,12 +1,6 @@
 const stripe = require('../utils/stripeClient');
 const User = require('../models/user');
 
-/**
- * Returns the user's Stripe Customer id, creating one lazily on first use.
- * Exported so payments.js (checkout) can attach the same customer to a
- * PaymentIntent — Stripe requires a PaymentIntent to have a `customer` set
- * before a customer-owned PaymentMethod can be charged against it.
- */
 async function getOrCreateStripeCustomer(user) {
     if (user.stripeCustomerId) {
         return user.stripeCustomerId;

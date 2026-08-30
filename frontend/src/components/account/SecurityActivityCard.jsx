@@ -1,7 +1,7 @@
 import { ClipboardList, KeyRound, Laptop, ShieldCheck } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import api from '../../api/client';
+import { getActivityData } from '../../api/auth';
 
 export default function SecurityActivityCard() {
     const [activities, setActivities] = useState([]);
@@ -10,7 +10,7 @@ export default function SecurityActivityCard() {
     useEffect(() => {
         const fetchActivityData = async () => {
             try {
-                const { data } = await api.get('/auth/security/activity');
+                const { data } = await getActivityData();
                 setActivities(data.activities || []);
             } catch (err) {
                 toast.error('Failed to load security activity.');

@@ -1,10 +1,9 @@
 import { Loader2, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-
-import api from '../../api/client';
-import { PasswordField } from './FormUI';
+import { PasswordField } from '../FormUI';
 import Modal from './Modal';
+import { revokeDevice } from '../../../api/auth';
 
 export default function RevokeDeviceModal({ device, onClose, onSuccess }) {
     const [password, setPassword] = useState('');
@@ -35,12 +34,7 @@ export default function RevokeDeviceModal({ device, onClose, onSuccess }) {
         setError('');
 
         try {
-            await api.delete(`/auth/devices/${device._id}`, {
-                data: {
-                    password,
-                    confirmation,
-                },
-            });
+            await revokeDevice(device._id, password, confirmation);
 
             toast.success('Device revoked successfully.');
 

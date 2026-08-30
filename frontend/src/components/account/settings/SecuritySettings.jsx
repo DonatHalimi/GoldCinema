@@ -2,15 +2,16 @@ import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import api from '../../../api/client.js';
 import BackupCodesCard from '../../ui/BackupCodesCard.jsx';
-import Disable2faModal from '../../ui/Disable2faModal.jsx.jsx';
-import EnableEmail2faModal from '../../ui/EnableEmail2faModal.jsx';
-import EnableTotpModal from '../../ui/EnableTotpModal.jsx';
+import Disable2faModal from '../../ui/modals/Disable2faModal.jsx.jsx';
+import EnableEmail2faModal from '../../ui/modals/EnableEmail2faModal.jsx';
+import EnableTotpModal from '../../ui/modals/EnableTotpModal.jsx';
 import SecurityLogExportCard from '../../ui/SecurityLogExportCard.jsx';
 import SecurityActivityCard from '../SecurityActivityCard.jsx';
 import LoginAlertsSettings from './LoginAlertsSettings.jsx';
 import PasskeySettings from './PasskeySettings.jsx';
 import TrustedDevicesSettings from './TrustedDeviceSettings.jsx';
 import TwoFactorSettings from './TwoFactorSettings';
+import { getProfile } from '../../../api/auth.js';
 
 export default function SecuritySettings() {
     const [showEmailVerify, setShowEmailVerify] = useState(false);
@@ -28,7 +29,7 @@ export default function SecuritySettings() {
     useEffect(() => {
         const fetchSecurityStatus = async () => {
             try {
-                const { data } = await api.get('/auth/me');
+                const { data } = await getProfile();
 
                 const userData = data.user || data;
 
@@ -82,7 +83,7 @@ export default function SecuritySettings() {
                 Security
             </h2>
 
-            <p className="mt-2 text-sm text-marquee-muted">
+            <p className="mt-1 text-sm text-marquee-muted">
                 Manage your account security and authentication methods
             </p>
 

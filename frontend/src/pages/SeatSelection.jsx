@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import api from '../api/client';
 import SeatMap from '../components/order/SeatMap';
 import { useAuth } from '../context/AuthContext';
+import { resendEmailVerification } from '../api/auth';
+import { getShowtimeById } from '../api/showtimes';
+import { holdSeat } from '../api/seatHolds';
+import { createOrder } from '../api/orders';
 
 export default function SeatSelection() {
   const { id } = useParams();
@@ -92,14 +95,15 @@ export default function SeatSelection() {
 
   async function loadShowtime() {
     setLoading(true);
+    setError('');
 
     try {
-      const { data } = await api.get(`/showtimes/${id}`);
+      const data = await getShowtimeById(id);
 
       setShowtime(data.showtime);
       setMovie(data.movie);
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.error || err.message || 'Unable to load showtime.');
     } finally {
       setLoading(false);
     }
@@ -134,10 +138,11 @@ export default function SeatSelection() {
       navigate('/login', {
         state: {
           from: {
-            pathname: `/showtimes/${id}`
-          }
-        }
+            pathname: `/showtimes/${id}`,
+          },
+        },
       });
+
       return;
     }
 
@@ -148,32 +153,60 @@ export default function SeatSelection() {
     setNeedsVerification(false);
 
     try {
-      const { data: holdResponse } = await api.post('/hold-seat', {
+      const holdResponse = await holdSeat({
         showtimeId: id,
         seatIds: selected,
       });
       const hold = holdResponse.hold;
 
-      const { data: orderResponse } = await api.post('/orders', {
+      console.log('3. Hold:', hold);
+
+      console.log('4. Creating order:', {
         movie: movie._id,
         showtime: id,
         seats: selected,
         ticketAmount: total,
         totalAmount: total,
-        holdId: hold._id || hold.id || null,
-        holdExpiresAt: hold.expiresAt
+        holdId: hold._id || hold.id,
+        holdExpiresAt: hold.expiresAt,
       });
+
+      const orderResponse = await createOrder({
+        movie: movie._id,
+        showtime: id,
+        seats: selected,
+        ticketAmount: total,
+        totalAmount: total,
+        holdId: hold.id,
+        holdExpiresAt: hold.expiresAt,
+      });
+
+      console.log('5. Order response:', orderResponse);
+      console.log('6. Order ID:', orderResponse.order._id);
 
       navigate(`/checkout/${orderResponse.order._id}`);
     } catch (err) {
-      if (err.response?.data?.code === 'EMAIL_NOT_VERIFIED' || /verify your email/i.test(err.message)) {
+      console.error('BOOKING FAILED:', err);
+      console.error('Response:', err.response?.data);
+      console.error('Status:', err.response?.status);
+
+      if (
+        err.response?.data?.code === 'EMAIL_NOT_VERIFIED' ||
+        /verify your email/i.test(err.message)
+      ) {
         setNeedsVerification(true);
       } else {
-        setError(err.response?.data?.error || err.message || 'Something went wrong');
+        setError(
+          err.response?.data?.error ||
+          err.response?.data?.message ||
+          err.message ||
+          'Something went wrong'
+        );
       }
-      await loadShowtime();
-      sessionStorage.removeItem(`selectedSeats-${id}`);
 
+      await loadShowtime();
+
+      sessionStorage.removeItem(`selectedSeats-${id}`);
       setSelected([]);
     } finally {
       setSubmitting(false);
@@ -184,7 +217,7 @@ export default function SeatSelection() {
     setResending(true);
 
     try {
-      await api.post('/auth/resend-verification');
+      await resendEmailVerification();
 
       setNeedsVerification('sent');
     } catch (err) {

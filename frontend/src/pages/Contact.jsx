@@ -2,6 +2,7 @@ import { Mail, PhoneCall, Send } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 import api from '../api/client';
+import { createContact } from '../api/contacts';
 
 export default function ContactPage() {
     const [formData, setFormData] = useState({
@@ -20,7 +21,7 @@ export default function ContactPage() {
         e.preventDefault();
         try {
             setLoading(true);
-            await api.post('/contact', formData);
+            await createContact(formData);
             toast.success('Your message has been sent successfully!');
             setFormData({ name: '', email: '', subject: '', message: '' });
         } catch (err) {

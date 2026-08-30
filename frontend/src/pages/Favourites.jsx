@@ -2,8 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Film, MapPin, MonitorPlay } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-
-import { getMyFavourites } from '../api/client';
+import { getMyFavourites } from '../api/favourites';
 import FavouriteButton from '../components/FavouriteButton';
 
 export default function MyFavourites() {
@@ -42,9 +41,13 @@ export default function MyFavourites() {
         <div>
             <main>
                 <div className="mb-8 flex flex-col gap-4 border-b border-marquee-line pb-6 md:flex-row md:items-center md:justify-between">
-                    <h2 className="whitespace-nowrap font-display text-2xl font-semibold tracking-wide text-marquee-goldBright">
-                        My Favourites
-                    </h2>
+                    <div>
+                        <h2 className="font-display text-2xl font-semibold tracking-wide text-marquee-goldBright">
+                            My Favourites
+                        </h2>
+
+                        <p className="mt-1 text-sm text-marquee-muted">Manage your favourite movies and cinemas</p>
+                    </div>
 
                     <div className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-marquee-line bg-marquee-bg p-1.5">
                         {filters.map((filter) => {

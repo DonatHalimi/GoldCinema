@@ -2,9 +2,10 @@ import { BadgeCheck, Mail, ShieldCheck, Smartphone, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import api from '../../../api/client.js';
-import Disable2faModal from '../../ui/Disable2faModal.jsx.jsx';
-import EnableEmail2faModal from '../../ui/EnableEmail2faModal.jsx';
-import EnableTotpModal from '../../ui/EnableTotpModal.jsx';
+import Disable2faModal from '../../ui/modals/Disable2faModal.jsx';
+import EnableEmail2faModal from '../../ui/modals/EnableEmail2faModal.jsx';
+import EnableTotpModal from '../../ui/modals/EnableTotpModal.jsx';
+import { activateEmail2FA, getProfile } from '../../../api/auth.js';
 
 export default function TwoFactorSettings() {
     const [showEmailVerify, setShowEmailVerify] = useState(false);
@@ -22,7 +23,7 @@ export default function TwoFactorSettings() {
     useEffect(() => {
         const fetchSecurityStatus = async () => {
             try {
-                const { data } = await api.get('/auth/me');
+                const { data } = await getProfile();
                 const activeMethods = data.user?.twoFactor?.methods || [];
 
                 setTwoFactor({ methods: activeMethods });
@@ -37,7 +38,7 @@ export default function TwoFactorSettings() {
     const enableEmail2FA = async () => {
         try {
             setLoading(true);
-            await api.post('/auth/2fa/email/enable');
+            await activateEmail2FA();
             setShowEmailVerify(true);
         } catch (err) {
             toast.error('Failed to enable Email 2FA.');

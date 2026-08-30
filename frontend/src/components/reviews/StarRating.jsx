@@ -1,10 +1,5 @@
 import { Star } from 'lucide-react';
 
-/**
- * Whole-number 5-star rating control.
- * - Display mode: <StarRating value={review.rating} readOnly />
- * - Interactive:  <StarRating value={rating} onChange={setRating} />
- */
 export default function StarRating({ value = 0, onChange, readOnly = false, size = 20 }) {
     const stars = [1, 2, 3, 4, 5];
 

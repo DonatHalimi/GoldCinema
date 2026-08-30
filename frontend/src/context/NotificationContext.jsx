@@ -6,6 +6,17 @@ import {
     useState,
 } from 'react';
 import api from '../api/client';
+import {
+    archiveAllReadNotifications,
+    clearArchivedNotifications,
+    deleteUserNotification,
+    getNotifications,
+    markAllNotificationsAsArchived,
+    markAllNotificationsAsRead,
+    markAllNotificationsAsUnarchived,
+    markNotificationAsRead,
+    toggleNotificationArchive
+} from '../api/notifications';
 
 const NotificationContext = createContext(null);
 
@@ -23,14 +34,7 @@ export function NotificationProvider({ children }) {
         setLoading(true);
 
         try {
-            const response = await api.get('/notifications', {
-                params: {
-                    filter,
-                    page,
-                    limit: 20,
-                },
-            });
-
+            const response = await getNotifications(filter, page, 20);
             const data = response.data;
 
             setNotifications(data.notifications || []);
@@ -63,7 +67,7 @@ export function NotificationProvider({ children }) {
 
     const markAsRead = useCallback(async (id, read = true) => {
         try {
-            const response = await api.patch(`/notifications/${id}/read`, { read });
+            const response = await markNotificationAsRead(id, read);
 
             const updatedNotification = response.data.notification;
 
@@ -85,7 +89,7 @@ export function NotificationProvider({ children }) {
 
     const markAllAsRead = useCallback(async () => {
         try {
-            const response = await api.patch('/notifications/read-all');
+            const response = await markAllNotificationsAsRead();
 
             setUnreadCount(response.data.unreadCount ?? 0);
 
@@ -108,7 +112,7 @@ export function NotificationProvider({ children }) {
     const toggleArchive = useCallback(
         async (id, archived) => {
             try {
-                const response = await api.patch(`/notifications/${id}/archive`, { archived });
+                const response = await toggleNotificationArchive(id, archived);
 
                 if (typeof response.data.unreadCount === 'number') {
                     setUnreadCount(response.data.unreadCount);
@@ -124,7 +128,7 @@ export function NotificationProvider({ children }) {
 
     const archiveAllRead = useCallback(async () => {
         try {
-            const response = await api.patch('/notifications/archive-all-read');
+            const response = await archiveAllReadNotifications();
 
             if (typeof response.data.unreadCount === 'number') {
                 setUnreadCount(response.data.unreadCount);
@@ -138,7 +142,7 @@ export function NotificationProvider({ children }) {
 
     const archiveAll = useCallback(async () => {
         try {
-            const response = await api.patch('/notifications/archive-all');
+            const response = await markAllNotificationsAsArchived();
 
             if (typeof response.data.unreadCount === 'number') {
                 setUnreadCount(response.data.unreadCount);
@@ -152,7 +156,7 @@ export function NotificationProvider({ children }) {
 
     const unarchiveAll = useCallback(async () => {
         try {
-            const response = await api.patch('/notifications/unarchive-all');
+            const response = await markAllNotificationsAsUnarchived();
 
             if (typeof response.data.unreadCount === 'number') {
                 setUnreadCount(response.data.unreadCount);
@@ -170,20 +174,18 @@ export function NotificationProvider({ children }) {
 
             if (!id) return false;
 
-            const notificationId = String(id);
-
             try {
-                const response = await api.delete(`/notifications/${notificationId}`);
+                await deleteUserNotification(id);
 
                 setNotifications((current) => {
                     const exists = current.some(
                         (notification) =>
-                            String(notification._id) === notificationId
+                            String(notification._id) === id
                     );
 
                     const updated = current.filter(
                         (notification) =>
-                            String(notification._id) !== notificationId
+                            String(notification._id) !== id
                     );
 
                     return updated;
@@ -202,7 +204,7 @@ export function NotificationProvider({ children }) {
 
     const clearArchived = useCallback(async () => {
         try {
-            await api.delete('/notifications/clear-archived');
+            await clearArchivedNotifications();
             await fetchNotifications();
         } catch (error) {
             console.error('[NOTIFICATIONS] Failed to clear archived notifications:', error.response?.data || error.message);

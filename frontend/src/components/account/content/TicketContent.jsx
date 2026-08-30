@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import api from "../../../api/client";
 import EmptyTickets from '../../tickets/EmptyTickets';
 import TicketCard from "../../tickets/TicketCard";
+import { getMyOrders } from "../../../api/orders";
 
 export default function TicketContent() {
     const [orders, setOrders] = useState([]);
@@ -13,8 +13,9 @@ export default function TicketContent() {
     useEffect(() => {
         async function loadTickets() {
             try {
-                const { data } = await api.get('/orders/mine');
-                setOrders(data.orders || []);
+                const { data } = await getMyOrders();
+                console.log(data);
+                setOrders(data || []);
             } catch (err) {
                 console.error('ORDERS LOAD ERROR:', err);
                 setError(err.response?.data?.error || err.message || 'Failed to load tickets');
@@ -53,12 +54,16 @@ export default function TicketContent() {
         <div>
             <main className="flex-1 rounded-xl bg-marquee-panel">
                 <div className="mb-8 flex flex-col gap-4 border-b border-marquee-line pb-6 md:flex-row md:items-center md:justify-between">
-                    <h2 className="whitespace-nowrap font-display text-2xl font-semibold tracking-wide text-marquee-goldBright">
-                        {active === 'all' && 'All Tickets'}
-                        {active === 'upcoming' && 'Upcoming Movies'}
-                        {active === 'past' && 'Past Movies'}
-                        {active === 'cancelled' && 'Cancelled Tickets'}
-                    </h2>
+                    <div>
+                        <h2 className="whitespace-nowrap font-display text-2xl font-semibold tracking-wide text-marquee-goldBright">
+                            {active === 'all' && 'All Tickets'}
+                            {active === 'upcoming' && 'Upcoming Movies'}
+                            {active === 'past' && 'Past Movies'}
+                            {active === 'cancelled' && 'Cancelled Tickets'}
+                        </h2>
+
+                        <p className="mt-1 text-sm text-marquee-muted">View and manage your movie tickets</p>
+                    </div>
 
                     <div className="inline-flex items-center gap-1.5 rounded-full border border-marquee-line bg-marquee-bg p-1.5">
                         {filters.map((filter) => {

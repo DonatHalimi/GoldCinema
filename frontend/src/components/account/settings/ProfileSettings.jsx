@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import api from '../../../api/client';
 import { Field, PasswordField } from '../../ui/FormUI';
+import { getProfile, resendEmailVerification, updatePassword, updateProfile } from '../../../api/auth';
 
 export default function ProfileSettings() {
     const [loading, setLoading] = useState(true);
@@ -26,7 +27,7 @@ export default function ProfileSettings() {
 
     async function loadProfile() {
         try {
-            const { data } = await api.get('/auth/me');
+            const { data } = await getProfile();
 
             const userData = data?.user || data || {};
 
@@ -48,10 +49,7 @@ export default function ProfileSettings() {
         try {
             setSaving(true);
 
-            const { data } = await api.put('/auth/profile', {
-                name: form.name,
-                email: form.email,
-            });
+            const { data } = await updateProfile(form);
 
             toast.success(data.message || 'Profile updated successfully');
 
@@ -82,10 +80,7 @@ export default function ProfileSettings() {
         try {
             setChangingPassword(true);
 
-            const response = await api.put('/auth/change-password', {
-                currentPassword: passwordForm.currentPassword,
-                newPassword: passwordForm.newPassword,
-            });
+            const response = await updatePassword(passwordForm);
 
             toast.success(response.data?.message || 'Password updated successfully. Please log in again.');
 
@@ -106,7 +101,7 @@ export default function ProfileSettings() {
 
     async function resendVerification() {
         try {
-            const { data } = await api.post('/auth/resend-verification');
+            const { data } = await resendEmailVerification();
 
             toast.success(data.message || 'Verification email sent.');
         } catch (err) {

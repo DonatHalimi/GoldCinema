@@ -1,8 +1,8 @@
-import { useState } from 'react';
 import { X } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'react-toastify';
+import { createReview } from '../../api/reviews';
 import StarRating from './StarRating';
-import { createReview } from '../../api/client';
 
 export default function WriteReviewModal({ movie, onClose, onCreated }) {
     const [rating, setRating] = useState(0);

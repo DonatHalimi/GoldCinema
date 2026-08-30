@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function RemovePaymentMethodModal({
     isOpen,

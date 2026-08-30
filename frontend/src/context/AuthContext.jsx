@@ -2,6 +2,7 @@ import { Loader2 } from 'lucide-react';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
+import { changeUserPassword, deleteUserAccount, forgotUserPassword, getProfile, loginUser, loginUserWithFacebook, loginUserWithGoogle, logoutUser, registerUser, resetUserPassword, verifyUserLogin } from '../api/auth';
 
 const AuthContext = createContext(null);
 
@@ -12,7 +13,7 @@ export function AuthProvider({ children }) {
     const navigate = useNavigate();
 
     useEffect(() => {
-        api.get('/auth/me')
+        getProfile()
             .then(({ data }) => {
                 setUser(data.user);
             })
@@ -41,38 +42,24 @@ export function AuthProvider({ children }) {
     }, [navigate]);
 
     async function register(name, email, password) {
-        const { data } = await api.post('/auth/register', {
-            name,
-            email,
-            password,
-        });
-
+        const { data } = await registerUser(name, email, password);
         return data;
     }
 
     const forgotPassword = async (email) => {
-        const { data } = await api.post('/auth/forgot-password', {
-            email,
-        });
+        const { data } = await forgotUserPassword(email);
 
         return data;
     };
 
     const resetPassword = async (token, password) => {
-        const { data } = await api.post('/auth/reset-password', {
-            token,
-            password,
-        });
+        const { data } = await resetUserPassword(token, password);
 
         return data;
     };
 
     const login = async (email, password, rememberMe = false) => {
-        const { data } = await api.post('/auth/login', {
-            email,
-            password,
-            rememberMe,
-        });
+        const data = await loginUser(email, password, rememberMe);
 
         if (data.mfaRequired) {
             return {
@@ -84,7 +71,6 @@ export function AuthProvider({ children }) {
         }
 
         setUser(data.user);
-
         return data;
     };
 
@@ -95,15 +81,9 @@ export function AuthProvider({ children }) {
         rememberMe,
         trustDevice
     ) => {
-        const { data } = await api.post('/auth/2fa/verify-login', {
-            mfaToken,
-            code,
-            method,
-            rememberMe,
-            trustDevice,
-        });
+        const { data } = await verifyUserLogin(mfaToken, code, method, rememberMe, trustDevice);
 
-        const { data: userData } = await api.get('/auth/me');
+        const { data: userData } = await getProfile();
 
         setUser(userData.user);
 
@@ -111,9 +91,7 @@ export function AuthProvider({ children }) {
     };
 
     const loginWithGoogle = async (credential) => {
-        const { data } = await api.post('/auth/google', {
-            credential,
-        });
+        const data = await loginUserWithGoogle(credential);
 
         if (data.mfaRequired) {
             return {
@@ -125,14 +103,11 @@ export function AuthProvider({ children }) {
         }
 
         setUser(data.user);
-
         return data;
     };
 
     const loginWithFacebook = async (accessToken) => {
-        const { data } = await api.post('/auth/facebook', {
-            accessToken,
-        });
+        const data = await loginUserWithFacebook(accessToken);
 
         if (data.mfaRequired) {
             return {
@@ -144,15 +119,11 @@ export function AuthProvider({ children }) {
         }
 
         setUser(data.user);
-
         return data;
     };
 
     const changePassword = async (currentPassword, newPassword) => {
-        const { data } = await api.post('/auth/change-password', {
-            currentPassword,
-            newPassword,
-        });
+        const { data } = await changeUserPassword(currentPassword, newPassword);
 
         setUser(null);
 
@@ -160,9 +131,7 @@ export function AuthProvider({ children }) {
     };
 
     const deleteAccount = async (password) => {
-        const { data } = await api.delete('/auth/account', {
-            data: { password },
-        });
+        const { data } = await deleteUserAccount(password);
 
         setUser(null);
 
@@ -171,7 +140,7 @@ export function AuthProvider({ children }) {
 
     const logout = async () => {
         try {
-            const { data } = await api.post('/auth/logout');
+            const { data } = await logoutUser();
 
             return data;
         } finally {

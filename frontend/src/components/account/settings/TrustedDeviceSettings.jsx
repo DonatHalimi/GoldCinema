@@ -2,7 +2,8 @@ import { Laptop, ShieldCheck, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import api from '../../../api/client';
-import RevokeDeviceModal from '../../ui/RevokeDeviceModal';
+import RevokeDeviceModal from '../../ui/modals/RevokeDeviceModal';
+import { getTrustedDevices } from '../../../api/auth';
 
 export default function TrustedDevicesSettings() {
     const [devices, setDevices] = useState([]);
@@ -12,7 +13,7 @@ export default function TrustedDevicesSettings() {
     useEffect(() => {
         const fetchDevices = async () => {
             try {
-                const { data } = await api.get('/auth/devices');
+                const { data } = await getTrustedDevices();
                 setDevices(data.devices || []);
             } catch (err) {
                 toast.error('Failed to load trusted devices.');

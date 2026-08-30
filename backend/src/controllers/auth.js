@@ -15,7 +15,7 @@ const { authenticator } = require('@otplib/preset-default');
 const LoginAttempt = require('../models/loginAttempt');
 const qrcode = require('qrcode');
 const crypto = require('crypto');
-const { generateTokens, setCookies, getCustomerRoleId, issueVerificationEmail, googleClient, TRUSTED_DEVICE_MAX_AGE_MS, EMAIL_OTP_TTL_MS, MFA_MAX_ATTEMPTS, MAX_FAILED_ATTEMPTS, LOCK_STAGES_MIN, DAY_MS, } = require('../middleware/auth');
+const { generateTokens, setCookies, issueVerificationEmail, googleClient, TRUSTED_DEVICE_MAX_AGE_MS, EMAIL_OTP_TTL_MS, MFA_MAX_ATTEMPTS, MAX_FAILED_ATTEMPTS, LOCK_STAGES_MIN, DAY_MS, } = require('../middleware/auth');
 const { createNotification } = require('../utils/notifications');
 const { issueEmailOtp } = require('../utils/mfaOtp');
 const { findOrCreateSocialUser, completeSocialLogin } = require('../services/socialAuth');
@@ -42,7 +42,7 @@ async function register(req, res, next) {
             verificationToken,
         });
 
-        const { accessToken, refreshToken } = generateTokens(user._id, session._id.toString());
+        const { accessToken, refreshToken } = generateTokens(user._id);
         user.refreshTokens.push({
             token: refreshToken,
             expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
@@ -582,9 +582,7 @@ async function verifyLoginMfa(req, res, next) {
             )
             .populate('role');
 
-        if (!user || !user.twoFactor?.enabled) {
-            return res.status(400).json({ error: 'Two-factor authentication is not active on this account.' });
-        }
+        if (!user || !user.twoFactor?.enabled) return res.status(400).json({ error: 'Two-factor authentication is not active on this account.' });
 
         if (user.mfaLockUntil && user.mfaLockUntil > new Date()) {
             const waitMinutes = Math.ceil((user.mfaLockUntil - Date.now()) / 60000);
@@ -680,11 +678,7 @@ async function verifyLoginMfa(req, res, next) {
         const refreshExpiresIn = rememberMe ? '30d' : '7d';
         const refreshMaxAgeMs = rememberMe ? 30 * DAY_MS : 7 * DAY_MS;
 
-        const { accessToken, refreshToken } = generateTokens(
-            user._id,
-            refreshExpiresIn,
-            session._id.toString()
-        );
+        const { accessToken, refreshToken } = generateTokens(user._id, refreshExpiresIn);
 
         user.refreshTokens.push({
             token: refreshToken,
@@ -1245,7 +1239,12 @@ async function revokeSession(req, res, next) {
             return res.status(400).json({ error: 'You cannot revoke your current session this way. Use Sign Out instead.', });
         }
 
-        target.revokedAt = new Date();
+        user.refreshTokens = user.refreshTokens.filter((rt) => rt._id.toString() !== id);
+        await addSecurityEvent(user, {
+            type: 'session_revoked',
+            title: 'Session Revoked',
+            description: `Ended session on device: ${target.deviceLabel || 'Unknown Device'}`,
+        });
 
         await user.save();
 
@@ -1276,6 +1275,35 @@ async function revokeAllOtherSessions(req, res, next) {
 
         await user.save();
         res.json({ message: `Signed out of ${revokedCount} other session(s) successfully.`, revokedCount, });
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function logoutAllDevices(req, res, next) {
+    try {
+        const user = await User.findById(req.user.id).select('refreshTokens');
+        if (!user) return res.status(404).json({ error: 'User not found.' });
+
+        const revokedCount = user.refreshTokens.length;
+        user.refreshTokens = [];
+        user.tokensInvalidatedAt = new Date();
+
+        await addSecurityEvent(user, {
+            type: 'logout_all_devices',
+            title: 'Logged Out of All Devices',
+            description: `Ended ${revokedCount} active session(s)`,
+        });
+
+        await user.save();
+
+        res.clearCookie('accessToken');
+        res.clearCookie('refreshToken');
+
+        return res.json({
+            message: `Logged out of all devices (${revokedCount} session${revokedCount === 1 ? '' : 's'} ended).`,
+            revokedCount,
+        });
     } catch (err) {
         next(err);
     }
@@ -1329,5 +1357,6 @@ module.exports = {
     getSessions,
     revokeSession,
     revokeAllOtherSessions,
+    logoutAllDevices,
     logout,
 };

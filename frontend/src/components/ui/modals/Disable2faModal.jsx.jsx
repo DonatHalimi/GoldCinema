@@ -1,9 +1,10 @@
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import api from '../../api/client';
-import { PasswordField } from './FormUI';
+import api from '../../../api/client';
+import { PasswordField } from '../FormUI';
 import Modal from './Modal';
+import { disable2FA } from '../../../api/auth';
 
 export default function Disable2faModal({
     method,
@@ -31,10 +32,7 @@ export default function Disable2faModal({
         setError('');
 
         try {
-            await api.post('/auth/2fa/disable-method', {
-                password,
-                method,
-            });
+            await disable2FA(password, method);
 
             onSuccess(method);
         } catch (err) {

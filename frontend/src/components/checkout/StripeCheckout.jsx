@@ -5,11 +5,11 @@ import {
   useStripe,
 } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import { CreditCard, Star } from 'lucide-react';
+import { CreditCard, Plus, Star } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import api from '../../api/client';
-import { Plus } from 'lucide-react';
 import AddPaymentMethodModal from '../payments/AddPaymentMethodModal';
+import { confirmStripePayment, createStripePaymentIntent } from '../../api/payments';
 
 const stripePromise = loadStripe(
   import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
@@ -268,13 +268,7 @@ function StripeForm({
 
   async function confirmOrder(paymentIntent) {
     try {
-      const { data } = await api.post(
-        '/payments/stripe/confirm',
-        {
-          orderId: order._id,
-          paymentIntentId: paymentIntent.id,
-        }
-      );
+      const data = await confirmStripePayment(order, paymentIntent);
 
       onSuccess(data.order);
     } catch (err) {
@@ -368,28 +362,53 @@ export default function StripeCheckout({
   useEffect(() => {
     if (!order?._id) return;
 
-    setClientSecret(null);
-    setLoadError('');
+    let cancelled = false;
 
-    const request = {
-      orderId: order._id,
-    };
+    async function createPaymentIntent() {
+      setClientSecret(null);
+      setLoadError('');
 
-    if (selectedPaymentMethod) {
-      request.paymentMethodId = selectedPaymentMethod;
+      const request = {
+        orderId: order._id,
+      };
+
+      if (selectedPaymentMethod) {
+        request.paymentMethodId = selectedPaymentMethod;
+      }
+
+      try {
+        const data = await createStripePaymentIntent(request);
+
+        console.log('Stripe payment intent response:', data);
+
+        if (!data?.clientSecret) {
+          throw new Error('Stripe client secret was not returned.');
+        }
+
+        if (!cancelled) {
+          setClientSecret(data.clientSecret);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error(
+            'Failed to create Stripe payment intent:',
+            err
+          );
+
+          setLoadError(
+            err.response?.data?.error ||
+            err.message ||
+            'Failed to create payment'
+          );
+        }
+      }
     }
 
-    api.post('/payments/stripe/create-intent', request)
-      .then(({ data }) => {
-        setClientSecret(data.clientSecret);
-      })
-      .catch((err) => {
-        setLoadError(
-          err.response?.data?.error ||
-          err.message ||
-          'Failed to create payment'
-        );
-      });
+    createPaymentIntent();
+
+    return () => {
+      cancelled = true;
+    };
   }, [order?._id, selectedPaymentMethod]);
 
   if (!stripePromise) {

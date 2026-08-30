@@ -15,6 +15,7 @@ import Favourites from '../../pages/Favourites';
 import Home from '../../pages/Home';
 import Login from '../../pages/Login';
 import MovieDetails from '../../pages/MovieDetails';
+import MyReviews from '../../pages/MyReviews';
 import NotFound from '../../pages/NotFound';
 import Register from '../../pages/Register';
 import ResetPassword from '../../pages/ResetPassword';
@@ -98,6 +99,7 @@ export default function AppRoutes() {
                 <Route path="notifications" element={<Notifications />} />
                 <Route path="tickets" element={<TicketsContent />} />
                 <Route path="favourites" element={<Favourites />} />
+                <Route path="reviews" element={<MyReviews />} />
                 <Route path="payments" element={<PaymentMethods />} />
                 <Route path="sessions" element={<Sessions />} />
                 <Route path="danger" element={<DangerZone />} />

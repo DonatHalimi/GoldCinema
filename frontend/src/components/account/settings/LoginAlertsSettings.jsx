@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Bell } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import api from '../../../api/client';
+import { updateLoginAlerts } from '../../../api/auth';
 
 export default function LoginAlertsSettings({ initialLoginAlerts = true, onUpdate }) {
     const [loginAlerts, setLoginAlerts] = useState(initialLoginAlerts);
@@ -17,7 +17,7 @@ export default function LoginAlertsSettings({ initialLoginAlerts = true, onUpdat
         setAlertsLoading(true);
 
         try {
-            const { data } = await api.put('/auth/security/login-alerts', { loginAlerts: nextState });
+            const { data } = await updateLoginAlerts(nextState);
             setLoginAlerts(data.loginAlerts);
             if (onUpdate) onUpdate(data.loginAlerts);
             toast.success(data.message || 'Login alerts updated successfully.');

@@ -9,6 +9,7 @@ import SessionCard from './SessionCard';
 import SessionEmptyState from './SessionEmptyState';
 import SessionRevokeAllModal from './SessionRevokeAllModal';
 import SessionSkeleton from './SessionSkeleton';
+import { getSessions, revokeAllSessions, revokeSession } from '../../../api/auth';
 
 export default function Sessions() {
     const [sessions, setSessions] = useState([]);
@@ -23,7 +24,7 @@ export default function Sessions() {
         try {
             setLoading(true);
 
-            const { data } = await api.get('/auth/sessions');
+            const { data } = await getSessions();
 
             setSessions(data.sessions || []);
         } catch (error) {
@@ -42,24 +43,17 @@ export default function Sessions() {
         try {
             setRevoking(id);
 
-            const { data } = await api.delete(`/auth/sessions/${id}`);
+            const { data } = await revokeSession(id);
 
             setSessions((previous) => previous.filter((session) => session.id !== id));
 
             toast.success(data.message || 'Session revoked.');
         } catch (error) {
             if (error.response?.status === 404) {
-                toast.info(
-                    'Session was already expired or removed. Refreshing list.'
-                );
-
+                toast.info('Session was already expired or removed. Refreshing list.');
                 loadSessions();
             } else {
-                toast.error(
-                    error.response?.data?.error ||
-                    error.message ||
-                    'Failed to revoke session.'
-                );
+                toast.error(error.response?.data?.error || error.message || 'Failed to revoke session.');
             }
         } finally {
             setRevoking(null);
@@ -70,7 +64,7 @@ export default function Sessions() {
         try {
             setRevokingAll(true);
 
-            const { data } = await api.delete('/auth/sessions/revoke-all');
+            const { data } = await revokeAllSessions();
 
             setSessions((previous) => previous.filter((session) => session.isCurrent));
 

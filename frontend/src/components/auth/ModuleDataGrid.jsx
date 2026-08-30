@@ -1,10 +1,10 @@
 import { Check, ChevronLeft, ChevronRight, Pencil, Plus, Trash, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import { bulkDeleteItems, deleteItem, getItems } from '../../api/client';
+import { bulkDeleteItems, deleteItem, getItems } from '../../api/admin';
 import useEscapeKey from '../../hooks/useEscKey';
-import CrudModal from '../ui/CrudModal';
-import DeleteConfirmModal from '../ui/DeleteConfirmModal';
+import CrudModal from '../ui/modals/CrudModal';
+import DeleteConfirmModal from '../ui/modals/DeleteConfirmModal';
 
 const getNestedValue = (obj, path) => {
     return path.split('.').reduce((value, key) => value?.[key], obj);

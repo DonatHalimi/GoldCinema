@@ -3,7 +3,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import { createSetupIntent } from '../../api/client';
+import { createSetupIntent } from '../../api/payments';
 
 const stripePromise = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
     ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)

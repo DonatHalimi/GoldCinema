@@ -2,6 +2,7 @@ import { Download, FileText } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 import api from '../../api/client';
+import { exportLogs } from '../../api/auth';
 
 export default function SecurityLogExportCard() {
     const [exporting, setExporting] = useState(false);
@@ -10,7 +11,7 @@ export default function SecurityLogExportCard() {
         setExporting(true);
 
         try {
-            const response = await api.get('/auth/security/export-logs', { responseType: 'blob' });
+            const response = await exportLogs();
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;

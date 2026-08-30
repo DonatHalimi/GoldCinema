@@ -2,6 +2,7 @@ import { Download, Eye, EyeOff, KeyRound, RefreshCw, ShieldAlert } from 'lucide-
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import api from '../../api/client';
+import { generateBackupCodes } from '../../api/auth';
 
 export default function BackupCodesCard({ twoFactor }) {
     const [codes, setCodes] = useState([]);
@@ -33,7 +34,7 @@ export default function BackupCodesCard({ twoFactor }) {
         setLoading(true);
 
         try {
-            const { data } = await api.post('/auth/security/backup-codes');
+            const { data } = await generateBackupCodes();
 
             const newCodes = data.backupCodes || [];
 
