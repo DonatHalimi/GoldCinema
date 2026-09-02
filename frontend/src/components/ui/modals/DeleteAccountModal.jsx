@@ -2,10 +2,10 @@ import { Loader2, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { useAuth } from '../../../context/AuthContext';
-import Modal from './Modal';
-import { PasswordField } from '../FormUI';
 import { deleteAccount } from '../../../api/auth';
+import { useAuth } from '../../../context/AuthContext';
+import { PasswordField } from '../FormUI';
+import Modal from './Modal';
 
 export default function DeleteAccountModal({ onClose }) {
     const [password, setPassword] = useState('');

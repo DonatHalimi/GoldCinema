@@ -1,7 +1,6 @@
 import { Mail, PhoneCall, Send } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import api from '../api/client';
 import { createContact } from '../api/contacts';
 
 export default function ContactPage() {

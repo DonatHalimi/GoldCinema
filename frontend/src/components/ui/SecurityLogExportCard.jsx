@@ -1,7 +1,6 @@
 import { Download, FileText } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import api from '../../api/client';
 import { exportLogs } from '../../api/auth';
 
 export default function SecurityLogExportCard() {
@@ -15,7 +14,7 @@ export default function SecurityLogExportCard() {
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', 'security-activity-log.json');
+            link.setAttribute('download', 'goldcinema-security-activity-log.json');
             document.body.appendChild(link);
             link.click();
             link.remove();
@@ -37,7 +36,7 @@ export default function SecurityLogExportCard() {
                     <div>
                         <h3 className="font-semibold text-marquee-cream">Security Log Export</h3>
                         <p className="text-sm text-marquee-muted">
-                            Download a full history of your account's security events for your records
+                            Download your full account security event history
                         </p>
                     </div>
                 </div>

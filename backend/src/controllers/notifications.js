@@ -64,9 +64,7 @@ async function toggleReadStatus(req, res, next) {
         const { read } = req.body;
 
         const notification = await Notification.findOne({ _id: id, user: userId });
-        if (!notification) {
-            return res.status(404).json({ error: 'Notification not found.' });
-        }
+        if (!notification) return res.status(404).json({ error: 'Notification not found.' });
 
         notification.read = typeof read === 'boolean' ? read : !notification.read;
         await notification.save();
@@ -226,9 +224,7 @@ async function deleteNotification(req, res, next) {
         const { id } = req.params;
 
         const notification = await Notification.findOneAndDelete({ _id: id, user: userId });
-        if (!notification) {
-            return res.status(404).json({ error: 'Notification not found.' });
-        }
+        if (!notification) return res.status(404).json({ error: 'Notification not found.' });
 
         const unreadCount = await Notification.countDocuments({
             user: userId,

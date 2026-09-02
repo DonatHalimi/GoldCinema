@@ -1,8 +1,7 @@
-import { Loader2 } from 'lucide-react';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../api/client';
 import { changeUserPassword, deleteUserAccount, forgotUserPassword, getProfile, loginUser, loginUserWithFacebook, loginUserWithGoogle, logoutUser, registerUser, resetUserPassword, verifyUserLogin } from '../api/auth';
+import { LoadingAnimation } from '../components/ui/LoadingAnimation';
 
 const AuthContext = createContext(null);
 
@@ -13,16 +12,18 @@ export function AuthProvider({ children }) {
     const navigate = useNavigate();
 
     useEffect(() => {
-        getProfile()
-            .then(({ data }) => {
+        const restoreSession = async () => {
+            try {
+                const data = await getProfile();
                 setUser(data.user);
-            })
-            .catch(() => {
+            } catch (error) {
                 setUser(null);
-            })
-            .finally(() => {
+            } finally {
                 setLoading(false);
-            });
+            }
+        };
+
+        restoreSession();
     }, []);
 
     useEffect(() => {
@@ -34,10 +35,7 @@ export function AuthProvider({ children }) {
         window.addEventListener('auth:logout', handleForcedLogout);
 
         return () => {
-            window.removeEventListener(
-                'auth:logout',
-                handleForcedLogout
-            );
+            window.removeEventListener('auth:logout', handleForcedLogout);
         };
     }, [navigate]);
 
@@ -81,9 +79,15 @@ export function AuthProvider({ children }) {
         rememberMe,
         trustDevice
     ) => {
-        const { data } = await verifyUserLogin(mfaToken, code, method, rememberMe, trustDevice);
+        const data = await verifyUserLogin(
+            mfaToken,
+            code,
+            method,
+            rememberMe,
+            trustDevice
+        );
 
-        const { data: userData } = await getProfile();
+        const userData = await getProfile();
 
         setUser(userData.user);
 
@@ -149,9 +153,9 @@ export function AuthProvider({ children }) {
     };
 
     if (loading) {
-        <div className="flex h-screen items-center justify-center">
-            <Loader2 className="h-12 w-12 animate-spin text-marquee-gold" />
-        </div>;
+        return (
+            <LoadingAnimation />
+        );
     }
 
     return (

@@ -2,9 +2,9 @@ import { startRegistration } from '@simplewebauthn/browser';
 import { BadgeCheck, Fingerprint, KeyRound, Pencil, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-// import DisablePasskeyModal from '../../ui/modals/DisablePasskeyModal';
-import RenamePasskeyModal from '../../ui/modals/RenamePasskeyModal';
 import { getPasskeyRegistrationOptions, getPasskeys, verifyPasskeyRegistration } from '../../../api/auth';
+import DisablePasskeyModal from '../../ui/modals/DisablePasskeyModal';
+import RenamePasskeyModal from '../../ui/modals/RenamePasskeyModal';
 
 export default function PasskeySettings() {
     const [passkeys, setPasskeys] = useState([]);
@@ -20,7 +20,7 @@ export default function PasskeySettings() {
     const fetchPasskeys = async () => {
         try {
             const res = await getPasskeys();
-            setPasskeys(res.data.passkeys || []);
+            setPasskeys(res.passkeys || []);
         } catch (err) {
             toast.error('Failed to load passkeys.');
         } finally {
@@ -32,11 +32,11 @@ export default function PasskeySettings() {
         try {
             setRegistering(true);
 
-            const optRes = await getPasskeyRegistrationOptions();
-            const optionsJSON = optRes.data;
+            const optionsJSON = await getPasskeyRegistrationOptions();
 
-            const attResp = await startRegistration({ optionsJSON });
-
+            const attResp = await startRegistration({
+                optionsJSON,
+            });
             await verifyPasskeyRegistration(attResp);
 
             toast.success('Passkey registered successfully!');
@@ -148,14 +148,14 @@ export default function PasskeySettings() {
                 </div>
             </div>
 
-            {/* {selectedPasskeyForRemoval && (
+            {selectedPasskeyForRemoval && (
                 <DisablePasskeyModal
                     id={selectedPasskeyForRemoval.id}
                     passkeyName={selectedPasskeyForRemoval.name}
                     onClose={() => setSelectedPasskeyForRemoval(null)}
                     onSuccess={handleRemovalSuccess}
                 />
-            )} */}
+            )}
 
             {selectedPasskeyForRename && (
                 <RenamePasskeyModal

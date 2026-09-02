@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../../api/client';
+
+import { resendMfaCode } from '../../api/auth';
 import { useAuth } from '../../context/AuthContext';
 import RememberMeCheckbox from './RememberMeCheckbox';
-import { resendMfaCode } from '../../api/auth';
 
 const RESEND_COOLDOWN_SECONDS = 30;
 
@@ -19,7 +19,6 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
     const [error, setError] = useState('');
     const [resending, setResending] = useState(false);
     const [resendCooldown, setResendCooldown] = useState(0);
-
     const [selectedMethod, setSelectedMethod] = useState(null);
 
     const otpRefs = useRef([]);
@@ -27,14 +26,24 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
 
     const hasTotp = mfaState.methods?.includes('totp');
     const hasEmail = mfaState.methods?.includes('email');
+    const hasSms = mfaState.methods?.includes('sms');
 
     useEffect(() => {
+        const methods = mfaState.methods || [];
+
+        if (methods.length === 1) {
+            setSelectedMethod(methods[0]);
+            return;
+        }
+
         if (hasTotp) {
             setSelectedMethod('totp');
         } else if (hasEmail) {
             setSelectedMethod('email');
+        } else if (hasSms) {
+            setSelectedMethod('sms');
         }
-    }, [hasTotp, hasEmail]);
+    }, [mfaState.methods, hasTotp, hasEmail, hasSms]);
 
     useEffect(() => {
         if (useBackupCode) {
@@ -48,7 +57,9 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
         if (resendCooldown <= 0) return;
 
         const timer = setInterval(() => {
-            setResendCooldown((s) => Math.max(0, s - 1));
+            setResendCooldown((seconds) =>
+                Math.max(0, seconds - 1)
+            );
         }, 1000);
 
         return () => clearInterval(timer);
@@ -97,7 +108,9 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
     };
 
     const handleOtpChange = (index, value) => {
-        if (!/^\d*$/.test(value)) return;
+        if (!/^\d*$/.test(value)) {
+            return;
+        }
 
         const newOtp = [...otp];
 
@@ -105,9 +118,7 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
 
         setOtp(newOtp);
 
-        if (value && index < 5) {
-            otpRefs.current[index + 1]?.focus();
-        }
+        if (value && index < 5) otpRefs.current[index + 1]?.focus();
 
         const fullCode = newOtp.join('');
 
@@ -125,15 +136,12 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
     const handleOtpPaste = (e) => {
         e.preventDefault();
 
-        const pastedData = e.clipboardData
-            .getData('text')
-            .trim();
+        const pastedData = e.clipboardData.getData('text').trim();
 
         if (/^\d{6}$/.test(pastedData)) {
             const digits = pastedData.split('');
 
             setOtp(digits);
-
             otpRefs.current[5]?.focus();
 
             submitVerification(pastedData);
@@ -143,15 +151,13 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        const codeToSubmit = useBackupCode
-            ? backupCode
-            : otp.join('');
+        const codeToSubmit = useBackupCode ? backupCode : otp.join('');
 
         submitVerification(codeToSubmit);
     };
 
     async function handleResend() {
-        if (selectedMethod !== 'email') return;
+        if (selectedMethod !== 'email' && selectedMethod !== 'sms') return;
 
         setResending(true);
         setError('');
@@ -167,10 +173,20 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
         }
     }
 
-    const methodLabel =
+    const methodDescription =
         selectedMethod === 'totp'
-            ? 'authenticator app'
-            : 'email';
+            ? 'Enter the 6-digit code from your authenticator app.'
+            : selectedMethod === 'sms'
+                ? 'Enter the 6-digit code sent to your phone.'
+                : 'Enter the 6-digit code sent to your email.';
+
+    const availableMethods = [
+        hasTotp,
+        hasEmail,
+        hasSms,
+    ].filter(Boolean).length;
+
+    const hasMultipleMethods = availableMethods > 1;
 
     return (
         <div>
@@ -189,46 +205,74 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
             <p className="mb-5 text-center text-sm text-marquee-muted">
                 {useBackupCode
                     ? 'Enter one of your saved backup codes.'
-                    : `Enter the 6 - digit code from your ${methodLabel}.`}
+                    : methodDescription}
             </p>
 
-            {!useBackupCode && hasTotp && hasEmail && (
+            {hasMultipleMethods && !useBackupCode && (
                 <div className="mb-5 space-y-2">
                     <p className="text-center text-xs text-marquee-muted">
                         Choose a verification method
                     </p>
 
-                    <button
-                        type="button"
-                        onClick={() => switchMethod('totp')}
-                        disabled={submitting}
-                        className={`w-full rounded-lg border px-4 py-3 text-left transition ${selectedMethod === 'totp'
-                            ? 'border-marquee-gold bg-marquee-gold/10 text-marquee-cream'
-                            : 'border-marquee-line bg-marquee-panel2 text-marquee-muted hover:border-marquee-gold/50 hover:text-marquee-cream'}`}>
-                        <div className="font-medium">
-                            Authenticator App
-                        </div>
+                    {hasTotp && (
+                        <button
+                            type="button"
+                            onClick={() => switchMethod('totp')}
+                            disabled={submitting}
+                            className={`w - full rounded - lg border px - 4 py - 3 text - left transition ${selectedMethod === 'totp'
+                                ? 'border-marquee-gold bg-marquee-gold/10 text-marquee-cream'
+                                : 'border-marquee-line bg-marquee-panel2 text-marquee-muted hover:border-marquee-gold/50 hover:text-marquee-cream'
+                                } `}
+                        >
+                            <div className="font-medium">
+                                Authenticator App
+                            </div>
 
-                        <div className="mt-1 text-xs text-marquee-muted">
-                            Use the 6-digit code from your authenticator app.
-                        </div>
-                    </button>
+                            <div className="mt-1 text-xs text-marquee-muted">
+                                Use the 6-digit code from your authenticator app.
+                            </div>
+                        </button>
+                    )}
 
-                    <button
-                        type="button"
-                        onClick={() => switchMethod('email')}
-                        disabled={submitting}
-                        className={`w-full rounded-lg border px-4 py-3 text-left transition ${selectedMethod === 'email'
-                            ? 'border-marquee-gold bg-marquee-gold/10 text-marquee-cream'
-                            : 'border-marquee-line bg-marquee-panel2 text-marquee-muted hover:border-marquee-gold/50 hover:text-marquee-cream'}`}>
-                        <div className="font-medium">
-                            Email
-                        </div>
+                    {hasEmail && (
+                        <button
+                            type="button"
+                            onClick={() => switchMethod('email')}
+                            disabled={submitting}
+                            className={`w - full rounded - lg border px - 4 py - 3 text - left transition ${selectedMethod === 'email'
+                                ? 'border-marquee-gold bg-marquee-gold/10 text-marquee-cream'
+                                : 'border-marquee-line bg-marquee-panel2 text-marquee-muted hover:border-marquee-gold/50 hover:text-marquee-cream'
+                                } `}
+                        >
+                            <div className="font-medium">
+                                Email
+                            </div>
 
-                        <div className="mt-1 text-xs text-marquee-muted">
-                            Receive a 6-digit verification code by email.
-                        </div>
-                    </button>
+                            <div className="mt-1 text-xs text-marquee-muted">
+                                Receive a 6-digit verification code by email.
+                            </div>
+                        </button>
+                    )}
+
+                    {hasSms && (
+                        <button
+                            type="button"
+                            onClick={() => switchMethod('sms')}
+                            disabled={submitting}
+                            className={`w - full rounded - lg border px - 4 py - 3 text - left transition ${selectedMethod === 'sms'
+                                ? 'border-marquee-gold bg-marquee-gold/10 text-marquee-cream'
+                                : 'border-marquee-line bg-marquee-panel2 text-marquee-muted hover:border-marquee-gold/50 hover:text-marquee-cream'
+                                } `}
+                        >
+                            <div className="font-medium">
+                                SMS
+                            </div>
+
+                            <div className="mt-1 text-xs text-marquee-muted">
+                                Receive a 6-digit verification code by SMS.
+                            </div>
+                        </button>
+                    )}
                 </div>
             )}
 
@@ -242,9 +286,7 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
                             ref={backupInputRef}
                             type="text"
                             value={backupCode}
-                            onChange={(e) =>
-                                setBackupCode(e.target.value)
-                            }
+                            onChange={(e) => setBackupCode(e.target.value)}
                             maxLength={10}
                             required
                             disabled={submitting}
@@ -261,28 +303,15 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
                             {otp.map((digit, index) => (
                                 <input
                                     key={index}
-                                    ref={(el) =>
-                                        (otpRefs.current[index] = el)
-                                    }
+                                    ref={(el) => (otpRefs.current[index] = el)}
                                     type="text"
                                     inputMode="numeric"
-                                    autoComplete={
-                                        index === 0
-                                            ? 'one-time-code'
-                                            : 'off'
-                                    }
+                                    autoComplete={index === 0 ? 'one-time-code' : 'off'}
                                     maxLength={1}
                                     value={digit}
                                     disabled={submitting}
-                                    onChange={(e) =>
-                                        handleOtpChange(
-                                            index,
-                                            e.target.value
-                                        )
-                                    }
-                                    onKeyDown={(e) =>
-                                        handleOtpKeyDown(index, e)
-                                    }
+                                    onChange={(e) => handleOtpChange(index, e.target.value)}
+                                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
                                     className="h-12 w-12 rounded-md border border-marquee-line bg-marquee-panel2 text-center text-lg font-semibold text-marquee-cream outline-none transition focus:border-marquee-gold disabled:opacity-50"
                                 />
                             ))}
@@ -296,12 +325,8 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
                     </p>
                 )}
 
-                <RememberMeCheckbox
-                    checked={trustDevice}
-                    onChange={() =>
-                        setTrustDevice((prev) => !prev)
-                    }
-                />
+                <RememberMeCheckbox checked={trustDevice} onChange={() => setTrustDevice((prev) => !prev)} />
+
                 <button
                     type="submit"
                     disabled={
@@ -315,7 +340,9 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
                     }
                     className="w-full rounded-full bg-marquee-gold px-6 py-3 font-semibold text-marquee-bg transition hover:bg-marquee-goldBright disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                    {submitting ? 'Verifying...' : 'Verify'}
+                    {submitting
+                        ? 'Verifying...'
+                        : 'Verify'}
                 </button>
 
                 <div className="flex items-center justify-between text-sm">
@@ -329,23 +356,27 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
                         }}
                         className="text-marquee-gold hover:text-marquee-goldBright"
                     >
-                        {useBackupCode ? 'Use verification code instead' : 'Use a backup code instead'}
+                        {useBackupCode
+                            ? 'Use verification code instead'
+                            : 'Use a backup code instead'}
                     </button>
 
-                    {selectedMethod === 'email' && !useBackupCode && (
-                        <button
-                            type="button"
-                            onClick={handleResend}
-                            disabled={resending || resendCooldown > 0}
-                            className="text-marquee-muted hover:text-marquee-gold disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                            {resendCooldown > 0
-                                ? `Resend in ${resendCooldown} s`
-                                : resending
-                                    ? 'Sending...'
-                                    : 'Resend code'}
-                        </button>
-                    )}
+                    {(selectedMethod === 'email' ||
+                        selectedMethod === 'sms') &&
+                        !useBackupCode && (
+                            <button
+                                type="button"
+                                onClick={handleResend}
+                                disabled={resending || resendCooldown > 0}
+                                className="text-marquee-muted hover:text-marquee-gold disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                {resendCooldown > 0
+                                    ? `Resend in ${resendCooldown} s`
+                                    : resending
+                                        ? 'Sending...'
+                                        : 'Resend code'}
+                            </button>
+                        )}
                 </div>
             </form>
         </div>

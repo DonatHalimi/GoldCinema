@@ -27,9 +27,7 @@ async function createContact(req, res, next) {
     try {
         const { name, email, subject, message } = req.body;
 
-        if (!name || !email || !subject || !message) {
-            return res.status(400).json({ error: 'Please fill out all required fields.' });
-        }
+        if (!name || !email || !subject || !message) return res.status(400).json({ error: 'Please fill out all required fields.' });
 
         const contactEntry = await Contact.create({
             name,
@@ -60,9 +58,7 @@ async function updateContactStatus(req, res, next) {
             { new: true, runValidators: true }
         );
 
-        if (!updatedContact) {
-            return res.status(404).json({ error: 'Contact message not found' });
-        }
+        if (!updatedContact) return res.status(404).json({ error: 'Contact message not found' });
 
         res.status(200).json({
             message: 'Contact status updated successfully',
@@ -78,9 +74,7 @@ async function deleteContact(req, res, next) {
         const { id } = req.params;
 
         const deletedContact = await Contact.findByIdAndDelete(id);
-        if (!deletedContact) {
-            return res.status(404).json({ error: 'Contact message not found' });
-        }
+        if (!deletedContact) return res.status(404).json({ error: 'Contact message not found' });
 
         res.status(200).json({
             message: 'Contact message deleted successfully',
@@ -95,9 +89,7 @@ async function bulkDeleteContacts(req, res, next) {
     try {
         const { ids } = req.body;
 
-        if (!Array.isArray(ids) || ids.length === 0) {
-            return res.status(400).json({ error: 'Please provide an array of contact IDs' });
-        }
+        if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: 'Please provide an array of contact IDs' });
 
         const result = await Contact.deleteMany({ _id: { $in: ids } });
 

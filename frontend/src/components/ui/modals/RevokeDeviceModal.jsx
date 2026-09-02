@@ -1,9 +1,9 @@
 import { Loader2, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
+import { revokeDevice } from '../../../api/auth';
 import { PasswordField } from '../FormUI';
 import Modal from './Modal';
-import { revokeDevice } from '../../../api/auth';
 
 export default function RevokeDeviceModal({ device, onClose, onSuccess }) {
     const [password, setPassword] = useState('');

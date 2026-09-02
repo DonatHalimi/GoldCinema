@@ -33,6 +33,8 @@ const {
   revokeAllOtherSessions,
   logoutAllDevices,
   logout,
+  enableSms2fa,
+  verifySms2faSetup,
 } = require('../controllers/auth');
 const {
   validateBody,
@@ -56,6 +58,8 @@ const {
   resendLoginMfaSchema,
   loginAlertsSchema,
   disable2faMethodSchema,
+  smsPhoneSchema,
+  verifySms2faSchema,
 } = require('../validations/auth');
 
 const router = express.Router();
@@ -91,6 +95,9 @@ router.post('/2fa/totp/verify', requireAuth, validateBody(sixDigitCodeSchema), v
 
 router.post('/2fa/email/enable', requireAuth, enableEmail2fa);
 router.post('/2fa/email/verify', requireAuth, validateBody(sixDigitCodeSchema), verifyEmail2faSetup);
+
+router.post('/2fa/sms/enable', requireAuth, validateBody(smsPhoneSchema), enableSms2fa);
+router.post('/2fa/sms/verify', requireAuth, validateBody(verifySms2faSchema), verifySms2faSetup);
 
 router.post('/2fa/disable', requireAuth, validateBody(disable2faSchema), disable2fa);
 router.post('/2fa/disable-method', requireAuth, validateBody(disable2faMethodSchema), disable2faMethod);

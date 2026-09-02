@@ -1,10 +1,9 @@
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import api from '../../../api/client';
+import { disable2FA } from '../../../api/auth';
 import { PasswordField } from '../FormUI';
 import Modal from './Modal';
-import { disable2FA } from '../../../api/auth';
 
 export default function Disable2faModal({
     method,

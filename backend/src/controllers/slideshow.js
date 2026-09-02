@@ -30,25 +30,13 @@ async function getSlideById(req, res) {
 
 async function createSlide(req, res) {
     try {
-        const {
-            title,
-            description,
-            imageUrl,
-            buttonText,
-            buttonLink,
-            order
-        } = req.body;
-
+        const { title, description, imageUrl, buttonText, buttonLink, order } = req.body;
 
         let finalImageUrl = imageUrl;
 
         if (req.file) { finalImageUrl = `/uploads/slideshows/${req.file.filename}`; }
 
-        if (!finalImageUrl) {
-            return res.status(400).json({
-                message: "Image is required"
-            });
-        }
+        if (!finalImageUrl) return res.status(400).json({ message: "Image is required" });
 
         const slide = await Slideshow.create({
             title,
@@ -73,10 +61,7 @@ async function updateSlide(req, res) {
 
         if (req.file) slide.imageUrl = `/uploads/slideshows/${req.file.filename}`;
 
-        Object.assign(
-            slide,
-            req.body
-        );
+        Object.assign(slide, req.body);
 
         await slide.save();
 

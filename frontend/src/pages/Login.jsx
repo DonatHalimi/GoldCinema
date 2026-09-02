@@ -3,7 +3,7 @@ import { KeyRound } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import api from '../api/client';
+import { getPasskeyLoginOptions, verifyPasskeyLogin } from '../api/auth';
 import { ForgotPasswordModal } from '../components/auth/ForgotPasswordModal';
 import MfaVerifyStep from '../components/auth/MfaVerifyStep';
 import RememberMeCheckbox from '../components/auth/RememberMeCheckbox';
@@ -11,7 +11,6 @@ import SocialLoginButtons from '../components/auth/SocialLoginButtons';
 import { Field, PasswordField } from '../components/ui/FormUI';
 import { useAuth } from '../context/AuthContext';
 import { loginSchema, validateForm } from '../validations';
-import { getPasskeyLoginOptions, verifyPasskeyLogin } from '../api/auth';
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const facebookAppId = import.meta.env.VITE_FACEBOOK_APP_ID;
@@ -82,14 +81,13 @@ export default function Login() {
     setSubmitting(true);
 
     try {
-      const optRes = await getPasskeyLoginOptions();
-      const optionsJSON = optRes.data;
+      const optionsJSON = await getPasskeyLoginOptions();
 
       const authResponse = await startAuthentication({ optionsJSON });
 
       const verifyRes = await verifyPasskeyLogin(rememberMe, authResponse);
 
-      if (verifyRes.data?.mfaRequired) {
+      if (verifyRes?.mfaRequired) {
         setMfaState({
           mfaToken: verifyRes.data.mfaToken,
           methods: verifyRes.data.methods || [],

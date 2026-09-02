@@ -7,7 +7,11 @@ const { generateVerificationToken } = require('../utils/tokens');
 const crypto = require('crypto');
 const TRUSTED_DEVICE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 const EMAIL_OTP_TTL_MS = 10 * 60 * 1000;
+const SMS_OTP_TTL_MS = 5 * 60 * 1000;
 const MFA_MAX_ATTEMPTS = 5;
+const RESEND_COOLDOWN_MS = 30 * 1000;
+const RESEND_MAX_PER_WINDOW = 3;
+const RESEND_WINDOW_MS = 10 * 60 * 1000;
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -167,6 +171,10 @@ module.exports = {
   MAX_FAILED_ATTEMPTS,
   LOCK_STAGES_MIN,
   DAY_MS,
+  SMS_OTP_TTL_MS,
+  RESEND_COOLDOWN_MS,
+  RESEND_MAX_PER_WINDOW,
+  RESEND_WINDOW_MS,
   googleClient,
   requireAuth,
   optionalAuth,

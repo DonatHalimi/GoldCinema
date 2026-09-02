@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api/client';
+import { getMovieById, getMovieShowtimes } from '../api/movies';
 import { getMovieReviews } from '../api/reviews';
 import FavouriteButton from '../components/FavouriteButton';
 import EditReviewModal from '../components/reviews/EditReviewModal';
@@ -8,7 +9,6 @@ import StarRating from '../components/reviews/StarRating';
 import WriteReviewModal from '../components/reviews/WriteReviewModal';
 import { useAuth } from '../context/AuthContext';
 import useEscapeKey from '../hooks/useEscKey';
-import { getMovieById, getMovieShowtimes } from '../api/movies';
 
 export default function MovieDetail() {
   const { id } = useParams();
@@ -237,7 +237,7 @@ export default function MovieDetail() {
                 </button>
               ) : (
                 <p className="max-w-xs text-right text-xs text-marquee-muted">
-                  Only users who have purchased a ticket for this movie can leave a review.
+                  Only ticket buyers can review this movie.
                 </p>
               )}
             </div>

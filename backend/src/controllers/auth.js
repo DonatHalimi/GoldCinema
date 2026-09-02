@@ -17,7 +17,7 @@ const qrcode = require('qrcode');
 const crypto = require('crypto');
 const { generateTokens, setCookies, issueVerificationEmail, googleClient, TRUSTED_DEVICE_MAX_AGE_MS, EMAIL_OTP_TTL_MS, MFA_MAX_ATTEMPTS, MAX_FAILED_ATTEMPTS, LOCK_STAGES_MIN, DAY_MS, } = require('../middleware/auth');
 const { createNotification } = require('../utils/notifications');
-const { issueEmailOtp } = require('../utils/mfaOtp');
+const { issueEmailOtp, issueSmsOtp } = require('../utils/mfaOtp');
 const { findOrCreateSocialUser, completeSocialLogin } = require('../services/socialAuth');
 const { notifyLoginAlert } = require('../utils/loginAlerts');
 const { issueTrustedDevice } = require('../utils/deviceTrust');
@@ -119,6 +119,10 @@ async function login(req, res) {
                     await issueEmailOtp(user, { save: false });
                 }
 
+                if (methods.includes('sms')) {
+                    await issueSmsOtp(user, { save: false });
+                }
+
                 await addSecurityEvent(user, {
                     type: 'login_password_mfa_pending',
                     title: 'Successful Login',
@@ -177,9 +181,6 @@ async function login(req, res) {
             user: { id: user._id, name: user.name, email: user.email, role: user.role },
         });
     } catch (error) {
-        console.error('LOGIN ERROR:', error);
-        console.error('LOGIN ERROR STACK:', error.stack);
-
         await recordAttempt({
             email,
             user: null,
@@ -188,9 +189,7 @@ async function login(req, res) {
             reason: 'server_error',
         });
 
-        return res.status(500).json({
-            error: error.message,
-        });
+        return res.status(500).json({ error: error.message });
     }
 }
 
@@ -209,9 +208,7 @@ async function googleLogin(req, res, next) {
         const user = await findOrCreateSocialUser(email, name, 'google');
         const result = await completeSocialLogin({ req, res, user, provider: 'Google' });
 
-        if (result.mfaRequired) {
-            return res.json({ message: 'Two-factor authentication required.', ...result });
-        }
+        if (result.mfaRequired) return res.json({ message: 'Two-factor authentication required.', ...result });
 
         return res.json({
             message: 'Logged in with Google successfully',
@@ -246,9 +243,7 @@ async function facebookLogin(req, res, next) {
         const user = await findOrCreateSocialUser(email, name, 'facebook');
         const result = await completeSocialLogin({ req, res, user, provider: 'Facebook' });
 
-        if (result.mfaRequired) {
-            return res.json({ message: 'Two-factor authentication required.', ...result });
-        }
+        if (result.mfaRequired) return res.json({ message: 'Two-factor authentication required.', ...result });
 
         return res.json({
             message: 'Logged in with Facebook successfully',
@@ -557,13 +552,7 @@ function findTrustedDeviceEntry(user, req) {
 
 async function verifyLoginMfa(req, res, next) {
     try {
-        const {
-            mfaToken,
-            code,
-            method,
-            rememberMe,
-            trustDevice,
-        } = req.body;
+        const { mfaToken, code, method, rememberMe, trustDevice } = req.body;
 
         let decoded;
 
@@ -578,6 +567,8 @@ async function verifyLoginMfa(req, res, next) {
                 '+twoFactor.totpSecret ' +
                 '+twoFactor.emailOtpHash ' +
                 '+twoFactor.emailOtpExpiresAt ' +
+                '+twoFactor.smsOtpHash ' +
+                '+twoFactor.smsOtpExpiresAt ' +
                 '+twoFactor.backupCodes.codeHash'
             )
             .populate('role');
@@ -611,6 +602,11 @@ async function verifyLoginMfa(req, res, next) {
             if (verified) {
                 verifiedMethod = 'email';
             }
+        } else if (method === 'sms' && user.twoFactor.methods.includes('sms')) {
+            verified = !!user.twoFactor.smsOtpHash &&
+                user.twoFactor.smsOtpExpiresAt > new Date() &&
+                (await bcrypt.compare(normalizedCode, user.twoFactor.smsOtpHash));
+            if (verified) verifiedMethod = 'sms';
         }
 
         if (!verified && user.twoFactor.backupCodes?.length) {
@@ -645,6 +641,9 @@ async function verifyLoginMfa(req, res, next) {
 
         user.twoFactor.emailOtpHash = undefined;
         user.twoFactor.emailOtpExpiresAt = undefined;
+
+        user.twoFactor.smsOtpHash = undefined;
+        user.twoFactor.smsOtpExpiresAt = undefined;
 
         if (trustDevice) {
             const rawToken = generateDeviceToken();
@@ -705,6 +704,9 @@ async function verifyLoginMfa(req, res, next) {
                 break;
             case 'backup_code':
                 loginMethodLabel = 'Backup Code';
+                break;
+            case 'sms':
+                loginMethodLabel = 'SMS 2FA';
                 break;
             default:
                 loginMethodLabel = 'MFA';
@@ -802,10 +804,7 @@ async function verifyTotpSetup(req, res, next) {
 
         const backupCodes = generateBackupCodes();
 
-        user.twoFactor.backupCodes =
-            await Promise.all(
-                backupCodes.map(async (code) => ({ codeHash: await bcrypt.hash(code, 10) }))
-            );
+        user.twoFactor.backupCodes = await Promise.all(backupCodes.map(async (code) => ({ codeHash: await bcrypt.hash(code, 10) })));
 
         await user.save();
         res.json({ message: "Authenticator app enabled", backupCodes });
@@ -845,9 +844,7 @@ async function verifyEmail2faSetup(req, res, next) {
         user.twoFactor.emailOtpExpiresAt = undefined;
 
         const backupCodes = generateBackupCodes();
-        user.twoFactor.backupCodes = await Promise.all(
-            backupCodes.map(async (c) => ({ codeHash: await bcrypt.hash(c, 10) }))
-        );
+        user.twoFactor.backupCodes = await Promise.all(backupCodes.map(async (c) => ({ codeHash: await bcrypt.hash(c, 10) })));
 
         await user.save();
         res.json({ message: 'Email 2FA enabled.', backupCodes });
@@ -882,7 +879,7 @@ async function disable2faMethod(req, res, next) {
     try {
         const { password, method } = req.body;
 
-        if (!method || !['email', 'totp'].includes(method)) return res.status(400).json({ error: 'Invalid 2FA method.' });
+        if (!method || !['email', 'totp', 'sms'].includes(method)) return res.status(400).json({ error: 'Invalid 2FA method.' });
 
         const user = await User.findById(req.user.id);
 
@@ -923,7 +920,7 @@ async function disable2faMethod(req, res, next) {
 
 async function resendLoginMfaCode(req, res, next) {
     try {
-        const { mfaToken } = req.body;
+        const { mfaToken, method } = req.body;
 
         let decoded;
         try {
@@ -932,16 +929,91 @@ async function resendLoginMfaCode(req, res, next) {
             return res.status(401).json({ error: 'MFA session expired. Please log in again.' });
         }
 
-        const user = await User.findById(decoded.id);
-        if (!user?.twoFactor?.enabled || !user.twoFactor.methods.includes('email')) return res.status(400).json({ error: 'Email code resend is not available for this account' });
+        const user = await User.findById(decoded.id).select('+twoFactor.lastResendAt +twoFactor.resendCount +twoFactor.resendWindowStart');
 
-        const code = String(Math.floor(100000 + Math.random() * 900000));
-        user.twoFactor.emailOtpHash = await bcrypt.hash(code, 10);
-        user.twoFactor.emailOtpExpiresAt = new Date(Date.now() + EMAIL_OTP_TTL_MS);
+        if (!user?.twoFactor?.enabled) return res.status(400).json({ error: 'Two-factor authentication is not active on this account.' });
+
+        const resolvedMethod = method && user.twoFactor.methods.includes(method)
+            ? method
+            : user.twoFactor.methods.find((m) => m === 'email' || m === 'sms');
+
+        if (!resolvedMethod) return res.status(400).json({ error: 'Code resend is not available for this account.' });
+
+        const now = new Date();
+
+        if (user.twoFactor.lastResendAt && now - user.twoFactor.lastResendAt < RESEND_COOLDOWN_MS) {
+            const waitSec = Math.ceil((RESEND_COOLDOWN_MS - (now - user.twoFactor.lastResendAt)) / 1000);
+            return res.status(429).json({ error: `Please wait ${waitSec}s before requesting another code.` });
+        }
+
+        if (!user.twoFactor.resendWindowStart || now - user.twoFactor.resendWindowStart > RESEND_WINDOW_MS) {
+            user.twoFactor.resendWindowStart = now;
+            user.twoFactor.resendCount = 0;
+        }
+
+        if (user.twoFactor.resendCount >= RESEND_MAX_PER_WINDOW) return res.status(429).json({ error: 'Too many code requests. Please try again later or log in again.' });
+
+        user.twoFactor.resendCount += 1;
+        user.twoFactor.lastResendAt = now;
+
+        if (resolvedMethod === 'sms') {
+            await issueSmsOtp(user, { save: false });
+        } else {
+            await issueEmailOtp(user, { save: false });
+        }
+
         await user.save();
-
-        await sendTwoFactorCode({ to: user.email, name: user.name, code });
         res.json({ message: 'Code resent.' });
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function enableSms2fa(req, res, next) {
+    try {
+        const { phoneNumber } = req.body;
+        const user = await User.findById(req.user.id);
+
+        user.twoFactor.pendingMethod = 'sms';
+        user.twoFactor.pendingPhoneNumber = phoneNumber;
+        await issueSmsOtp(user, { pending: true });
+        res.json({ message: 'Verification code sent to your phone.' });
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function verifySms2faSetup(req, res, next) {
+    try {
+        const { code } = req.body;
+        const user = await User.findById(req.user.id)
+            .select('+twoFactor.smsOtpHash +twoFactor.smsOtpExpiresAt +twoFactor.pendingPhoneNumber');
+
+        const valid =
+            user.twoFactor?.smsOtpHash &&
+            user.twoFactor.smsOtpExpiresAt > new Date() &&
+            (await bcrypt.compare(code, user.twoFactor.smsOtpHash));
+
+        if (!valid) return res.status(400).json({ error: 'Invalid or expired code.' });
+
+        user.phoneNumber = user.twoFactor.pendingPhoneNumber;
+        user.phoneVerified = true;
+        user.twoFactor.enabled = true;
+
+        if (!user.twoFactor.methods.includes('sms')) user.twoFactor.methods.push('sms');
+
+        user.twoFactor.pendingMethod = null;
+        user.twoFactor.pendingPhoneNumber = undefined;
+        user.twoFactor.smsOtpHash = undefined;
+        user.twoFactor.smsOtpExpiresAt = undefined;
+
+        const backupCodes = generateBackupCodes();
+        user.twoFactor.backupCodes = await Promise.all(
+            backupCodes.map(async (c) => ({ codeHash: await bcrypt.hash(c, 10) }))
+        );
+
+        await user.save();
+        res.json({ message: 'SMS 2FA enabled.', backupCodes });
     } catch (err) {
         next(err);
     }
@@ -1101,19 +1173,12 @@ async function generateBackupCodesRoute(req, res) {
         const lastRegenerated = user.twoFactor.backupCodesRegeneratedAt;
         let regenerationCount = user.twoFactor.backupCodesRegenerationCount || 0;
 
-        if (!lastRegenerated || now.getTime() - new Date(lastRegenerated).getTime() >= twentyFourHours) {
-            regenerationCount = 0;
-        }
+        if (!lastRegenerated || now.getTime() - new Date(lastRegenerated).getTime() >= twentyFourHours) regenerationCount = 0;
 
         if (regenerationCount >= 3) {
-            const resetAt = new Date(
-                new Date(lastRegenerated).getTime() + twentyFourHours
-            );
-
+            const resetAt = new Date(new Date(lastRegenerated).getTime() + twentyFourHours);
             const remainingMs = resetAt.getTime() - now.getTime();
-            const remainingHours = Math.ceil(
-                remainingMs / (60 * 60 * 1000)
-            );
+            const remainingHours = Math.ceil(remainingMs / (60 * 60 * 1000));
 
             return res.status(429).json({
                 error: `You have reached the backup code regeneration limit. Please try again in approximately ${remainingHours} hour${remainingHours === 1 ? '' : 's'}.`,
@@ -1173,7 +1238,7 @@ async function exportSecurityLogs(req, res) {
         );
 
         res.setHeader('Content-Type', 'application/json');
-        res.setHeader('Content-Disposition', 'attachment; filename="security-activity-log.json"');
+        res.setHeader('Content-Disposition', 'attachment; filename="goldcinema-security-activity-log.json"');
 
         return res.status(200).send(JSON.stringify(logData, null, 2));
     } catch (err) {
@@ -1219,9 +1284,7 @@ async function revokeSession(req, res, next) {
     try {
         const { id } = req.params;
 
-        if (!req.user?.id) {
-            return res.status(401).json({ error: 'Unauthorized. Authentication required.', });
-        }
+        if (!req.user?.id) return res.status(401).json({ error: 'Unauthorized. Authentication required.', });
 
         const currentRefreshToken = req.cookies?.refreshToken || null;
 
@@ -1229,15 +1292,11 @@ async function revokeSession(req, res, next) {
 
         if (!user) return res.status(404).json({ error: 'User not found.' });
 
-        const target = user.refreshTokens.find(
-            (rt) => rt._id.toString() === id
-        );
+        const target = user.refreshTokens.find((rt) => rt._id.toString() === id);
 
         if (!target) return res.status(404).json({ error: 'Session not found.' });
 
-        if (currentRefreshToken && target.token === currentRefreshToken) {
-            return res.status(400).json({ error: 'You cannot revoke your current session this way. Use Sign Out instead.', });
-        }
+        if (currentRefreshToken && target.token === currentRefreshToken) return res.status(400).json({ error: 'You cannot revoke your current session this way. Use Sign Out instead.', });
 
         user.refreshTokens = user.refreshTokens.filter((rt) => rt._id.toString() !== id);
         await addSecurityEvent(user, {
@@ -1264,9 +1323,7 @@ async function revokeAllOtherSessions(req, res, next) {
         const beforeCount = user.refreshTokens.length;
 
         if (currentRefreshToken) {
-            user.refreshTokens = user.refreshTokens.filter(
-                (rt) => rt.token === currentRefreshToken
-            );
+            user.refreshTokens = user.refreshTokens.filter((rt) => rt.token === currentRefreshToken);
         } else {
             user.refreshTokens = [];
         }
@@ -1348,6 +1405,8 @@ module.exports = {
     resendLoginMfaCode,
     disable2fa,
     disable2faMethod,
+    enableSms2fa,
+    verifySms2faSetup,
     updateLoginAlerts,
     getTrustedDevices,
     revokeTrustedDevice,

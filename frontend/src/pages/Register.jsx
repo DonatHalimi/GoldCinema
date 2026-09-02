@@ -5,6 +5,8 @@ import SocialLoginButtons from '../components/auth/SocialLoginButtons';
 import { Field, PasswordField, PasswordStrength } from '../components/ui/FormUI';
 import { useAuth } from '../context/AuthContext';
 import { registerSchema, validateForm } from '../validations';
+import { getPasskeyLoginOptions, verifyPasskeyLogin } from '../api/auth';
+import { startAuthentication } from '@simplewebauthn/browser';
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const facebookAppId = import.meta.env.VITE_FACEBOOK_APP_ID;
@@ -27,6 +29,7 @@ export default function Register() {
   const [googleReady, setGoogleReady] = useState(false);
   const [facebookReady, setFacebookReady] = useState(false);
   const [touched, setTouched] = useState({});
+  const [mfaState, setMfaState] = useState(null);
 
   const passwordsMatch = confirmPassword.length > 0 && password === confirmPassword;
 
@@ -90,6 +93,41 @@ export default function Register() {
 
     loadGoogleScript();
   }, [googleClientId, navigate, loginWithGoogle]);
+
+  async function handlePasskeyLogin() {
+    setError('');
+    setSubmitting(true);
+
+    try {
+      const optionsJSON = await getPasskeyLoginOptions();
+
+      const authResponse = await startAuthentication({ optionsJSON });
+
+      const verifyRes = await verifyPasskeyLogin(rememberMe, authResponse);
+
+      if (verifyRes?.mfaRequired) {
+        setMfaState({
+          mfaToken: verifyRes.data.mfaToken,
+          methods: verifyRes.data.methods || [],
+          rememberMe: rememberMe,
+        });
+        return;
+      }
+
+      toast.success('Passkey login successful!');
+      navigate(from, { replace: true });
+      window.location.reload();
+    } catch (err) {
+      if (err.name === 'NotAllowedError') {
+        toast.info('Passkey sign-in cancelled or timed out.');
+      } else {
+        toast.error('Passkey login failed!');
+        setError(err.response?.data?.error || err.response?.data?.message || err.message || 'Passkey login failed.');
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   useEffect(() => {
     if (!facebookAppId) return;
@@ -301,6 +339,16 @@ export default function Register() {
             <span className="flex-shrink mx-4 text-xs text-marquee-muted uppercase">Or</span>
             <div className="flex-grow border-t border-marquee-line"></div>
           </div>
+
+          <button
+            type="button"
+            onClick={handlePasskeyLogin}
+            disabled={submitting}
+            className="flex w-full items-center justify-center gap-2 rounded-full border border-marquee-line bg-marquee-panel px-6 py-3 font-semibold text-marquee-cream transition hover:border-marquee-gold disabled:opacity-40"
+          >
+            <KeyRound className="h-5 w-5 text-marquee-gold" />
+            Sign in with Passkey
+          </button>
 
           <SocialLoginButtons
             submitting={submitting}

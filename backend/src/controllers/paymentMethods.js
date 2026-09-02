@@ -2,9 +2,7 @@ const stripe = require('../utils/stripeClient');
 const User = require('../models/user');
 
 async function getOrCreateStripeCustomer(user) {
-    if (user.stripeCustomerId) {
-        return user.stripeCustomerId;
-    }
+    if (user.stripeCustomerId) return user.stripeCustomerId;
 
     const customer = await stripe.customers.create({
         email: user.email,
@@ -35,18 +33,14 @@ async function listPaymentMethods(req, res, next) {
         const user = await User.findById(req.user.id);
         if (!user) return res.status(404).json({ error: 'User not found.' });
 
-        if (!user.stripeCustomerId) {
-            return res.json({ paymentMethods: [] });
-        }
+        if (!user.stripeCustomerId) return res.json({ paymentMethods: [] });
 
         const [methods, customer] = await Promise.all([
             stripe.paymentMethods.list({ customer: user.stripeCustomerId, type: 'card' }),
             stripe.customers.retrieve(user.stripeCustomerId),
         ]);
 
-        if (customer.deleted) {
-            return res.json({ paymentMethods: [] });
-        }
+        if (customer.deleted) return res.json({ paymentMethods: [] });
 
         const defaultId = customer.invoice_settings?.default_payment_method || null;
 
@@ -84,18 +78,12 @@ async function setDefaultPaymentMethod(req, res, next) {
         const { id } = req.params;
         const user = await User.findById(req.user.id);
 
-        if (!user?.stripeCustomerId) {
-            return res.status(404).json({ error: 'No saved payment methods found.' });
-        }
+        if (!user?.stripeCustomerId) return res.status(404).json({ error: 'No saved payment methods found.' });
 
         const pm = await stripe.paymentMethods.retrieve(id);
-        if (pm.customer !== user.stripeCustomerId) {
-            return res.status(404).json({ error: 'Payment method not found.' });
-        }
+        if (pm.customer !== user.stripeCustomerId) return res.status(404).json({ error: 'Payment method not found.' });
 
-        await stripe.customers.update(user.stripeCustomerId, {
-            invoice_settings: { default_payment_method: id },
-        });
+        await stripe.customers.update(user.stripeCustomerId, { invoice_settings: { default_payment_method: id } });
 
         res.json({ message: 'Default payment method updated.' });
     } catch (err) {
@@ -108,22 +96,14 @@ async function removePaymentMethod(req, res, next) {
         const { id } = req.params;
         const user = await User.findById(req.user.id);
 
-        if (!user?.stripeCustomerId) {
-            return res.status(404).json({ error: 'No saved payment methods found.' });
-        }
+        if (!user?.stripeCustomerId) return res.status(404).json({ error: 'No saved payment methods found.' });
 
         const pm = await stripe.paymentMethods.retrieve(id);
-        if (pm.customer !== user.stripeCustomerId) {
-            return res.status(404).json({ error: 'Payment method not found.' });
-        }
+        if (pm.customer !== user.stripeCustomerId) return res.status(404).json({ error: 'Payment method not found.' });
 
         const customer = await stripe.customers.retrieve(user.stripeCustomerId);
-        const wasDefault =
-            !customer.deleted && customer.invoice_settings?.default_payment_method === id;
+        const wasDefault = !customer.deleted && customer.invoice_settings?.default_payment_method === id;
 
-        // Detach from Stripe first — this is the source of truth. We never
-        // held a local copy of the payment method to begin with, so there is
-        // nothing to clean up on our side beyond the default pointer below.
         await stripe.paymentMethods.detach(id);
 
         if (wasDefault) {
@@ -133,9 +113,7 @@ async function removePaymentMethod(req, res, next) {
             });
             const nextDefault = remaining.data[0]?.id || null;
 
-            await stripe.customers.update(user.stripeCustomerId, {
-                invoice_settings: { default_payment_method: nextDefault },
-            });
+            await stripe.customers.update(user.stripeCustomerId, { invoice_settings: { default_payment_method: nextDefault }, });
         }
 
         res.json({ message: 'Payment method removed.' });

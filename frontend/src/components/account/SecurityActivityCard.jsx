@@ -10,7 +10,7 @@ export default function SecurityActivityCard() {
     useEffect(() => {
         const fetchActivityData = async () => {
             try {
-                const { data } = await getActivityData();
+                const data = await getActivityData();
                 setActivities(data.activities || []);
             } catch (err) {
                 toast.error('Failed to load security activity.');

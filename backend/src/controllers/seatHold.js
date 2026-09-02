@@ -45,9 +45,7 @@ async function holdSeat(req, res, next) {
         const statusMap = await getAvailability(showtime);
 
         const invalidSeats = requestedSeats.filter((seatId) => !statusMap.has(seatId));
-        if (invalidSeats.length) {
-            return res.status(400).json({ error: `Unknown seats: ${invalidSeats.join(', ')}` });
-        }
+        if (invalidSeats.length) return res.status(400).json({ error: `Unknown seats: ${invalidSeats.join(', ')}` });
 
         const conflicts = requestedSeats.filter((seatId) => {
             const status = statusMap.get(seatId);
@@ -56,11 +54,7 @@ async function holdSeat(req, res, next) {
             return true;
         });
 
-        if (conflicts.length) {
-            return res.status(409).json({
-                error: `These seats are no longer available: ${conflicts.join(', ')}`,
-            });
-        }
+        if (conflicts.length) return res.status(409).json({ error: `These seats are no longer available: ${conflicts.join(', ')}` });
 
         const expiresAt = new Date(Date.now() + HOLD_DURATION_MS);
 
@@ -96,27 +90,15 @@ async function holdSeat(req, res, next) {
 async function extendHold(req, res, next) {
     try {
         const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ error: errors.array()[0].msg });
-        }
+        if (!errors.isEmpty()) return res.status(400).json({ error: errors.array()[0].msg });
 
         const hold = await SeatHold.findById(req.body.holdId);
 
-        if (!hold || hold.user.toString() !== req.user.id) {
-            return res.status(404).json({ error: 'Hold not found.' });
-        }
+        if (!hold || hold.user.toString() !== req.user.id) return res.status(404).json({ error: 'Hold not found.' });
 
-        if (hold.expiresAt < new Date()) {
-            return res.status(410).json({
-                error: 'This hold has already expired. Please select your seats again.',
-            });
-        }
+        if (hold.expiresAt < new Date()) return res.status(410).json({ error: 'This hold has already expired. Please select your seats again.' });
 
-        if (hold.extensions >= MAX_EXTENSIONS) {
-            return res.status(409).json({
-                error: `You've reached the maximum of ${MAX_EXTENSIONS} extensions for this hold.`,
-            });
-        }
+        if (hold.extensions >= MAX_EXTENSIONS) return res.status(409).json({ error: `You've reached the maximum of ${MAX_EXTENSIONS} extensions for this hold.` });
 
         hold.expiresAt = new Date(hold.expiresAt.getTime() + EXTENSION_MS);
         hold.extensions += 1;
@@ -133,9 +115,7 @@ async function releaseHold(req, res, next) {
         const { holdId } = req.body;
         const hold = await SeatHold.findById(holdId);
 
-        if (!hold || hold.user.toString() !== req.user.id) {
-            return res.status(404).json({ error: 'Hold not found.' });
-        }
+        if (!hold || hold.user.toString() !== req.user.id) return res.status(404).json({ error: 'Hold not found.' });
 
         await hold.deleteOne();
         res.json({ released: true });
@@ -148,9 +128,7 @@ async function getHoldById(req, res, next) {
     try {
         const hold = await SeatHold.findById(req.params.id);
 
-        if (!hold || hold.user.toString() !== req.user.id) {
-            return res.status(404).json({ error: 'Hold not found.' });
-        }
+        if (!hold || hold.user.toString() !== req.user.id) return res.status(404).json({ error: 'Hold not found.' });
 
         const [movie, showtime] = await Promise.all([
             Showtime.findById(hold.showtime).then((s) => (s ? Movie.findById(s.movie) : null)),

@@ -6,10 +6,7 @@ const { getAvailability } = require('../utils/seatAvailability');
 async function getShowtimeById(req, res, next) {
     try {
         const showtime = await Showtime.findById(req.params.id);
-
-        if (!showtime) {
-            return res.status(404).json({ error: 'Showtime not found.' });
-        }
+        if (!showtime) return res.status(404).json({ error: 'Showtime not found.' });
 
         const [movie, screen, statusMap] = await Promise.all([
             Movie.findById(showtime.movie),

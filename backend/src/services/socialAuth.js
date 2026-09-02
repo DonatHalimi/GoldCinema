@@ -5,6 +5,7 @@ const { generateTokens, setCookies, getCustomerRoleId } = require('../middleware
 const { issueTrustedDevice, findTrustedDeviceEntry } = require('../utils/deviceTrust');
 const { notifyLoginAlert } = require('../utils/loginAlerts');
 const { createNotification } = require('../utils/notifications');
+const { issueEmailOtp, issueSmsOtp } = require('../utils/mfaOtp');
 
 async function findOrCreateSocialUser(email, name) {
     let user = await User.findOne({ email }).populate('role');
@@ -30,7 +31,18 @@ async function completeSocialLogin({ req, res, user, provider }) {
 
     if (!trustedEntry && user.twoFactor?.enabled && user.twoFactor.methods?.length) {
         const mfaToken = generateMfaPendingToken(user._id);
-        return { mfaRequired: true, mfaToken, methods: user.twoFactor.methods };
+        const methods = user.twoFactor.methods;
+
+        if (methods.includes('email')) {
+            await issueEmailOtp(user, { save: false });
+        }
+        if (methods.includes('sms')) {
+            await issueSmsOtp(user, { save: false });
+        }
+
+        await user.save();
+
+        return { mfaRequired: true, mfaToken, methods };
     }
 
     const { accessToken, refreshToken } = generateTokens(user._id);

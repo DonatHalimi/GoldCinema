@@ -20,17 +20,18 @@ async function generatePasskeyRegistrationOptions(req, res, next) {
 
         if (!user) return res.status(404).json({ error: 'User not found.', });
 
+        const existingPasskeys = user.passkeys || [];
+
         const options = await generateRegistrationOptions({
             rpName,
             rpID,
             userName: user.email,
+            userDisplayName: user.email,
             attestationType: 'none',
-            excludeCredentials: (user.passkeys || []).map(
-                (passkey) => ({
-                    id: passkey.credentialId,
-                    transports: passkey.transports || [],
-                })
-            ),
+            excludeCredentials: existingPasskeys.map((passkey) => ({
+                id: passkey.credentialId,
+                transports: passkey.transports,
+            })),
             authenticatorSelection: {
                 residentKey: 'preferred',
                 userVerification: 'preferred',
@@ -64,7 +65,6 @@ async function verifyPasskeyRegistration(req, res, next) {
                 expectedRPID: rpID,
             });
         } catch (error) {
-            console.error('PASSKEY REGISTRATION ERROR:', error);
             return res.status(400).json({ error: error.message || 'Passkey registration failed.' });
         }
 
@@ -73,9 +73,7 @@ async function verifyPasskeyRegistration(req, res, next) {
         const { registrationInfo } = verification;
         const { credential, credentialDeviceType, credentialBackedUp } = registrationInfo;
 
-        const alreadyExists = (user.passkeys || []).some(
-            (passkey) => passkey.credentialId === credential.id
-        );
+        const alreadyExists = (user.passkeys || []).some((passkey) => passkey.credentialId === credential.id);
 
         if (alreadyExists) return res.status(409).json({ error: 'This passkey is already registered.' });
 
@@ -109,7 +107,6 @@ async function generatePasskeyAuthenticationOptions(req, res, next) {
             rpID,
             userVerification: 'preferred',
         });
-
 
         req.session = req.session || {};
         global.pendingChallenges = global.pendingChallenges || new Map();
@@ -162,16 +159,13 @@ async function verifyPasskeyAuthentication(req, res, next) {
                 },
             });
         } catch (error) {
-            console.error('PASSKEY AUTHENTICATION ERROR:', error);
             return res.status(401).json({ error: 'Passkey authentication failed.' });
         }
 
         if (!verification.verified) return res.status(401).json({ error: 'Passkey authentication failed.' });
 
 
-        if (matchedChallenge) {
-            global.pendingChallenges.delete(matchedChallenge);
-        }
+        if (matchedChallenge) global.pendingChallenges.delete(matchedChallenge);
 
         passkey.counter = verification.authenticationInfo.newCounter;
         passkey.lastUsedAt = new Date();
@@ -257,6 +251,32 @@ async function getPasskeys(req, res, next) {
     }
 }
 
+async function getPasskeyAuthenticationOptions(req, res, next) {
+    try {
+        const user = await User.findById(req.user.id);
+
+        if (!user) return res.status(404).json({ error: 'User not found.' });
+
+        const options = await generateAuthenticationOptions({
+            rpID,
+            userVerification: 'required',
+        });
+
+        if (!global.pendingChallenges) {
+            global.pendingChallenges = new Map();
+        }
+
+        global.pendingChallenges.set(options.challenge, {
+            userId: req.user.id,
+            createdAt: Date.now(),
+        });
+
+        return res.json(options);
+    } catch (error) {
+        next(error);
+    }
+};
+
 async function updatePasskeyName(req, res, next) {
     try {
         const { id } = req.params;
@@ -267,9 +287,7 @@ async function updatePasskeyName(req, res, next) {
         const user = await User.findById(req.user._id || req.user.id);
         if (!user) return res.status(404).json({ error: 'User not found.' });
 
-        const passkey = user.passkeys.find(
-            (p) => p.credentialId === id || (p._id && p._id.toString() === id)
-        );
+        const passkey = user.passkeys.find((p) => p.credentialId === id || (p._id && p._id.toString() === id));
 
         if (!passkey) return res.status(404).json({ error: 'Passkey not found.' });
 
@@ -309,7 +327,43 @@ async function generatePasskeyRemovalChallenge(req, res, next) {
     } catch (error) {
         next(error);
     }
-}
+};
+
+async function generatePasskeyRemovalChallenge(req, res, next) {
+    try {
+        const passkeyId = req.params.id;
+
+        const user = await User.findById(req.user.id);
+
+        if (!user) return res.status(404).json({ error: 'User not found.' });
+
+        const passkey = user.passkeys?.find((item) => item.credentialId === passkeyId);
+
+        if (!passkey) return res.status(404).json({ error: 'Passkey not found.' });
+
+        const options = await generateAuthenticationOptions({
+            rpID,
+            userVerification: 'required',
+
+            allowCredentials: [{
+                id: passkey.credentialId,
+                transports: passkey.transports,
+            }],
+        });
+
+        global.pendingChallenges = global.pendingChallenges || new Map();
+
+        global.pendingChallenges.set(options.challenge, {
+            createdAt: Date.now(),
+            userId: req.user.id,
+            passkeyId,
+        });
+
+        return res.json(options);
+    } catch (error) {
+        next(error);
+    }
+};
 
 async function removePasskey(req, res, next) {
     try {
@@ -322,9 +376,7 @@ async function removePasskey(req, res, next) {
         const passkey = user.passkeys?.find((item) => item.credentialId === passkeyId);
         if (!passkey) return res.status(404).json({ error: 'Passkey not found.' });
 
-        if (!assertion) {
-            return res.status(400).json({ error: 'Device verification assertion is required.' });
-        }
+        if (!assertion) return res.status(400).json({ error: 'Device verification assertion is required.' });
 
         let matchedChallenge = null;
         if (global.pendingChallenges) {
@@ -377,6 +429,7 @@ module.exports = {
     generatePasskeyAuthenticationOptions,
     verifyPasskeyAuthentication,
     getPasskeys,
+    getPasskeyAuthenticationOptions,
     updatePasskeyName,
     generatePasskeyRemovalChallenge,
     removePasskey,

@@ -70,14 +70,11 @@ async function createReview(req, res, next) {
         const { movieId, rating, comment } = req.body;
 
         const movie = await Movie.findById(movieId);
-        if (!movie) {
-            return res.status(404).json({ error: 'Movie not found.' });
-        }
+        if (!movie) return res.status(404).json({ error: 'Movie not found.' });
 
         const eligible = await userHasCompletedOrderForMovie(req.user.id, movieId);
-        if (!eligible) {
-            return res.status(403).json({ error: "You haven't purchased a ticket for this movie yet." });
-        }
+        if (!eligible) return res.status(403).json({ error: "You haven't purchased a ticket for this movie yet." });
+
         const existing = await Review.findOne({ user: req.user.id, movie: movieId });
         if (existing) return res.status(400).json({ error: 'You have already reviewed this movie.' });
 

@@ -85,8 +85,18 @@ export async function verifyPasskeyLogin(rememberMe, authResponse) {
     return data;
 };
 
-export async function deletePasskey(id) {
-    const { data } = await api.delete(`/auth/passkeys/${id}`);
+export async function getPasskeyRemovalChallenge(id) {
+    const { data } = await api.post(`/auth/passkeys/${id}/remove/options`);
+
+    return data;
+};
+
+export async function deletePasskey(id, assertion) {
+    const { data } = await api.delete(`/auth/passkeys/${id}`, {
+        data: {
+            assertion,
+        },
+    });
 
     return data;
 };
@@ -144,8 +154,20 @@ export async function activateEmail2FA() {
     return data;
 };
 
-export async function resendMfaCode(mfaToken) {
-    const { data } = await api.post('/auth/2fa/login-resend', { mfaToken });
+export async function resendMfaCode(mfaToken, method) {
+    const { data } = await api.post('/auth/2fa/resend', { mfaToken, method, });
+
+    return data;
+};
+
+export async function activateSms2FA(phoneNumber) {
+    const { data } = await api.post('/auth/2fa/sms/enable', { phoneNumber });
+
+    return data;
+};
+
+export async function verifySms2FA(codeToSubmit) {
+    const { data } = await api.post('/auth/2fa/sms/verify', { code: codeToSubmit, });
 
     return data;
 };

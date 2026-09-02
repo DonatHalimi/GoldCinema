@@ -2,9 +2,9 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { CreditCard, Plus, Star, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
+import { deletePaymentMethod, getPaymentMethods, setDefaultPaymentMethod } from '../../api/payments';
 import AddPaymentMethodModal from '../payments/AddPaymentMethodModal';
 import RemovePaymentMethodModal from '../payments/RemovePaymentMethodModal';
-import { deletePaymentMethod, getPaymentMethods, setDefaultPaymentMethod } from '../../api/payments';
 
 const BRAND_LABELS = {
     visa: 'Visa',

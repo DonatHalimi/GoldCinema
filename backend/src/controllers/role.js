@@ -27,9 +27,7 @@ async function createRole(req, res, next) {
         const { name, description } = req.body;
 
         const existingRole = await Role.findOne({ name: name.toLowerCase() });
-        if (existingRole) {
-            return res.status(400).json({ error: 'Role with this name already exists' });
-        }
+        if (existingRole) return res.status(400).json({ error: 'Role with this name already exists' });
 
         const role = await Role.create({
             name: name.toLowerCase(),
@@ -53,9 +51,7 @@ async function updateRole(req, res, next) {
                 _id: { $ne: id },
             });
 
-            if (existingRole) {
-                return res.status(400).json({ error: 'Role with this name already exists' });
-            }
+            if (existingRole) return res.status(400).json({ error: 'Role with this name already exists' });
         }
 
         const updatedRole = await Role.findByIdAndUpdate(
@@ -67,9 +63,7 @@ async function updateRole(req, res, next) {
             { new: true, runValidators: true }
         );
 
-        if (!updatedRole) {
-            return res.status(404).json({ error: 'Role not found' });
-        }
+        if (!updatedRole) return res.status(404).json({ error: 'Role not found' });
 
         res.status(200).json({
             message: 'Role updated successfully',
@@ -85,9 +79,7 @@ async function deleteRole(req, res, next) {
         const { id } = req.params;
 
         const deletedRole = await Role.findByIdAndDelete(id);
-        if (!deletedRole) {
-            return res.status(404).json({ error: 'Role not found' });
-        }
+        if (!deletedRole) return res.status(404).json({ error: 'Role not found' });
 
         res.status(200).json({
             message: 'Role deleted successfully',
@@ -102,9 +94,7 @@ async function bulkDeleteRoles(req, res, next) {
     try {
         const { ids } = req.body;
 
-        if (!Array.isArray(ids) || ids.length === 0) {
-            return res.status(400).json({ error: 'Please provide an array of role IDs' });
-        }
+        if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: 'Please provide an array of role IDs' });
 
         const result = await Role.deleteMany({ _id: { $in: ids } });
 

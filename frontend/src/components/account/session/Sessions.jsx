@@ -3,13 +3,12 @@ import { Globe, LogOut, RefreshCw, Shield } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 
-import api from '../../../api/client';
 
+import { getSessions, revokeAllSessions, revokeSession } from '../../../api/auth';
 import SessionCard from './SessionCard';
 import SessionEmptyState from './SessionEmptyState';
 import SessionRevokeAllModal from './SessionRevokeAllModal';
 import SessionSkeleton from './SessionSkeleton';
-import { getSessions, revokeAllSessions, revokeSession } from '../../../api/auth';
 
 export default function Sessions() {
     const [sessions, setSessions] = useState([]);
@@ -24,7 +23,7 @@ export default function Sessions() {
         try {
             setLoading(true);
 
-            const { data } = await getSessions();
+            const data = await getSessions();
 
             setSessions(data.sessions || []);
         } catch (error) {

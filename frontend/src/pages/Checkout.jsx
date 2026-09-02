@@ -2,15 +2,14 @@ import { useEffect, useState } from 'react';
 
 import { useNavigate, useParams } from 'react-router-dom';
 
-import api from '../api/client';
 
+import { getOrderById } from '../api/orders';
 import { getPaymentMethods } from '../api/payments';
+import { extendSeatHold } from '../api/seatHolds';
 import CheckoutSummary from '../components/checkout/CheckoutSummary';
 import ExpiredHold from '../components/checkout/ExpiredHold';
 import PaymentSection from '../components/checkout/PaymentSelection';
 import SeatHoldTimer from '../components/checkout/SeatHoldTimer';
-import { getOrderById } from '../api/orders';
-import { extendSeatHold } from '../api/seatHolds';
 
 export default function Checkout() {
   const { orderId } = useParams();

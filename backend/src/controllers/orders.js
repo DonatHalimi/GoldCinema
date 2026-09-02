@@ -20,9 +20,7 @@ async function getOrderById(req, res, next) {
             .populate('showtime')
             .populate('snacks.snack');
 
-        if (!order || order.user.toString() !== req.user.id) {
-            return res.status(404).json({ error: 'Order not found.' });
-        }
+        if (!order || order.user.toString() !== req.user.id) return res.status(404).json({ error: 'Order not found.' });
 
         const paymentOptions = {
             stripeConfigured: !!process.env.STRIPE_SECRET_KEY,

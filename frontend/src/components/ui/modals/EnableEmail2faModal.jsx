@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import api from '../../../api/client';
-import Modal from './Modal';
 import { verifyEmail2FA } from '../../../api/auth';
+import Modal from './Modal';
 
 export default function EnableEmail2faModal({ onSuccess, onClose }) {
     const [otp, setOtp] = useState(Array(6).fill(''));
@@ -26,7 +25,7 @@ export default function EnableEmail2faModal({ onSuccess, onClose }) {
             setLoading(true);
             setError('');
 
-            await verifyEmail2FA(submitCode);
+            await verifyEmail2FA(codeToSubmit);
 
             onSuccess();
         } catch (err) {

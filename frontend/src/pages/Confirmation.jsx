@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { getOrderById } from '../api/orders';
 import ConfirmationHeader from '../components/confirmation/ConfirmationHeader';
 import QRTicket from '../components/confirmation/QRTicket';
 import TicketDetails from '../components/confirmation/TicketDetails';
 import UnpaidOrder from '../components/confirmation/UnpaidOrder';
-import { getOrderById } from '../api/orders';
 
 export default function Confirmation() {
   const { orderId } = useParams();

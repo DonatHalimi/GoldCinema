@@ -1,10 +1,9 @@
 import { KeyRound, Loader2, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import api from '../../../api/client';
+import { renamePasskey } from '../../../api/auth';
 import { useAuth } from '../../../context/AuthContext';
 import Modal from './Modal';
-import { renamePasskey } from '../../../api/auth';
 
 export default function RenamePasskeyModal({ passkey, onClose, onSuccess }) {
     const { user } = useAuth();

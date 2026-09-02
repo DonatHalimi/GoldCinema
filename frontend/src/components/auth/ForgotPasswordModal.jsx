@@ -57,8 +57,8 @@ export function ForgotPasswordModal({
             closeDisabled={forgotSubmitting}
             maxWidth="max-w-md"
         >
-            <p className="mt-1 text-sm text-marquee-muted">
-                Enter your email to receive a secure reset link.
+            <p className="mt-5 text-sm text-marquee-muted">
+                Enter your email to receive a secure reset link
             </p>
 
             <form onSubmit={handleForgotPassword} className="mt-5 space-y-4">

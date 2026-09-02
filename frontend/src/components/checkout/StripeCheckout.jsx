@@ -7,9 +7,8 @@ import {
 import { loadStripe } from '@stripe/stripe-js';
 import { CreditCard, Plus, Star } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import api from '../../api/client';
-import AddPaymentMethodModal from '../payments/AddPaymentMethodModal';
 import { confirmStripePayment, createStripePaymentIntent } from '../../api/payments';
+import AddPaymentMethodModal from '../payments/AddPaymentMethodModal';
 
 const stripePromise = loadStripe(
   import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY

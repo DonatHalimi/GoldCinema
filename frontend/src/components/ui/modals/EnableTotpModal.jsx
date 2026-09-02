@@ -1,8 +1,7 @@
 import { Download, Loader2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import api from '../../../api/client';
-import Modal from './Modal';
 import { setupTotp2FA, verifyTotp2FA } from '../../../api/auth';
+import Modal from './Modal';
 
 export default function EnableTotpModal({ onClose, onSuccess }) {
     const [qr, setQr] = useState(null);

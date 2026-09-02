@@ -70,17 +70,9 @@ async function createStripeIntent(req, res, next) {
 
         const order = await Order.findById(orderId);
 
-        if (!order || order.user.toString() !== req.user.id) {
-            return res.status(404).json({
-                error: 'Order not found.',
-            });
-        }
+        if (!order || order.user.toString() !== req.user.id) return res.status(404).json({ error: 'Order not found.', });
 
-        if (order.paymentStatus === 'paid') {
-            return res.status(400).json({
-                error: 'Order already paid.',
-            });
-        }
+        if (order.paymentStatus === 'paid') return res.status(400).json({ error: 'Order already paid.', });
 
         const user = await User.findById(req.user.id);
         const customerId = await getOrCreateStripeCustomer(user);
@@ -88,84 +80,40 @@ async function createStripeIntent(req, res, next) {
         let intent;
 
         if (order.stripePaymentIntentId) {
-            intent = await stripe.paymentIntents.retrieve(
-                order.stripePaymentIntentId
-            );
+            intent = await stripe.paymentIntents.retrieve(order.stripePaymentIntentId);
 
             if (paymentMethodId) {
-                const paymentMethod =
-                    await stripe.paymentMethods.retrieve(
-                        paymentMethodId
-                    );
+                const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
 
-                if (
-                    paymentMethod.customer &&
-                    paymentMethod.customer.toString() !==
-                    customerId.toString()
-                ) {
-                    return res.status(403).json({
-                        error:
-                            'Payment method does not belong to your account.',
-                    });
-                }
+                if (paymentMethod.customer && paymentMethod.customer.toString() !== customerId.toString()) return res.status(403).json({ error: 'Payment method does not belong to your account.', });
 
-                intent = await stripe.paymentIntents.update(
-                    intent.id,
-                    {
-                        payment_method: paymentMethodId,
-                    }
-                );
+                intent = await stripe.paymentIntents.update(intent.id, { payment_method: paymentMethodId, });
             }
         } else {
             const intentParams = {
-                amount: Math.round(
-                    order.totalAmount * 100
-                ),
-                currency:
-                    order.currency?.toLowerCase() || 'usd',
+                amount: Math.round(order.totalAmount * 100),
+                currency: order.currency?.toLowerCase() || 'usd',
                 customer: customerId,
-                metadata: {
-                    orderId: order._id.toString(),
-                    userId: req.user.id,
-                },
+                metadata: { orderId: order._id.toString(), userId: req.user.id },
             };
 
             if (paymentMethodId) {
-                const paymentMethod =
-                    await stripe.paymentMethods.retrieve(
-                        paymentMethodId
-                    );
+                const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
 
-                if (
-                    paymentMethod.customer &&
-                    paymentMethod.customer.toString() !==
-                    customerId.toString()
-                ) {
-                    return res.status(403).json({
-                        error:
-                            'Payment method does not belong to your account.',
-                    });
-                }
+                if (paymentMethod.customer && paymentMethod.customer.toString() !== customerId.toString()) return res.status(403).json({ error: 'Payment method does not belong to your account.', });
 
-                intentParams.payment_method =
-                    paymentMethodId;
+                intentParams.payment_method = paymentMethodId;
             } else {
-                intentParams.automatic_payment_methods = {
-                    enabled: true,
-                };
+                intentParams.automatic_payment_methods = { enabled: true, };
             }
 
-            intent = await stripe.paymentIntents.create(
-                intentParams
-            );
+            intent = await stripe.paymentIntents.create(intentParams);
 
             order.stripePaymentIntentId = intent.id;
             await order.save();
         }
 
-        res.json({
-            clientSecret: intent.client_secret,
-        });
+        res.json({ clientSecret: intent.client_secret, });
     } catch (err) {
         next(err);
     }
@@ -185,23 +133,15 @@ async function confirmStripePayment(req, res, next) {
                 ],
             });
 
-        if (!order || order.user._id.toString() !== req.user.id) {
-            return res.status(404).json({ error: 'Order not found.' });
-        }
+        if (!order || order.user._id.toString() !== req.user.id) return res.status(404).json({ error: 'Order not found.' });
 
-        if (order.paymentStatus === 'paid') {
-            return res.json({ order });
-        }
+        if (order.paymentStatus === 'paid') return res.json({ order });
 
-        if (order.stripePaymentIntentId !== paymentIntentId) {
-            return res.status(400).json({ error: 'Payment intent mismatch.' });
-        }
+        if (order.stripePaymentIntentId !== paymentIntentId) return res.status(400).json({ error: 'Payment intent mismatch.' });
 
         const intent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
-        if (intent.status !== 'succeeded') {
-            return res.status(402).json({ error: `Payment not completed (${intent.status})` });
-        }
+        if (intent.status !== 'succeeded') return res.status(402).json({ error: `Payment not completed (${intent.status})` });
 
         const qrDataUrl = await generateQRTicket({
             orderId: order._id,
@@ -228,9 +168,7 @@ async function confirmStripePayment(req, res, next) {
             amount: order.totalAmount || 0,
         });
 
-        if (order.holdId) {
-            await SeatHold.findByIdAndDelete(order.holdId);
-        }
+        if (order.holdId) await SeatHold.findByIdAndDelete(order.holdId);
 
         await sendTicketEmail(order.user.email, order, qrDataUrl);
         res.json({ order });
@@ -292,19 +230,13 @@ async function capturePaypalOrder(req, res, next) {
         const { holdId, orderID } = req.body;
         const hold = await SeatHold.findById(holdId);
 
-        if (!hold || hold.user.toString() !== req.user.id) {
-            return res.status(404).json({ error: 'Seat hold not found.' });
-        }
+        if (!hold || hold.user.toString() !== req.user.id) return res.status(404).json({ error: 'Seat hold not found.' });
 
-        if (hold.paypalOrderId !== orderID) {
-            return res.status(400).json({ error: 'Order does not match this hold.' });
-        }
+        if (hold.paypalOrderId !== orderID) return res.status(400).json({ error: 'Order does not match this hold.' });
 
         const capture = await paypal.captureOrder(orderID);
 
-        if (capture.status !== 'COMPLETED') {
-            return res.status(402).json({ error: `Payment not completed (status: ${capture.status}).` });
-        }
+        if (capture.status !== 'COMPLETED') return res.status(402).json({ error: `Payment not completed (status: ${capture.status}).` });
 
         const amount = await computeAmount(hold);
         const order = await finalizeOrder({

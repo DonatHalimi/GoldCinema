@@ -112,7 +112,7 @@ const disable2faMethodSchema = yup.object({
         .required(),
     method: yup
         .string()
-        .oneOf(['email', 'totp'])
+        .oneOf(['email', 'totp', 'sms'])
         .required()
 });
 
@@ -135,6 +135,25 @@ const resendLoginMfaSchema = yup.object({
     mfaToken: yup
         .string()
         .required('MFA token is required.'),
+
+    method: yup
+        .string()
+        .oneOf(['email', 'sms'], 'Invalid resend method.')
+        .notRequired(),
+}).noUnknown(true);
+
+const smsPhoneSchema = yup.object({
+    phoneNumber: yup
+        .string()
+        .required('Phone number is required.')
+        .matches(/^\+[1-9]\d{7,14}$/, 'Phone number must be in E.164 format (e.g. +14155552671).'),
+}).noUnknown(true);
+
+const verifySms2faSchema = yup.object({
+    code: yup
+        .string()
+        .required('Verification code is required.')
+        .matches(/^\d{6}$/, 'Code must be a 6-digit number.'),
 }).noUnknown(true);
 
 const loginAlertsSchema = yup.object({
@@ -159,5 +178,7 @@ module.exports = {
     disable2faMethodSchema,
     verifyLoginMfaSchema,
     resendLoginMfaSchema,
+    smsPhoneSchema,
+    verifySms2faSchema,
     loginAlertsSchema,
 };

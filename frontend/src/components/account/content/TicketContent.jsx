@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { getMyOrders } from "../../../api/orders";
 import EmptyTickets from '../../tickets/EmptyTickets';
 import TicketCard from "../../tickets/TicketCard";
-import { getMyOrders } from "../../../api/orders";
 
 export default function TicketContent() {
     const [orders, setOrders] = useState([]);

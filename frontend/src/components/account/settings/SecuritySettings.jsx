@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import api from '../../../api/client.js';
+import { getProfile } from '../../../api/auth.js';
 import BackupCodesCard from '../../ui/BackupCodesCard.jsx';
-import Disable2faModal from '../../ui/modals/Disable2faModal.jsx.jsx';
+import Disable2faModal from '../../ui/modals/Disable2faModal.jsx';
 import EnableEmail2faModal from '../../ui/modals/EnableEmail2faModal.jsx';
 import EnableTotpModal from '../../ui/modals/EnableTotpModal.jsx';
 import SecurityLogExportCard from '../../ui/SecurityLogExportCard.jsx';
@@ -11,7 +11,6 @@ import LoginAlertsSettings from './LoginAlertsSettings.jsx';
 import PasskeySettings from './PasskeySettings.jsx';
 import TrustedDevicesSettings from './TrustedDeviceSettings.jsx';
 import TwoFactorSettings from './TwoFactorSettings';
-import { getProfile } from '../../../api/auth.js';
 
 export default function SecuritySettings() {
     const [showEmailVerify, setShowEmailVerify] = useState(false);
@@ -29,7 +28,7 @@ export default function SecuritySettings() {
     useEffect(() => {
         const fetchSecurityStatus = async () => {
             try {
-                const { data } = await getProfile();
+                const data = await getProfile();
 
                 const userData = data.user || data;
 
@@ -88,7 +87,16 @@ export default function SecuritySettings() {
             </p>
 
             <div className="mt-6 space-y-5">
-                <TwoFactorSettings />
+                <TwoFactorSettings
+                    twoFactor={twoFactor}
+                    onEnableEmail={() => setShowEmailVerify(true)}
+                    onEnableSms={() => setShowSmsSetup(true)}
+                    onEnableTotp={() => setShowTotpSetup(true)}
+                    onDisable={(method) => {
+                        setDisableMethod(method);
+                        setShowDisableModal(true);
+                    }}
+                />
 
                 <BackupCodesCard twoFactor={twoFactor} />
 

@@ -4,6 +4,7 @@ const {
     generatePasskeyAuthenticationOptions,
     verifyPasskeyAuthentication,
     getPasskeys,
+    getPasskeyAuthenticationOptions,
     updatePasskeyName,
     generatePasskeyRemovalChallenge,
     removePasskey,
@@ -18,8 +19,9 @@ router.post('/passkeys/register/verify', requireAuth, verifyPasskeyRegistration)
 router.post('/passkeys/login/options', generatePasskeyAuthenticationOptions);
 router.post('/passkeys/login/verify', verifyPasskeyAuthentication);
 router.get('/passkeys', requireAuth, getPasskeys);
+router.post('/passkeys/authenticate/options', requireAuth, getPasskeyAuthenticationOptions);
+router.post('/passkeys/:id/remove/options', requireAuth, generatePasskeyRemovalChallenge);
 router.put('/passkeys/:id/name', requireAuth, updatePasskeyName);
-router.post('/passkeys/reauth-challenge', requireAuth, generatePasskeyRemovalChallenge);
 router.delete('/passkeys/:id', requireAuth, removePasskey);
 
 module.exports = router;

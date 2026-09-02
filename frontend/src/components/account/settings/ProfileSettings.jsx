@@ -1,9 +1,8 @@
 import { BadgeAlert, BadgeCheck, Lock, Mail, Save, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import api from '../../../api/client';
-import { Field, PasswordField } from '../../ui/FormUI';
 import { getProfile, resendEmailVerification, updatePassword, updateProfile } from '../../../api/auth';
+import { Field, PasswordField } from '../../ui/FormUI';
 
 export default function ProfileSettings() {
     const [loading, setLoading] = useState(true);
@@ -27,7 +26,7 @@ export default function ProfileSettings() {
 
     async function loadProfile() {
         try {
-            const { data } = await getProfile();
+            const data = await getProfile();
 
             const userData = data?.user || data || {};
 

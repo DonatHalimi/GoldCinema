@@ -1,15 +1,16 @@
-import { BadgeCheck, Mail, ShieldCheck, Smartphone, Trash2 } from 'lucide-react';
+import { BadgeCheck, Mail, MessageSquare, ShieldCheck, Smartphone, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import api from '../../../api/client.js';
+import { activateEmail2FA, getProfile } from '../../../api/auth.js';
 import Disable2faModal from '../../ui/modals/Disable2faModal.jsx';
 import EnableEmail2faModal from '../../ui/modals/EnableEmail2faModal.jsx';
+import EnableSms2faModal from '../../ui/modals/EnableSMS2faModal.jsx';
 import EnableTotpModal from '../../ui/modals/EnableTotpModal.jsx';
-import { activateEmail2FA, getProfile } from '../../../api/auth.js';
 
 export default function TwoFactorSettings() {
     const [showEmailVerify, setShowEmailVerify] = useState(false);
     const [showTotpSetup, setShowTotpSetup] = useState(false);
+    const [showSmsSetup, setShowSmsSetup] = useState(false);
     const [showDisableModal, setShowDisableModal] = useState(false);
 
     const [disableMethod, setDisableMethod] = useState(null);
@@ -23,7 +24,7 @@ export default function TwoFactorSettings() {
     useEffect(() => {
         const fetchSecurityStatus = async () => {
             try {
-                const { data } = await getProfile();
+                const data = await getProfile();
                 const activeMethods = data.user?.twoFactor?.methods || [];
 
                 setTwoFactor({ methods: activeMethods });
@@ -159,6 +160,32 @@ export default function TwoFactorSettings() {
                                 </button>
                             </div>
                         )}
+
+                        {twoFactor.methods.includes('sms') && (
+                            <div className="flex items-center justify-between rounded-lg border border-marquee-line bg-marquee-panel2 px-4 py-3">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-marquee-line/30 text-marquee-gold">
+                                        <MessageSquare className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-marquee-cream">
+                                            SMS 2FA
+                                        </p>
+                                        <p className="text-xs text-marquee-muted">
+                                            Verification codes are sent to your phone
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => handleDisableClick('sms')}
+                                    className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 px-3 py-1.5 text-xs font-semibold text-red-400 transition hover:bg-red-500/10"
+                                >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                    Remove
+                                </button>
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -186,6 +213,18 @@ export default function TwoFactorSettings() {
                             Authenticator App
                         </button>
                     )}
+
+                    {!twoFactor.methods.includes('sms') && (
+                        <button
+                            type="button"
+                            onClick={() => setShowSmsSetup(true)}
+                            disabled={loading}
+                            className="inline-flex items-center gap-2 rounded-full border border-marquee-gold px-5 py-2 text-sm font-semibold text-marquee-gold transition hover:bg-marquee-gold hover:text-zinc-950 disabled:opacity-50"
+                        >
+                            <MessageSquare className="h-4 w-4" />
+                            SMS 2FA
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -200,6 +239,13 @@ export default function TwoFactorSettings() {
                 <EnableTotpModal
                     onClose={() => setShowTotpSetup(false)}
                     onSuccess={() => handle2FASuccess('totp')}
+                />
+            )}
+
+            {showSmsSetup && (
+                <EnableSms2faModal
+                    onClose={() => setShowSmsSetup(false)}
+                    onSuccess={() => handle2FASuccess('sms')}
                 />
             )}
 

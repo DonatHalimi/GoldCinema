@@ -15,9 +15,7 @@ async function getMovieById(req, res, next) {
     try {
         const movie = await Movie.findById(req.params.id);
 
-        if (!movie) {
-            return res.status(404).json({ error: 'Movie not found.' });
-        }
+        if (!movie) return res.status(404).json({ error: 'Movie not found.' });
 
         res.json({ movie });
     } catch (err) {
@@ -29,9 +27,7 @@ async function getMovieShowtimes(req, res, next) {
     try {
         const movie = await Movie.findById(req.params.id);
 
-        if (!movie) {
-            return res.status(404).json({ error: 'Movie not found.' });
-        }
+        if (!movie) return res.status(404).json({ error: 'Movie not found.' });
 
         const showtimes = await Showtime.find({
             movie: movie._id,

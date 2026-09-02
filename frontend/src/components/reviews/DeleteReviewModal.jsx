@@ -1,8 +1,8 @@
 import { CheckCircle, Loader2, TriangleAlert, XCircle } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import Modal from '../ui/modals/Modal';
 import { deleteReview } from '../../api/reviews';
+import Modal from '../ui/modals/Modal';
 
 export default function DeleteReviewModal({
     review,

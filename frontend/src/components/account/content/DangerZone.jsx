@@ -1,11 +1,11 @@
-import { Trash, LogOut } from 'lucide-react';
+import { LogOut, Trash } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { useAuth } from '../../../context/AuthContext';
 import { logoutAllDevices } from '../../../api/auth';
-import LogoutAllDevicesModal from '../../ui/modals/LogOutAllDevicesModal';
+import { useAuth } from '../../../context/AuthContext';
 import DeleteAccountModal from '../../ui/modals/DeleteAccountModal';
+import LogoutAllDevicesModal from '../../ui/modals/LogOutAllDevicesModal';
 
 export default function DangerZone() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
