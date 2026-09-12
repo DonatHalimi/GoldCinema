@@ -1,24 +1,26 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { getMyOrders } from "../../../api/orders";
-import EmptyTickets from '../../tickets/EmptyTickets';
+import EmptyTickets from "../../tickets/EmptyTickets";
 import TicketCard from "../../tickets/TicketCard";
 
 export default function TicketContent() {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [active, setActive] = useState('all');
-    const [error, setError] = useState('');
+    const [error, setError] = useState("");
+    const [active, setActive] = useState("all");
 
     useEffect(() => {
         async function loadTickets() {
             try {
-                const { data } = await getMyOrders();
-                console.log(data);
-                setOrders(data || []);
+                setLoading(true);
+                setError("");
+
+                const data = await getMyOrders();
+
+                setOrders(data.orders || []);
             } catch (err) {
-                console.error('ORDERS LOAD ERROR:', err);
-                setError(err.response?.data?.error || err.message || 'Failed to load tickets');
+                setError(err.response?.data?.error || err.message || "Failed to load tickets.");
             } finally {
                 setLoading(false);
             }
@@ -62,7 +64,9 @@ export default function TicketContent() {
                             {active === 'cancelled' && 'Cancelled Tickets'}
                         </h2>
 
-                        <p className="mt-1 text-sm text-marquee-muted">View and manage your movie tickets</p>
+                        <p className="mt-1 text-sm text-marquee-muted">
+                            View and manage your movie tickets
+                        </p>
                     </div>
 
                     <div className="inline-flex items-center gap-1.5 rounded-full border border-marquee-line bg-marquee-bg p-1.5">
@@ -72,7 +76,11 @@ export default function TicketContent() {
                                 <button
                                     key={filter.value}
                                     onClick={() => setActive(filter.value)}
-                                    className={`relative rounded-full px-5 py-2 text-sm font-medium transition-colors duration-200 ${isActive ? 'text-marquee-line' : 'text-marquee-muted hover:text-marquee-gold'}`}>
+                                    className={`relative rounded-full px-5 py-2 text-sm font-medium transition-colors duration-200 ${isActive
+                                        ? "text-marquee-line"
+                                        : "text-marquee-muted hover:text-marquee-gold"
+                                        }`}
+                                >
                                     {isActive && (
                                         <motion.div
                                             layoutId="activeFilterPill"
@@ -85,27 +93,41 @@ export default function TicketContent() {
                                         />
                                     )}
 
-                                    <span className="relative z-10">{filter.label}</span>
+                                    <span className="relative z-10">
+                                        {filter.label}
+                                    </span>
                                 </button>
                             );
                         })}
                     </div>
                 </div>
 
-                {loading && <p className="text-marquee-muted">Loading your tickets...</p>}
+                {loading && (
+                    <p className="text-marquee-muted">
+                        Loading your tickets...
+                    </p>
+                )}
 
-                {error && <p className="text-red-400">{error}</p>}
+                {error && (
+                    <p className="text-red-400">
+                        {error}
+                    </p>
+                )}
 
-                {!loading && filteredOrders.length === 0 && <EmptyTickets />}
+                {!loading && !error && filteredOrders.length === 0 && (
+                    <EmptyTickets />
+                )}
 
-                <div key={active} className="flex flex-col gap-4">
-                    {filteredOrders.map((ticket) => (
-                        <TicketCard
-                            key={ticket._id}
-                            order={ticket}
-                        />
-                    ))}
-                </div>
+                {!loading && !error && filteredOrders.length > 0 && (
+                    <div key={active} className="flex flex-col gap-4">
+                        {filteredOrders.map((ticket) => (
+                            <TicketCard
+                                key={ticket._id}
+                                order={ticket}
+                            />
+                        ))}
+                    </div>
+                )}
             </main>
         </div>
     );

@@ -5,7 +5,7 @@ const {
     extendHold,
     releaseHold,
     getHoldById,
-} = require('../controllers/seatHold');
+} = require('../controllers/seatHolds');
 const {
     validateBody,
     validateParams,

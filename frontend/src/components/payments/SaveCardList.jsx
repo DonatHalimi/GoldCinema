@@ -7,8 +7,7 @@ import {
 import { loadStripe } from '@stripe/stripe-js';
 import { CreditCard } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import api from '../../api/client';
-import { confirmStripePayment, getPaymentMethods } from '../../api/payments';
+import { confirmStripePayment, createStripePaymentIntent, getPaymentMethods } from '../../api/payments';
 
 const stripePromise = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
     ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
@@ -172,27 +171,12 @@ export default function StripeCheckout({
     useEffect(() => {
         if (!order?._id) return;
 
-        api
-            .post(
-                '/payments/stripe/create-intent',
-                {
-                    orderId: order._id,
-                }
-            )
+        createStripePaymentIntent({ orderId: order._id })
             .then(({ data }) => {
                 setClientSecret(data.clientSecret);
             })
             .catch((err) => {
-                console.error(
-                    "STRIPE INTENT ERROR:",
-                    err
-                );
-                setLoadError(
-                    err.response?.data?.error ||
-                    err.message ||
-                    'Failed to create payment'
-                );
-
+                setLoadError(err.response?.data?.error || err.message || 'Failed to create payment');
             });
 
         getPaymentMethods()
@@ -201,7 +185,6 @@ export default function StripeCheckout({
     }, [order?._id]);
 
     if (!stripePromise) {
-
         return (
             <p className="rounded-md border border-marquee-line bg-marquee-panel2 p-4 text-sm text-marquee-muted">
                 Stripe isn't configured yet. Set{' '}

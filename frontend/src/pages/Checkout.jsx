@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
-
 import { useNavigate, useParams } from 'react-router-dom';
-
-
 import { getOrderById } from '../api/orders';
 import { getPaymentMethods } from '../api/payments';
 import { extendSeatHold } from '../api/seatHolds';
 import CheckoutSummary from '../components/checkout/CheckoutSummary';
 import ExpiredHold from '../components/checkout/ExpiredHold';
+import GiftCardBox from '../components/checkout/GiftCardBox';
+import GiftCardFullCoverage from '../components/checkout/GiftCardFullCoverage';
 import PaymentSection from '../components/checkout/PaymentSelection';
 import SeatHoldTimer from '../components/checkout/SeatHoldTimer';
 
@@ -40,23 +39,13 @@ export default function Checkout() {
 
   async function loadOrder() {
     try {
-      console.log('Checkout orderId:', orderId);
-
       const result = await getOrderById(orderId);
-
-      console.log('Checkout getOrderById result:', result);
 
       const data = result.data ?? result;
 
-      console.log('Checkout order data:', data);
-
       const loadedOrder = data.order;
 
-      console.log('Checkout loaded order:', loadedOrder);
-
-      if (!loadedOrder) {
-        throw new Error('Order was not returned by the API');
-      }
+      if (!loadedOrder) throw new Error('Order was not returned by the API');
 
       setOrder(loadedOrder);
       setMovie(loadedOrder.movie);
@@ -68,14 +57,7 @@ export default function Checkout() {
         });
       }
     } catch (err) {
-      console.error('Checkout loadOrder failed:', err);
-      console.error('Response:', err.response?.data);
-
-      setLoadError(
-        err.response?.data?.error ||
-        err.message ||
-        'Failed to load order'
-      );
+      setLoadError(err.response?.data?.error || err.message || 'Failed to load order');
     } finally {
       setLoading(false);
     }
@@ -123,7 +105,7 @@ export default function Checkout() {
     try {
       setExtending(true);
 
-      const { data } = await extendSeatHold(order.holdId);
+      const data = await extendSeatHold(order.holdId);
 
       setOrder((prev) => ({
         ...prev,
@@ -188,17 +170,23 @@ export default function Checkout() {
 
       {expired ? (
         <ExpiredHold onBack={() => navigate(-1)} />
+      ) : order.totalAmount === 0 ? (
+        <GiftCardFullCoverage order={order} onSuccess={handleSuccess} />
       ) : (
-        <PaymentSection
-          provider={provider}
-          setProvider={setProvider}
-          order={order}
-          onSuccess={handleSuccess}
-          onError={setPayError}
-          payError={payError}
-          paymentMethods={paymentMethods}
-          paymentMethodsLoading={paymentMethodsLoading}
-        />
+        <>
+          <GiftCardBox order={order} onOrderUpdated={setOrder} />
+          <PaymentSection
+            key={order.totalAmount}
+            provider={provider}
+            setProvider={setProvider}
+            order={order}
+            onSuccess={handleSuccess}
+            onError={setPayError}
+            payError={payError}
+            paymentMethods={paymentMethods}
+            paymentMethodsLoading={paymentMethodsLoading}
+          />
+        </>
       )}
     </div>
   );

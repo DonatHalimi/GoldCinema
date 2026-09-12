@@ -22,6 +22,7 @@ const { findOrCreateSocialUser, completeSocialLogin } = require('../services/soc
 const { notifyLoginAlert } = require('../utils/loginAlerts');
 const { issueTrustedDevice } = require('../utils/deviceTrust');
 const { addSecurityEvent, buildSessionMeta } = require('../utils/securityEvents');
+const { sendSms } = require('../utils/smsClient');
 
 async function register(req, res, next) {
     try {
@@ -855,10 +856,50 @@ async function verifyEmail2faSetup(req, res, next) {
 
 async function disable2fa(req, res, next) {
     try {
-        const { password } = req.body;
-        const user = await User.findById(req.user.id);
+        const { password, method, code } = req.body;
 
-        if (!(await bcrypt.compare(password, user.passwordHash))) return res.status(401).json({ error: 'Incorrect password.' });
+        if (!password) return res.status(400).json({ error: 'Password is required.' });
+        if (!method || !['email', 'sms', 'totp'].includes(method)) return res.status(400).json({ error: 'Invalid 2FA method.' });
+        if (!code) return res.status(400).json({ error: 'Verification code is required.' });
+
+        const user = await User.findById(req.user.id).select(
+            '+passwordHash ' +
+            '+twoFactor.emailOtpHash ' +
+            '+twoFactor.emailOtpExpiresAt ' +
+            '+twoFactor.smsOtpHash ' +
+            '+twoFactor.smsOtpExpiresAt ' +
+            '+twoFactor.totpSecret'
+        );
+
+        if (!user) return res.status(404).json({ error: 'User not found.' });
+
+        const passwordValid = await bcrypt.compare(password, user.passwordHash);
+
+        if (!passwordValid) return res.status(401).json({ error: 'Incorrect password.' });
+        if (!user.twoFactor?.enabled || !user.twoFactor.methods?.length) return res.status(400).json({ error: 'Two-factor authentication is not enabled.' });
+        if (!user.twoFactor.methods.includes(method)) return res.status(400).json({ error: 'This 2FA method is not enabled.' });
+
+        let codeValid = false;
+
+        if (method === 'email') {
+            if (user.twoFactor.emailOtpHash && user.twoFactor.emailOtpExpiresAt && user.twoFactor.emailOtpExpiresAt > new Date()) {
+                codeValid = await bcrypt.compare(code, user.twoFactor.emailOtpHash);
+            }
+        }
+
+        if (method === 'sms') {
+            if (user.twoFactor.smsOtpHash && user.twoFactor.smsOtpExpiresAt && user.twoFactor.smsOtpExpiresAt > new Date()) {
+                codeValid = await bcrypt.compare(code, user.twoFactor.smsOtpHash);
+            }
+        }
+
+        if (method === 'totp') {
+            if (user.twoFactor.totpSecret) {
+                codeValid = authenticator.check(code, user.twoFactor.totpSecret);
+            }
+        }
+
+        if (!codeValid) return res.status(400).json({ error: 'Invalid or expired verification code.' });
 
         user.twoFactor = {
             enabled: false,
@@ -869,7 +910,7 @@ async function disable2fa(req, res, next) {
         user.trustedDevices = [];
         await user.save();
 
-        res.json({ message: 'Two-factor authentication disabled.' });
+        return res.json({ message: 'Two-factor authentication disabled.' });
     } catch (err) {
         next(err);
     }
@@ -877,42 +918,169 @@ async function disable2fa(req, res, next) {
 
 async function disable2faMethod(req, res, next) {
     try {
-        const { password, method } = req.body;
+        const { password, method, code } = req.body;
 
         if (!method || !['email', 'totp', 'sms'].includes(method)) return res.status(400).json({ error: 'Invalid 2FA method.' });
+        if (!password) return res.status(400).json({ error: 'Password is required.' });
+        if (!code) return res.status(400).json({ error: 'Verification code is required.' });
 
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.user.id).select(
+            '+passwordHash ' +
+            '+twoFactor.emailOtpHash ' +
+            '+twoFactor.emailOtpExpiresAt ' +
+            '+twoFactor.smsOtpHash ' +
+            '+twoFactor.smsOtpExpiresAt ' +
+            '+twoFactor.totpSecret'
+        );
 
         if (!user) return res.status(404).json({ error: 'User not found.' });
 
-        if (!(await bcrypt.compare(password, user.passwordHash))) return res.status(401).json({ error: 'Incorrect password.' });
+        const passwordValid = await bcrypt.compare(password, user.passwordHash);
+
+        if (!passwordValid) return res.status(401).json({ error: 'Incorrect password.' });
+
+        let codeValid = false;
+
+        if (method === 'sms') {
+            codeValid = user.twoFactor?.smsOtpHash &&
+                user.twoFactor.smsOtpExpiresAt > new Date() &&
+                await bcrypt.compare(code, user.twoFactor.smsOtpHash);
+        }
+
+        if (method === 'email') {
+            codeValid = user.twoFactor?.emailOtpHash &&
+                user.twoFactor.emailOtpExpiresAt > new Date() &&
+                await bcrypt.compare(code, user.twoFactor.emailOtpHash);
+        }
+
+        if (method === 'totp') {
+            if (!user.twoFactor?.totpSecret) return res.status(400).json({ error: 'No authenticator is configured.' });
+
+            codeValid = authenticator.check(code, user.twoFactor.totpSecret);
+        }
+
+        if (!codeValid) return res.status(400).json({ error: 'Invalid or expired verification code.' });
 
         const currentMethods = user.twoFactor?.methods || [];
 
         if (!currentMethods.includes(method)) return res.status(400).json({ error: 'This 2FA method is not enabled.' });
 
-        const methods = currentMethods.filter(
-            (currentMethod) => currentMethod !== method
-        );
+        const methods = currentMethods.filter(currentMethod => currentMethod !== method);
 
-        user.twoFactor = {
-            enabled: methods.length > 0,
-            methods,
-            backupCodes: methods.length > 0
-                ? user.twoFactor.backupCodes
-                : []
-        };
+        user.twoFactor.methods = methods;
+        user.twoFactor.enabled = methods.length > 0;
 
-        if (methods.length === 0) user.trustedDevices = [];
+        if (method === 'sms') {
+            user.twoFactor.smsOtpHash = undefined;
+            user.twoFactor.smsOtpExpiresAt = undefined;
+        }
+
+        if (method === 'email') {
+            user.twoFactor.emailOtpHash = undefined;
+            user.twoFactor.emailOtpExpiresAt = undefined;
+        }
+
+        if (method === 'totp') {
+            user.twoFactor.totpSecret = undefined;
+            user.twoFactor.pendingTotpSecret = undefined;
+        }
+
+        if (methods.length === 0) {
+            user.twoFactor.backupCodes = [];
+            user.trustedDevices = [];
+        }
 
         await user.save();
 
         res.json({
-            message: method === 'email'
-                ? 'Email two-factor authentication disabled.'
-                : 'Authenticator app two-factor authentication disabled.',
+            message:
+                method === 'sms'
+                    ? 'SMS two-factor authentication disabled.'
+                    : method === 'email'
+                        ? 'Email two-factor authentication disabled.'
+                        : 'Authenticator app two-factor authentication disabled.',
             twoFactor: user.twoFactor
         });
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function sendEmail2faDisableCode(req, res, next) {
+    try {
+        const { password } = req.body;
+
+        if (!password) {
+            return res.status(400).json({
+                error: 'Password is required.',
+            });
+        }
+
+        const user = await User.findById(req.user.id)
+            .select(
+                '+passwordHash +twoFactor.methods +twoFactor.emailOtpHash +twoFactor.emailOtpExpiresAt'
+            );
+
+        if (!user) {
+            return res.status(404).json({
+                error: 'User not found.',
+            });
+        }
+
+        const passwordValid = await bcrypt.compare(password, user.passwordHash);
+
+        if (!passwordValid) return res.status(401).json({ error: 'Incorrect password.' });
+
+        if (!user.twoFactor?.enabled || !user.twoFactor.methods?.includes('email')) return res.status(400).json({ error: 'Email two-factor authentication is not enabled.' });
+
+        const code = crypto.randomInt(100000, 1000000).toString();
+        user.twoFactor.emailOtpHash = await bcrypt.hash(code, 10);
+        user.twoFactor.emailOtpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+        await user.save();
+
+        await sendTwoFactorCode({
+            to: user.email,
+            name: user.name,
+            code,
+        });
+
+        return res.json({ message: 'Verification code sent to your email.' });
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function sendSms2faDisableCode(req, res, next) {
+    try {
+        const { password } = req.body;
+
+        if (!password) return res.status(400).json({ error: 'Password is required.' });
+
+        const user = await User.findById(req.user.id).select(
+            '+passwordHash +phoneNumber +phoneVerified +twoFactor.methods +twoFactor.smsOtpHash +twoFactor.smsOtpExpiresAt'
+        );
+
+        if (!user) return res.status(404).json({ error: 'User not found.' });
+
+        const passwordValid = await bcrypt.compare(password, user.passwordHash);
+        if (!passwordValid) return res.status(401).json({ error: 'Incorrect password.' });
+
+        if (!user.twoFactor?.enabled || !user.twoFactor.methods?.includes('sms')) return res.status(400).json({ error: 'SMS two-factor authentication is not enabled.' });
+
+        if (!user.phoneNumber || !user.phoneVerified) return res.status(400).json({ error: 'No verified phone number is available.' });
+
+        const code = crypto.randomInt(100000, 1000000).toString();
+
+        user.twoFactor.smsOtpHash = await bcrypt.hash(code, 10);
+
+        user.twoFactor.smsOtpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+        await user.save();
+
+        await sendSms(user.phoneNumber, `GoldCinema verification code: ${code}. This code expires in 10 minutes.`);
+
+        return res.json({ message: 'Verification code sent to your phone.', });
     } catch (err) {
         next(err);
     }
@@ -1402,6 +1570,8 @@ module.exports = {
     enableEmail2fa,
     verifyEmail2faSetup,
     verifyLoginMfa,
+    sendEmail2faDisableCode,
+    sendSms2faDisableCode,
     resendLoginMfaCode,
     disable2fa,
     disable2faMethod,

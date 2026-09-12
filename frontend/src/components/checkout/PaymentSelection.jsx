@@ -11,6 +11,10 @@ export default function PaymentSection({
     payError,
     paymentMethods,
     paymentMethodsLoading,
+    createIntentFn,
+    confirmPaymentFn,
+    createPaypalOrderFn,
+    capturePaypalOrderFn,
 }) {
     return (
         <div className="rounded-xl border border-marquee-line bg-marquee-panel p-6">
@@ -32,12 +36,16 @@ export default function PaymentSection({
                     onError={onError}
                     paymentMethods={paymentMethods}
                     paymentMethodsLoading={paymentMethodsLoading}
+                    createIntentFn={createIntentFn}
+                    confirmPaymentFn={confirmPaymentFn}
                 />
             ) : (
                 <PaypalCheckout
                     order={order}
                     onSuccess={onSuccess}
                     onError={onError}
+                    createOrderFn={createPaypalOrderFn}
+                    captureOrderFn={capturePaypalOrderFn}
                 />
             )}
 

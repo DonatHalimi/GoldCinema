@@ -28,6 +28,9 @@ const orderSchema = new Schema(
         holdId: { type: mongoose.Schema.Types.ObjectId, ref: 'SeatHold' },
         holdExpiresAt: { type: Date },
 
+        giftCardCode: { type: String, default: null },
+        giftCardAmount: { type: Number, default: 0 },
+
         stripePaymentIntentId: { type: String },
         paypalOrderId: { type: String },
 

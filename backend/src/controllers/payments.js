@@ -82,19 +82,28 @@ async function createStripeIntent(req, res, next) {
         if (order.stripePaymentIntentId) {
             intent = await stripe.paymentIntents.retrieve(order.stripePaymentIntentId);
 
-            if (paymentMethodId) {
+            if (intent.status === 'succeeded') return res.status(400).json({ error: 'This payment has already been completed.', });
+
+            if (paymentMethodId && ['requires_payment_method', 'requires_confirmation', 'requires_action'].includes(intent.status)) {
                 const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
 
-                if (paymentMethod.customer && paymentMethod.customer.toString() !== customerId.toString()) return res.status(403).json({ error: 'Payment method does not belong to your account.', });
+                if (paymentMethod.customer && paymentMethod.customer.toString() !== customerId.toString()) {
+                    return res.status(403).json({ error: 'Payment method does not belong to your account.', });
+                }
 
-                intent = await stripe.paymentIntents.update(intent.id, { payment_method: paymentMethodId, });
+                intent = await stripe.paymentIntents.update(intent.id, {
+                    payment_method: paymentMethodId,
+                });
             }
         } else {
             const intentParams = {
                 amount: Math.round(order.totalAmount * 100),
                 currency: order.currency?.toLowerCase() || 'usd',
                 customer: customerId,
-                metadata: { orderId: order._id.toString(), userId: req.user.id },
+                metadata: {
+                    orderId: order._id.toString(),
+                    userId: req.user.id,
+                },
             };
 
             if (paymentMethodId) {
@@ -104,7 +113,7 @@ async function createStripeIntent(req, res, next) {
 
                 intentParams.payment_method = paymentMethodId;
             } else {
-                intentParams.automatic_payment_methods = { enabled: true, };
+                intentParams.automatic_payment_methods = { enabled: true };
             }
 
             intent = await stripe.paymentIntents.create(intentParams);
@@ -113,7 +122,7 @@ async function createStripeIntent(req, res, next) {
             await order.save();
         }
 
-        res.json({ clientSecret: intent.client_secret, });
+        res.json({ clientSecret: intent.client_secret });
     } catch (err) {
         next(err);
     }

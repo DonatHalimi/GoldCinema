@@ -22,18 +22,18 @@ export default function NotificationList({
 
     if (notifications.length === 0) {
         return (
-            <div className="rounded-xl border border-dashed border-marquee-line bg-marquee-panel/40 p-10 text-center">
-                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-marquee-panel2 text-marquee-gold">
-                    {filter === 'archived' ? <Archive size={24} /> :
-                        filter === 'unread' ? <MailCheck size={24} /> :
-                            <Bell size={24} />}
+            <div className="rounded-xl border border-dashed border-marquee-line bg-marquee-panel2 p-10 text-center">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-marquee-panel2 text-marquee-gold">
+                    {filter === 'archived' ? <Archive size={24} className="mx-auto mb-3 h-10 w-10 text-marquee-goldDim" /> :
+                        filter === 'unread' ? <MailCheck size={24} className="mx-auto mb-3 h-10 w-10 text-marquee-goldDim" /> :
+                            <Bell size={24} className="mx-auto mb-3 h-10 w-10 text-marquee-goldDim" />}
                 </div>
-                <h3 className="text-base font-semibold text-marquee-cream">
+                <p className="font-serif text-xl text-marquee-cream">
                     {filter === 'archived' ? 'No archived notifications' :
                         filter === 'unread' ? 'No unread notifications' :
                             'No notifications yet'}
-                </h3>
-                <p className="mt-1 text-xs text-marquee-muted">
+                </p>
+                <p className="mt-1 text-sm text-marquee-muted">
                     {filter === 'archived'
                         ? 'Archived notifications will be stored here for future reference.'
                         : filter === 'unread'

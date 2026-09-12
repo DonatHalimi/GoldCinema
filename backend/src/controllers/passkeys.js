@@ -92,10 +92,7 @@ async function verifyPasskeyRegistration(req, res, next) {
         user.passkeyRegistrationChallenge = null;
         await user.save();
 
-        return res.json({
-            verified: true,
-            message: 'Passkey registered successfully.',
-        });
+        return res.json({ verified: true, message: 'Passkey registered successfully.' });
     } catch (error) {
         next(error);
     }

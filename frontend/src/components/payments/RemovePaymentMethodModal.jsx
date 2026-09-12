@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { X } from 'lucide-react';
+import { CheckCircle2, TriangleAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import Modal from '../ui/modals/Modal';
 
 export default function RemovePaymentMethodModal({
     isOpen,
@@ -26,113 +27,192 @@ export default function RemovePaymentMethodModal({
 
     const canConfirm =
         !isSubmitting &&
-        (!requiresConfirmation ||
-            confirmation === confirmationText);
+        (!requiresConfirmation || confirmation === confirmationText);
+
+    const isConfirmed =
+        requiresConfirmation && confirmation === confirmationText;
+
+    const hasInvalidConfirmation =
+        requiresConfirmation &&
+        confirmation.length > 0 &&
+        confirmation !== confirmationText;
 
     return (
-        <AnimatePresence>
-            {isOpen && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    onClick={() => !isSubmitting && onClose()}
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
-                >
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.96, y: 8 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.96, y: 8 }}
-                        transition={{ duration: 0.15 }}
-                        onClick={(e) => e.stopPropagation()}
-                        className="relative w-full max-w-md rounded-xl border border-marquee-line bg-marquee-panel p-6 shadow-2xl"
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title={title}
+            closeDisabled={isSubmitting}
+        >
+            <div className="space-y-6">
+                <div className="flex gap-4 rounded-xl border border-marquee-line bg-marquee-panel2/60 p-4">
+                    <div
+                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${isDestructive
+                            ? 'bg-red-500/10 text-red-400'
+                            : 'bg-marquee-gold/10 text-marquee-gold'
+                            }`}
                     >
-                        <div className="flex items-center justify-between pb-3 border-b border-marquee-line">
-                            <h2 className="font-display text-2xl text-marquee-goldBright">
-                                {title}
-                            </h2>
+                        <TriangleAlert className="h-5 w-5" />
+                    </div>
 
-                            <button
-                                type="button"
-                                onClick={() => !isSubmitting && onClose()}
-                                disabled={isSubmitting}
-                                className="flex h-7 w-7 items-center justify-center rounded-lg text-marquee-muted hover:bg-marquee-panel2 hover:text-marquee-cream transition-colors disabled:opacity-50"
-                            >
-                                <X className="h-4 w-4" />
-                            </button>
-                        </div>
-
-                        <p className="mt-4 text-sm text-marquee-muted">
+                    <div className="min-w-0">
+                        <p className="text-sm leading-6 text-marquee-muted">
                             {description}
                         </p>
+                    </div>
+                </div>
 
-                        {requiresConfirmation && (
-                            <div className="mt-5">
-                                <label htmlFor="delete-confirmation" className="mb-2 block text-sm font-medium text-marquee-cream">
+                <AnimatePresence initial={false}>
+                    {requiresConfirmation && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0, y: -8 }}
+                            animate={{ opacity: 1, height: 'auto', y: 0 }}
+                            exit={{ opacity: 0, height: 0, y: -8 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden"
+                        >
+                            <div className="space-y-2">
+                                <label
+                                    htmlFor="confirm-dialog-input"
+                                    className="block text-sm font-medium text-marquee-cream"
+                                >
                                     Type{' '}
-                                    <span className="font-semibold text-red-400">
+                                    <span
+                                        className={
+                                            isDestructive
+                                                ? 'font-semibold text-red-400'
+                                                : 'font-semibold text-marquee-gold'
+                                        }
+                                    >
                                         {confirmationText}
                                     </span>{' '}
                                     to confirm
                                 </label>
 
+                                <div className="relative">
+                                    <input
+                                        id="confirm-dialog-input"
+                                        type="text"
+                                        value={confirmation}
+                                        onChange={(e) =>
+                                            setConfirmation(e.target.value)
+                                        }
+                                        disabled={isSubmitting}
+                                        autoComplete="off"
+                                        autoFocus
+                                        placeholder={confirmationText}
+                                        className={`w-full rounded-xl border bg-marquee-panel2 px-4 py-3 pr-11 text-sm text-marquee-cream outline-none transition-all placeholder:text-marquee-muted disabled:cursor-not-allowed disabled:opacity-50 ${isConfirmed
+                                            ? 'border-green-500/50 focus:border-green-500'
+                                            : hasInvalidConfirmation
+                                                ? 'border-red-500/50 focus:border-red-500'
+                                                : 'border-marquee-line focus:border-marquee-gold'
+                                            }`}
+                                    />
 
-                                <input
-                                    id="confirm-dialog-input"
-                                    type="text"
-                                    value={confirmation}
-                                    onChange={(e) =>
-                                        setConfirmation(e.target.value)
-                                    }
-                                    disabled={isSubmitting}
-                                    autoComplete="off"
-                                    placeholder={confirmationText}
-                                    className="w-full rounded-lg border border-marquee-line bg-marquee-panel2 px-4 py-2.5 text-sm text-marquee-cream outline-none transition-colors placeholder:text-marquee-muted focus:border-marquee-gold disabled:cursor-not-allowed disabled:opacity-50"
-                                />
+                                    <AnimatePresence mode="wait">
+                                        {isConfirmed && (
+                                            <motion.div
+                                                key="success"
+                                                initial={{
+                                                    opacity: 0,
+                                                    scale: 0.7,
+                                                }}
+                                                animate={{
+                                                    opacity: 1,
+                                                    scale: 1,
+                                                }}
+                                                exit={{
+                                                    opacity: 0,
+                                                    scale: 0.7,
+                                                }}
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-green-400"
+                                            >
+                                                <CheckCircle2 className="h-5 w-5" />
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
 
-                                {confirmation.length > 0 &&
-                                    confirmation !== 'REMOVE' && (
-                                        <p className="mt-1.5 text-xs text-red-400">
-                                            Please type REMOVE exactly as shown.
-                                        </p>
+                                <AnimatePresence initial={false} mode="wait">
+                                    {hasInvalidConfirmation && (
+                                        <motion.p
+                                            key="invalid"
+                                            initial={{
+                                                opacity: 0,
+                                                y: -4,
+                                            }}
+                                            animate={{
+                                                opacity: 1,
+                                                y: 0,
+                                            }}
+                                            exit={{
+                                                opacity: 0,
+                                                y: -4,
+                                            }}
+                                            className="text-xs text-red-400"
+                                        >
+                                            Please type {confirmationText}{' '}
+                                            exactly as shown.
+                                        </motion.p>
                                     )}
 
-                                {confirmation === 'REMOVE' && (
-                                    <p className="mt-1.5 text-xs text-green-400">
-                                        Confirmation accepted.
-                                    </p>
-                                )}
+                                    {isConfirmed && (
+                                        <motion.p
+                                            key="confirmed"
+                                            initial={{
+                                                opacity: 0,
+                                                y: -4,
+                                            }}
+                                            animate={{
+                                                opacity: 1,
+                                                y: 0,
+                                            }}
+                                            exit={{
+                                                opacity: 0,
+                                                y: -4,
+                                            }}
+                                            className="text-xs text-green-400"
+                                        >
+                                            Confirmation accepted.
+                                        </motion.p>
+                                    )}
+                                </AnimatePresence>
                             </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                <div className="flex items-center justify-end gap-3 border-t border-marquee-line pt-5">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        disabled={isSubmitting}
+                        className="rounded-xl border border-marquee-line px-5 py-2.5 text-sm font-medium text-marquee-cream transition-all hover:border-marquee-gold/40 hover:bg-marquee-panel2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        {cancelLabel}
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={onConfirm}
+                        disabled={!canConfirm}
+                        className={
+                            isDestructive
+                                ? 'rounded-xl bg-marquee-marquee px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-black/10 transition-all hover:bg-marquee-marquee/90 hover:shadow-red-500/10 disabled:cursor-not-allowed disabled:opacity-40'
+                                : 'rounded-xl bg-marquee-gold px-5 py-2.5 text-sm font-semibold text-marquee-bg shadow-lg shadow-marquee-gold/10 transition-all hover:bg-marquee-goldBright disabled:cursor-not-allowed disabled:opacity-40'
+                        }
+                    >
+                        {isSubmitting ? (
+                            <span className="flex items-center gap-2">
+                                <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                Please wait...
+                            </span>
+                        ) : (
+                            confirmLabel
                         )}
-
-                        <div className="mt-8 flex justify-end gap-3">
-                            <button
-                                type="button"
-                                onClick={onClose}
-                                disabled={isSubmitting}
-                                className="rounded-lg border border-marquee-line px-4 py-2 text-sm text-marquee-cream hover:bg-marquee-panel2 transition-colors disabled:opacity-50"
-                            >
-                                {cancelLabel}
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={onConfirm}
-                                disabled={!canConfirm}
-                                className={
-                                    isDestructive
-                                        ? 'rounded-lg bg-marquee-marquee px-4 py-2 text-sm font-semibold text-white hover:bg-marquee-marquee/90 disabled:opacity-50 transition-colors'
-                                        : 'rounded-lg bg-marquee-gold px-4 py-2 text-sm font-semibold text-marquee-bg hover:bg-marquee-goldBright disabled:opacity-50 transition-colors'
-                                }
-                            >
-                                {isSubmitting
-                                    ? 'Please wait...'
-                                    : confirmLabel}
-                            </button>
-                        </div>
-                    </motion.div>
-                </motion.div>
-            )}
-        </AnimatePresence>
+                    </button>
+                </div>
+            </div>
+        </Modal>
     );
 }

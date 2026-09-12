@@ -113,7 +113,7 @@ export default function BackupCodesCard({ twoFactor }) {
                 <div className="mt-4 flex items-center gap-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-3 text-xs text-yellow-400">
                     <ShieldAlert className="h-4 w-4 shrink-0" />
 
-                    <span>
+                    <span className="text-sm text-marquee-muted">
                         Authenticator App 2FA must be enabled to generate backup recovery codes.
                     </span>
                 </div>

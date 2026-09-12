@@ -6,7 +6,7 @@ const {
     createReview,
     updateReview,
     deleteReview,
-} = require('../controllers/review');
+} = require('../controllers/reviews');
 
 const router = express.Router();
 

@@ -2,8 +2,7 @@ import { startAuthentication } from '@simplewebauthn/browser';
 import {
     Fingerprint,
     Loader2,
-    TriangleAlert,
-    X,
+    X
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'react-toastify';

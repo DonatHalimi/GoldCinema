@@ -35,6 +35,8 @@ const {
   logout,
   enableSms2fa,
   verifySms2faSetup,
+  sendEmail2faDisableCode,
+  sendSms2faDisableCode,
 } = require('../controllers/auth');
 const {
   validateBody,
@@ -100,6 +102,9 @@ router.post('/2fa/sms/enable', requireAuth, validateBody(smsPhoneSchema), enable
 router.post('/2fa/sms/verify', requireAuth, validateBody(verifySms2faSchema), verifySms2faSetup);
 
 router.post('/2fa/disable', requireAuth, validateBody(disable2faSchema), disable2fa);
+router.post('/2fa/email/disable-code', requireAuth, sendEmail2faDisableCode);
+
+router.post('/2fa/sms/disable-code', requireAuth, sendSms2faDisableCode);
 router.post('/2fa/disable-method', requireAuth, validateBody(disable2faMethodSchema), disable2faMethod);
 
 router.post('/2fa/login-resend', validateBody(resendLoginMfaSchema), resendLoginMfaCode);

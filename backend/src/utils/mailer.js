@@ -439,6 +439,357 @@ async function sendLoginAlertEmail({ to, name, time, ipAddress, loginMethod }) {
   });
 }
 
+async function sendGiftCardEmail(giftCard) {
+  const transporter = getTransporter();
+
+  const amount = giftCard.initialValue.toFixed(2);
+
+  const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <style>
+                body {
+                    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                    background-color: #0f0f12;
+                    color: #f3f3f5;
+                    margin: 0;
+                    padding: 20px;
+                }
+
+                .container {
+                    max-width: 600px;
+                    margin: 0 auto;
+                    background-color: #18181c;
+                    border: 1px solid #2a2a32;
+                    border-radius: 12px;
+                    overflow: hidden;
+                }
+
+                .header {
+                    background-color: #000000;
+                    text-align: center;
+                    padding: 24px;
+                    border-bottom: 2px solid #d4af37;
+                }
+
+                .brand {
+                    font-size: 26px;
+                    font-weight: bold;
+                    letter-spacing: 2px;
+                    color: #d4af37;
+                }
+
+                .content {
+                    padding: 30px;
+                }
+
+                .eyebrow {
+                    text-align: center;
+                    color: #d4af37;
+                    font-size: 12px;
+                    font-weight: bold;
+                    letter-spacing: 2px;
+                    text-transform: uppercase;
+                    margin-bottom: 8px;
+                }
+
+                .title {
+                    color: #ffffff;
+                    text-align: center;
+                    font-size: 28px;
+                    margin: 0 0 10px 0;
+                }
+
+                .subtitle {
+                    color: #b3b3c2;
+                    text-align: center;
+                    font-size: 15px;
+                    line-height: 1.6;
+                    margin: 0 0 28px 0;
+                }
+
+                .gift-card {
+                    background: linear-gradient(135deg, #222228, #18181c);
+                    border: 1px solid #d4af37;
+                    border-radius: 12px;
+                    padding: 28px;
+                    text-align: center;
+                    margin-bottom: 24px;
+                }
+
+                .gift-label {
+                    color: #b3b3c2;
+                    font-size: 12px;
+                    text-transform: uppercase;
+                    letter-spacing: 2px;
+                    margin-bottom: 8px;
+                }
+
+                .gift-amount {
+                    color: #d4af37;
+                    font-size: 42px;
+                    font-weight: bold;
+                    margin: 0;
+                }
+
+                .gift-brand {
+                    color: #ffffff;
+                    font-size: 14px;
+                    letter-spacing: 2px;
+                    font-weight: bold;
+                    margin-top: 8px;
+                }
+
+                .message-box {
+                    background-color: #222228;
+                    border-left: 4px solid #d4af37;
+                    padding: 16px;
+                    border-radius: 0 8px 8px 0;
+                    margin: 24px 0;
+                }
+
+                .message-box p {
+                    margin: 0;
+                    color: #f3f3f5;
+                    font-size: 14px;
+                    line-height: 1.6;
+                    font-style: italic;
+                }
+
+                .code-section {
+                    background-color: #ffffff;
+                    border-radius: 10px;
+                    padding: 22px;
+                    text-align: center;
+                    margin: 24px 0;
+                }
+
+                .code-label {
+                    color: #666677;
+                    font-size: 11px;
+                    font-weight: bold;
+                    letter-spacing: 2px;
+                    text-transform: uppercase;
+                    margin-bottom: 10px;
+                }
+
+                .code {
+                    color: #111111;
+                    font-family: monospace;
+                    font-size: 25px;
+                    font-weight: bold;
+                    letter-spacing: 4px;
+                    margin: 0;
+                }
+
+                .instructions-box {
+                    background-color: #222228;
+                    border-left: 4px solid #d4af37;
+                    padding: 15px;
+                    border-radius: 0 8px 8px 0;
+                    margin: 20px 0;
+                    font-size: 13px;
+                    color: #b3b3c2;
+                    line-height: 1.6;
+                }
+
+                .instructions-box h4 {
+                    color: #ffffff;
+                    margin: 0 0 8px 0;
+                    font-size: 14px;
+                }
+
+                .instructions-box ul {
+                    margin: 0;
+                    padding-left: 18px;
+                }
+
+                .instructions-box li {
+                    margin-bottom: 6px;
+                }
+
+                .details {
+                    border-top: 1px dashed #33333d;
+                    padding-top: 16px;
+                    margin-top: 24px;
+                    font-size: 13px;
+                    color: #b3b3c2;
+                }
+
+                .details p {
+                    margin: 5px 0;
+                }
+
+                .details strong {
+                    color: #f3f3f5;
+                }
+
+                .footer {
+                    text-align: center;
+                    padding: 20px;
+                    font-size: 12px;
+                    color: #666677;
+                }
+            </style>
+        </head>
+
+        <body>
+            <div class="container">
+
+                <div class="header">
+                    <div class="brand">
+                        GOLD<span style="color:#ffffff;">CINEMA</span>
+                    </div>
+                </div>
+
+                <div class="content">
+
+                    <div class="eyebrow">🎁 A Gift For You</div>
+
+                    <h1 class="title">
+                        You've received a GoldCinema Gift Card!
+                    </h1>
+
+                    <p class="subtitle">
+                        ${escapeHtml(giftCard.senderName)} has sent you a gift
+                        worth €${amount} to enjoy your next movie experience at GoldCinema.
+                    </p>
+
+                    <div class="gift-card">
+                        <div class="gift-label">GoldCinema Gift Card</div>
+
+                        <p class="gift-amount">
+                            €${amount}
+                        </p>
+
+                        <div class="gift-brand">
+                            GOLD<span style="color:#d4af37;">CINEMA</span>
+                        </div>
+                    </div>
+
+                    ${giftCard.message
+      ? `
+                                <div class="message-box">
+                                    <p>
+                                        "${escapeHtml(giftCard.message)}"
+                                    </p>
+                                </div>
+                            `
+      : ''
+    }
+
+                    <div class="code-section">
+                        <div class="code-label">
+                            Your Gift Card Code
+                        </div>
+
+                        <p class="code">
+                            ${escapeHtml(giftCard.code)}
+                        </p>
+                    </div>
+
+                    <div class="instructions-box">
+                        <h4>How to use your gift card</h4>
+
+                        <ul>
+                            <li>
+                                Use the gift card code during checkout when purchasing your tickets.
+                            </li>
+
+                            <li>
+                                The gift card can be used until its available balance is fully redeemed.
+                            </li>
+
+                            <li>
+                                Keep this email safe so you can access your gift card code when needed.
+                            </li>
+
+                            <li>
+                                Do not share your gift card code with anyone you do not trust.
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="details">
+                        <p>
+                            <strong>Recipient:</strong>
+                            ${escapeHtml(giftCard.recipientName)}
+                        </p>
+
+                        <p>
+                            <strong>Sent by:</strong>
+                            ${escapeHtml(giftCard.senderName)}
+                        </p>
+
+                        <p>
+                            <strong>Value:</strong>
+                            €${amount}
+                        </p>
+
+                        <p>
+                            <strong>Gift Card Code:</strong>
+                            ${escapeHtml(giftCard.code)}
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="footer">
+                    <p style="margin: 0 0 10px 0; color: #888899;">
+                        Enjoy your next movie experience at GoldCinema.
+                    </p>
+
+                    <p style="margin: 0 0 10px 0; color: #f3f3f5; font-weight: bold;">
+                        Lights down. Movie on. 🎬
+                    </p>
+
+                    &copy; ${new Date().getFullYear()} GoldCinema Staff
+                </div>
+
+            </div>
+        </body>
+        </html>
+    `;
+
+  const textContent = `
+You've received a GoldCinema Gift Card!
+
+Hi ${giftCard.recipientName},
+
+${giftCard.senderName} has sent you a €${amount} GoldCinema gift card.
+
+${giftCard.message
+      ? `Personal message:\n"${giftCard.message}"\n\n`
+      : ''
+    }
+
+Gift Card Code: ${giftCard.code}
+
+Use this code during checkout when purchasing your tickets.
+
+Keep this email safe and do not share your gift card code with anyone you do not trust.
+
+Enjoy your next movie experience at GoldCinema!
+    `.trim();
+
+  await transporter.sendMail({
+    from:
+      process.env.SMTP_FROM ||
+      'GoldCinema <no-reply@goldcinema.example>',
+
+    to: giftCard.recipientEmail,
+
+    subject:
+      `🎁 ${giftCard.senderName} sent you a GoldCinema Gift Card!`,
+
+    text: textContent,
+
+    html: htmlContent,
+  });
+}
+
 module.exports = {
   getTransporter,
   sendVerificationEmail,
@@ -447,5 +798,6 @@ module.exports = {
   sendTicketEmail,
   sendTwoFactorCode,
   sendContactEmail,
-  sendLoginAlertEmail
+  sendLoginAlertEmail,
+  sendGiftCardEmail,
 };

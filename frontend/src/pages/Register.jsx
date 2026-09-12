@@ -1,12 +1,12 @@
-import { Loader2 } from 'lucide-react';
+import { startAuthentication } from '@simplewebauthn/browser';
+import { KeyRound, Loader2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { getPasskeyLoginOptions, verifyPasskeyLogin } from '../api/auth';
 import SocialLoginButtons from '../components/auth/SocialLoginButtons';
 import { Field, PasswordField, PasswordStrength } from '../components/ui/FormUI';
 import { useAuth } from '../context/AuthContext';
 import { registerSchema, validateForm } from '../validations';
-import { getPasskeyLoginOptions, verifyPasskeyLogin } from '../api/auth';
-import { startAuthentication } from '@simplewebauthn/browser';
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const facebookAppId = import.meta.env.VITE_FACEBOOK_APP_ID;

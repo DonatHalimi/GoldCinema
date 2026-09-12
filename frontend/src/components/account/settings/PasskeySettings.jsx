@@ -1,5 +1,6 @@
 import { startRegistration } from '@simplewebauthn/browser';
-import { BadgeCheck, Fingerprint, KeyRound, Pencil, Trash2 } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { BadgeCheck, ChevronDown, ChevronUp, Fingerprint, KeyRound, Pencil, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { getPasskeyRegistrationOptions, getPasskeys, verifyPasskeyRegistration } from '../../../api/auth';
@@ -10,6 +11,7 @@ export default function PasskeySettings() {
     const [passkeys, setPasskeys] = useState([]);
     const [loading, setLoading] = useState(true);
     const [registering, setRegistering] = useState(false);
+    const [showAll, setShowAll] = useState(false);
     const [selectedPasskeyForRemoval, setSelectedPasskeyForRemoval] = useState(null);
     const [selectedPasskeyForRename, setSelectedPasskeyForRename] = useState(null);
 
@@ -64,6 +66,8 @@ export default function PasskeySettings() {
         setSelectedPasskeyForRename(null);
     };
 
+    const displayedPasskeys = showAll ? passkeys : passkeys.slice(0, 3);
+
     return (
         <>
             <div className="rounded-xl border border-marquee-line bg-marquee-bg p-5">
@@ -93,45 +97,74 @@ export default function PasskeySettings() {
                 </div>
 
                 {passkeys.length > 0 && (
-                    <div className="mt-5 space-y-3">
-                        {passkeys.map((passkey) => (
-                            <div key={passkey.id} className="flex items-center justify-between rounded-lg border border-marquee-line bg-marquee-panel2 px-4 py-3">
-                                <div className="flex items-center gap-3">
-                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-marquee-line/30 text-marquee-gold">
-                                        <Fingerprint className="h-5 w-5" />
+                    <div className="mt-5 space-y-3 overflow-hidden">
+                        <AnimatePresence initial={false} mode="popLayout">
+                            {displayedPasskeys.map((passkey) => (
+                                <motion.div
+                                    key={passkey.id}
+                                    layout
+                                    initial={{ opacity: 0, y: -20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                                    className="flex items-center justify-between rounded-lg border border-marquee-line bg-marquee-panel2 px-4 py-3"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-marquee-line/30 text-marquee-gold">
+                                            <Fingerprint className="h-5 w-5" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-marquee-cream">
+                                                {passkey.name || 'Passkey'}
+                                            </p>
+
+                                            <p className="text-xs text-marquee-muted">
+                                                Added on {new Date(passkey.createdAt).toLocaleDateString('en-GB')}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-marquee-cream">
-                                            {passkey.name || 'Passkey'}
-                                        </p>
 
-                                        <p className="text-xs text-marquee-muted">
-                                            Added on {new Date(passkey.createdAt).toLocaleDateString('en-GB')}
-                                        </p>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => setSelectedPasskeyForRename(passkey)}
+                                            className="inline-flex items-center gap-1.5 rounded-full border border-marquee-line px-3 py-1.5 text-xs font-semibold text-marquee-muted transition hover:bg-marquee-line/50 hover:text-marquee-cream"
+                                        >
+                                            <Pencil className="h-3.5 w-3.5" />
+                                            Edit
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => setSelectedPasskeyForRemoval(passkey)}
+                                            className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 px-3 py-1.5 text-xs font-semibold text-red-400 transition hover:bg-red-500/10"
+                                        >
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                            Remove
+                                        </button>
                                     </div>
-                                </div>
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
 
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => setSelectedPasskeyForRename(passkey)}
-                                        className="inline-flex items-center gap-1.5 rounded-full border border-marquee-line px-3 py-1.5 text-xs font-semibold text-marquee-muted transition hover:bg-marquee-line/50 hover:text-marquee-cream"
-                                    >
-                                        <Pencil className="h-3.5 w-3.5" />
-                                        Edit
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        onClick={() => setSelectedPasskeyForRemoval(passkey)}
-                                        className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 px-3 py-1.5 text-xs font-semibold text-red-400 transition hover:bg-red-500/10"
-                                    >
-                                        <Trash2 className="h-3.5 w-3.5" />
-                                        Remove
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
+                        {passkeys.length > 5 && (
+                            <button
+                                onClick={() => setShowAll(!showAll)}
+                                className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-lg border border-marquee-line bg-marquee-panel2 py-2 text-xs font-medium text-marquee-gold transition hover:bg-marquee-line/20"
+                            >
+                                {showAll ? (
+                                    <>
+                                        <span>Show Less</span>
+                                        <ChevronUp className="h-4 w-4" />
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>Show All ({passkeys.length - 5} more)</span>
+                                        <ChevronDown className="h-4 w-4" />
+                                    </>
+                                )}
+                            </button>
+                        )}
                     </div>
                 )}
 

@@ -8,7 +8,7 @@ const {
     updatePasskeyName,
     generatePasskeyRemovalChallenge,
     removePasskey,
-} = require('../controllers/passkey');
+} = require('../controllers/passkeys');
 const { requireAuth } = require('../middleware/auth');
 
 const express = require('express');

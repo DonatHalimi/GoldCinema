@@ -15,7 +15,7 @@ export default function Confirmation() {
   useEffect(() => {
     async function fetchOrder() {
       try {
-        const { data } = await getOrderById(orderId);
+        const data = await getOrderById(orderId);
         setOrder(data.order);
       } catch (err) {
         setError(err.response?.data?.error || err.message || 'Something went wrong');

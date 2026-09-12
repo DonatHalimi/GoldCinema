@@ -7,7 +7,7 @@ const {
     createSlide,
     updateSlide,
     deleteSlide,
-} = require('../controllers/slideshow');
+} = require('../controllers/slideshows');
 
 const { validateParams, slideshow: { slideshowIdSchema } } = require('../validations');
 

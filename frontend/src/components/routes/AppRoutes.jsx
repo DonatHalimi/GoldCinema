@@ -7,6 +7,7 @@ import ProfileSettings from '../../components/account/settings/ProfileSettings';
 import SecuritySettings from '../../components/account/settings/SecuritySettings';
 import Account from '../../pages/Account';
 import AdminDashboard from '../../pages/AdminDashboard';
+import BuyGiftCard from '../../pages/BuyGiftCard';
 import Checkout from '../../pages/Checkout';
 import Cinema from '../../pages/Cinema';
 import Confirmation from '../../pages/Confirmation';
@@ -86,6 +87,15 @@ export default function AppRoutes() {
             />
 
             <Route
+                path="/gift-cards"
+                element={
+                    <RequireAuth>
+                        <BuyGiftCard />
+                    </RequireAuth>
+                }
+            />
+
+            <Route
                 path="/account"
                 element={
                     <RequireAuth>
@@ -106,7 +116,6 @@ export default function AppRoutes() {
             </Route>
 
             <Route path="/contact" element={<ContactPage />} />
-
             <Route
                 path="/admin/:moduleName?"
                 element={

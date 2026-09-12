@@ -181,12 +181,11 @@ export default function AccountSidebar() {
                                                     key={item.id}
                                                     to={`/account/${item.id}`}
                                                     className={({ isActive }) => `
-                                                        relative group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-200
+                                                        relative group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-200 delay-100
                                                         ${isActive
                                                             ? 'z-10 text-marquee-bg'
                                                             : 'z-10 text-marquee-muted hover:bg-marquee-panel2 hover:text-marquee-gold'
-                                                        }
-                                                    `}
+                                                        }`}
                                                 >
                                                     {({ isActive }) => (
                                                         <>

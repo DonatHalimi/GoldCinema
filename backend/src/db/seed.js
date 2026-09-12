@@ -215,8 +215,8 @@ const MOVIES = [
 // ==============================
 const SHOWTIMES_CONFIG = {
   times: ['12:00', '15:00', '18:00', '21:00'],
-  startDate: new Date('2026-09-06'),
-  daysToGenerate: 3,
+  startDate: new Date('2026-10-01'),
+  daysToGenerate: 30,
   maxShowtimesPerMovie: 10,
 };
 

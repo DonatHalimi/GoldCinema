@@ -1,4 +1,4 @@
-const { body, validationResult } = require('express-validator');
+const { validationResult } = require('express-validator');
 const Showtime = require('../models/showtime');
 const Movie = require('../models/movie');
 const SeatHold = require('../models/seatHold');

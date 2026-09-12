@@ -46,62 +46,88 @@ export default function MyReviews() {
     }
 
     return (
-        <>
-            <div>
-                <h2 className="whitespace-nowrap font-display text-2xl font-semibold tracking-wide text-marquee-goldBright">My Reviews</h2>
-                <p className="mt-1 mb-8 text-sm text-marquee-muted">
-                    Reviews you've shared about movies you've watched
-                </p>
-            </div>
+        <div className="w-full">
+            <main className="w-full rounded-xl bg-marquee-panel">
+                <div>
+                    <div className="mb-8 border-b border-marquee-line pb-6">
+                        <h2 className="whitespace-nowrap font-display text-2xl font-semibold tracking-wide text-marquee-goldBright">
+                            My Reviews
+                        </h2>
 
-            {loading && <p className="text-marquee-muted">Loading your reviews...</p>}
+                        <p className="mt-1 text-sm text-marquee-muted">
+                            Reviews you've shared about movies you've watched
+                        </p>
+                    </div>
 
-            {error && <p className="text-marquee-marquee">{error}</p>}
+                    {loading && (
+                        <div className="flex items-center justify-center rounded-xl border border-marquee-line bg-marquee-panel2 p-10">
+                            <p className="text-sm text-marquee-muted">
+                                Loading your reviews...
+                            </p>
+                        </div>
+                    )}
 
-            {!loading && !error && reviews.length === 0 && (
-                <div className="rounded-xl border border-dashed border-marquee-line p-10 text-center">
-                    <MessageSquare className="mx-auto mb-3 h-10 w-10 text-marquee-goldDim" />
-                    <p className="text-marquee-cream">No reviews yet</p>
-                    <p className="mt-1 text-sm text-marquee-muted">
-                        Reviews you leave for movies you've watched will appear here
-                    </p>
-                    <button
-                        onClick={() => navigate('/')}
-                        className="mt-4 inline-block rounded-full bg-marquee-gold px-6 py-2 font-semibold text-marquee-bg"
-                    >
-                        Browse Movies
-                    </button>
-                </div>
-            )}
+                    {error && !loading && (
+                        <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-6 text-center">
+                            <p className="text-sm text-red-400">
+                                {error}
+                            </p>
+                        </div>
+                    )}
 
-            {!loading && !error && reviews.length > 0 && (
-                <div className="space-y-4">
-                    {reviews.map((review) => (
-                        <ReviewCard
-                            key={review._id}
-                            review={review}
-                            onEdit={setEditingReview}
-                            onDelete={setDeletingReview}
+                    {!loading && !error && reviews.length === 0 && (
+                        <div className="rounded-xl border border-dashed border-marquee-line bg-marquee-panel2 p-10 text-center">
+                            <MessageSquare className="mx-auto mb-3 h-10 w-10 text-marquee-goldDim" />
+
+                            <p className="font-serif text-xl text-marquee-cream">
+                                No reviews yet
+                            </p>
+
+                            <p className="mt-1 text-sm text-marquee-muted">
+                                Reviews you leave for movies you've watched
+                                will appear here
+                            </p>
+
+                            <button
+                                type="button"
+                                onClick={() => navigate('/')}
+                                className="mt-5 inline-flex items-center rounded-full bg-marquee-gold px-6 py-2.5 text-sm font-semibold text-marquee-bg transition hover:bg-marquee-goldBright"
+                            >
+                                Browse Movies
+                            </button>
+                        </div>
+                    )}
+
+                    {!loading && !error && reviews.length > 0 && (
+                        <div className="space-y-4">
+                            {reviews.map((review) => (
+                                <ReviewCard
+                                    key={review._id}
+                                    review={review}
+                                    onEdit={setEditingReview}
+                                    onDelete={setDeletingReview}
+                                />
+                            ))}
+                        </div>
+                    )}
+
+                    {editingReview && (
+                        <EditReviewModal
+                            review={editingReview}
+                            onClose={() => setEditingReview(null)}
+                            onSaved={handleSaved}
                         />
-                    ))}
+                    )}
+
+                    {deletingReview && (
+                        <DeleteReviewModal
+                            review={deletingReview}
+                            onClose={() => setDeletingReview(null)}
+                            onDeleted={handleDeleted}
+                        />
+                    )}
                 </div>
-            )}
-
-            {editingReview && (
-                <EditReviewModal
-                    review={editingReview}
-                    onClose={() => setEditingReview(null)}
-                    onSaved={handleSaved}
-                />
-            )}
-
-            {deletingReview && (
-                <DeleteReviewModal
-                    review={deletingReview}
-                    onClose={() => setDeletingReview(null)}
-                    onDeleted={handleDeleted}
-                />
-            )}
-        </>
+            </main >
+        </div >
     );
 }

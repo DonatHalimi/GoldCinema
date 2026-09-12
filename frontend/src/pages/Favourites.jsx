@@ -93,9 +93,9 @@ export default function MyFavourites() {
                         ) : (
                             <MapPin size={36} className="mx-auto mb-4 text-marquee-goldDim" strokeWidth={1.2} />
                         )}
-                        <h3 className="font-serif text-xl text-marquee-cream">
+                        <p className="font-serif text-xl text-marquee-cream">
                             No favourite {tab} yet
-                        </h3>
+                        </p>
                         <p className="mt-2 text-sm text-marquee-muted">
                             {tab === 'movies'
                                 ? 'Movies you favourite will appear here'

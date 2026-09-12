@@ -102,7 +102,7 @@ export async function deletePasskey(id, assertion) {
 };
 
 export async function renamePasskey(id, name) {
-    const { data } = await api.put(`/auth/passkeys/${id}`, { name });
+    const { data } = await api.put(`/auth/passkeys/${id}/name`, { name });
 
     return data;
 };
@@ -191,10 +191,27 @@ export async function verifyEmail2FA(codeToSubmit) {
     return data;
 };
 
-export async function disable2FA(password, method) {
+export async function sendEmail2FADisableCode(password) {
+    const { data } = await api.post('/auth/2fa/email/disable-code', {
+        password,
+    });
+
+    return data;
+};
+
+export async function sendSms2FADisableCode(password) {
+    const { data } = await api.post('/auth/2fa/sms/disable-code', {
+        password,
+    });
+
+    return data;
+};
+
+export async function disable2FA(password, method, code) {
     const { data } = await api.post('/auth/2fa/disable-method', {
         password,
         method,
+        code,
     });
 
     return data;

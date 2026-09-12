@@ -17,6 +17,7 @@ const contactRoutes = require('./routes/contact');
 const notificationRoutes = require('./routes/notifications');
 const favouriteRoutes = require('./routes/favourites');
 const reviewRoutes = require('./routes/review');
+const giftCardRoutes = require('./routes/giftCards');
 
 const errorHandler = require('./middleware/errorHandler');
 
@@ -83,6 +84,7 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/favourites', favouriteRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/giftcards', giftCardRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found.' });

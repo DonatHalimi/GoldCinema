@@ -43,19 +43,27 @@ export default function RenamePasskeyModal({ passkey, onClose, onSuccess }) {
             return;
         }
 
+        const passkeyId = passkey?.id;
+
+        if (!passkeyId) {
+            setError('Passkey ID is missing.');
+            return;
+        }
+
         setLoading(true);
         setError('');
 
         try {
-            const response = await renamePasskey(id, name);
+            const response = await renamePasskey(passkeyId, name.trim());
 
             toast.success('Passkey renamed successfully');
 
-            onSuccess(response.data.passkey);
+            onSuccess(response.passkey);
         } catch (err) {
-            toast.error('Failed to rename passkey.');
+            const message = err.response?.data?.error || err.response?.data?.message || 'Failed to rename passkey. Please try again.';
 
-            setError(err.response?.data?.error || err.response?.data?.message || 'Failed to rename passkey. Please try again.');
+            toast.error(message);
+            setError(message);
         } finally {
             setLoading(false);
         }

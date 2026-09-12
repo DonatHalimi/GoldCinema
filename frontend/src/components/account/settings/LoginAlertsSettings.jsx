@@ -17,8 +17,9 @@ export default function LoginAlertsSettings({ initialLoginAlerts = true, onUpdat
         setAlertsLoading(true);
 
         try {
-            const { data } = await updateLoginAlerts(nextState);
+            const data = await updateLoginAlerts(nextState);
             setLoginAlerts(data.loginAlerts);
+
             if (onUpdate) onUpdate(data.loginAlerts);
             toast.success(data.message || 'Login alerts updated successfully.');
         } catch (err) {
@@ -50,11 +51,11 @@ export default function LoginAlertsSettings({ initialLoginAlerts = true, onUpdat
                     type="button"
                     onClick={handleToggleLoginAlerts}
                     disabled={alertsLoading}
-                    animate={{ backgroundColor: loginAlerts ? 'var(--color-marquee-gold, #cca43b)' : 'var(--color-marquee-panel2, #27272a)' }}
-                    transition={{ duration: 0.2 }}
-                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent focus:outline-none disabled:opacity-50 ${loginAlerts ? 'bg-marquee-gold' : 'bg-marquee-panel2'}`}>
+                    aria-pressed={loginAlerts}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-marquee-gold focus-visible:ring-offset-2 focus-visible:ring-offset-marquee-bg disabled:opacity-50 ${loginAlerts ? 'bg-marquee-gold' : 'bg-marquee-line/50'}`}
+                >
                     <motion.span
-                        className="pointer-events-none inline-block h-5 w-5 rounded-full bg-zinc-950 shadow ring-0"
+                        className="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0"
                         animate={{ x: loginAlerts ? 20 : 0 }}
                         transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                     />

@@ -20,15 +20,14 @@ export default function EnableTotpModal({ onClose, onSuccess }) {
             setLoading(true);
             setError('');
 
-            const { data } = await setupTotp2FA();
+            const data = await setupTotp2FA();
+
+            if (!data?.qrDataUrl || !data?.secret) throw new Error('Authenticator setup response is missing QR code or secret.');
 
             setQr(data.qrDataUrl);
             setSecret(data.secret);
         } catch (err) {
-            setError(
-                err.response?.data?.error ||
-                err.message
-            );
+            setError(err.response?.data?.error || 'Failed to initialize authenticator setup.');
         } finally {
             setLoading(false);
         }
@@ -227,6 +226,14 @@ export default function EnableTotpModal({ onClose, onSuccess }) {
                                 </>
                             ) : (
                                 'Verify & Enable'
+                            )}
+
+                            {error && !qr && !backupCodes.length && (
+                                <div className="mt-5 rounded-lg border border-red-500/20 bg-red-500/10 p-4">
+                                    <p className="text-sm text-red-400">
+                                        {error}
+                                    </p>
+                                </div>
                             )}
                         </button>
                     </form>

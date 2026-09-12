@@ -27,7 +27,6 @@ export default function SeatSelection() {
     loadShowtime();
   }, [id]);
 
-
   useEffect(() => {
     const saved = sessionStorage.getItem(`selectedSeats-${id}`);
 
@@ -159,18 +158,6 @@ export default function SeatSelection() {
       });
       const hold = holdResponse.hold;
 
-      console.log('3. Hold:', hold);
-
-      console.log('4. Creating order:', {
-        movie: movie._id,
-        showtime: id,
-        seats: selected,
-        ticketAmount: total,
-        totalAmount: total,
-        holdId: hold._id || hold.id,
-        holdExpiresAt: hold.expiresAt,
-      });
-
       const orderResponse = await createOrder({
         movie: movie._id,
         showtime: id,
@@ -181,27 +168,12 @@ export default function SeatSelection() {
         holdExpiresAt: hold.expiresAt,
       });
 
-      console.log('5. Order response:', orderResponse);
-      console.log('6. Order ID:', orderResponse.order._id);
-
       navigate(`/checkout/${orderResponse.order._id}`);
     } catch (err) {
-      console.error('BOOKING FAILED:', err);
-      console.error('Response:', err.response?.data);
-      console.error('Status:', err.response?.status);
-
-      if (
-        err.response?.data?.code === 'EMAIL_NOT_VERIFIED' ||
-        /verify your email/i.test(err.message)
-      ) {
+      if (err.response?.data?.code === 'EMAIL_NOT_VERIFIED' || /verify your email/i.test(err.message)) {
         setNeedsVerification(true);
       } else {
-        setError(
-          err.response?.data?.error ||
-          err.response?.data?.message ||
-          err.message ||
-          'Something went wrong'
-        );
+        setError(err.response?.data?.error || err.response?.data?.message || err.message || 'Something went wrong');
       }
 
       await loadShowtime();
@@ -248,33 +220,34 @@ export default function SeatSelection() {
       </div>
 
       {error && (
-        <p className="mb-6 rounded-md border border-marquee-marquee/40 bg-marquee-marquee/10 px-4 py-2 text-center text-sm text-marquee-marquee">
-          {error}
-        </p>
+        <div className="mb-6 flex items-center justify-center gap-2 rounded-lg border border-marquee-marquee/30 bg-marquee-marquee/10 px-4 py-3 text-center text-sm text-marquee-marquee">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          <span>{error}</span>
+        </div>
       )}
 
       {needsVerification && (
-        <div className="mb-6 rounded-md border border-marquee-gold/40 bg-marquee-gold/10 px-4 py-4 text-center text-sm text-marquee-cream">
-          {needsVerification === 'sent'
-            ?
-            <p>
+        <div className="mb-6 rounded-lg border border-marquee-gold/30 bg-marquee-gold/10 px-4 py-4 text-center text-sm text-marquee-cream">
+          {needsVerification === 'sent' ? (
+            <p className="flex items-center justify-center gap-2">
+              <MailCheck className="h-4 w-4 text-marquee-gold" />
               A new verification link is on its way.
             </p>
-            :
+          ) : (
             <>
-              <p className="mb-2">
+              <p className="mb-3 flex items-center justify-center gap-2">
+                <MailWarning className="h-4 w-4 text-marquee-gold" />
                 Please verify your email before booking tickets.
               </p>
-
               <button
                 onClick={handleResend}
                 disabled={resending}
-                className="rounded-full border border-marquee-gold px-4 py-1.5 text-marquee-gold"
+                className="rounded-full border border-marquee-gold px-4 py-1.5 text-marquee-gold transition-colors hover:bg-marquee-gold hover:text-marquee-bg disabled:opacity-50"
               >
                 {resending ? 'Sending...' : 'Resend verification email'}
               </button>
             </>
-          }
+          )}
         </div>
       )}
 
@@ -305,7 +278,7 @@ export default function SeatSelection() {
           <button
             onClick={handleContinue}
             disabled={!selected.length || submitting}
-            className="mt-2 rounded-full bg-marquee-gold px-6 py-2 font-semibold text-marquee-bg transition disabled:cursor-not-allowed disabled:opacity-40"
+            className="mt-2 rounded-full bg-marquee-gold px-6 py-2 font-semibold text-marquee-bg transition hover:bg-marquee-goldBright disabled:cursor-not-allowed disabled:opacity-40"
           >
             {submitting ? 'Reserving...' : 'Continue to payment'}
           </button>

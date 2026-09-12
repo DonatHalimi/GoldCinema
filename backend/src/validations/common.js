@@ -70,10 +70,7 @@ const validateParams = (schema) => async (req, res, next) => {
         req.params = await validateAgainstSchema(schema, req.params, 'params');
         next();
     } catch (error) {
-        res.status(error.statusCode || 500).json({
-            error: error.message || 'Validation failed.',
-            details: error.details || undefined,
-        });
+        res.status(error.statusCode || 500).json({ error: error.message || 'Validation failed.', details: error.details || undefined });
     }
 };
 

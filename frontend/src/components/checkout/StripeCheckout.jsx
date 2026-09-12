@@ -200,10 +200,10 @@ function StripeForm({
   onError,
   selectedPaymentMethod,
   clientSecret,
+  confirmPaymentFn,
 }) {
   const stripe = useStripe();
   const elements = useElements();
-
   const [submitting, setSubmitting] = useState(false);
 
   async function confirmSavedCard() {
@@ -213,11 +213,7 @@ function StripeForm({
       });
 
     if (error) {
-      onError(
-        error.message ||
-        'Payment failed. Please try again.'
-      );
-
+      onError(error.message || 'Payment failed. Please try again.');
       setSubmitting(false);
       return;
     }
@@ -247,11 +243,7 @@ function StripeForm({
     });
 
     if (submitError) {
-      onError(
-        submitError.message ||
-        'Payment failed. Please check your card details.'
-      );
-
+      onError(submitError.message || 'Payment failed. Please check your card details.');
       setSubmitting(false);
       return;
     }
@@ -267,9 +259,9 @@ function StripeForm({
 
   async function confirmOrder(paymentIntent) {
     try {
-      const data = await confirmStripePayment(order, paymentIntent);
+      const data = await confirmPaymentFn(order, paymentIntent);
 
-      onSuccess(data.order);
+      onSuccess(data.order ?? data.giftCard);
     } catch (err) {
       onError(
         err.response?.data?.error ||
@@ -284,9 +276,7 @@ function StripeForm({
   async function handleSubmit(e) {
     e.preventDefault();
 
-    if (!stripe || !elements) {
-      return;
-    }
+    if (!stripe || !elements) return;
 
     setSubmitting(true);
     onError('');
@@ -298,11 +288,7 @@ function StripeForm({
         await confirmNewCard();
       }
     } catch (err) {
-      onError(
-        err.message ||
-        'Payment failed. Please try again.'
-      );
-
+      onError(err.message || 'Payment failed. Please try again.');
       setSubmitting(false);
     }
   }
@@ -336,6 +322,8 @@ export default function StripeCheckout({
   paymentMethods = [],
   paymentMethodsLoading = false,
   onPaymentMethodAdded,
+  createIntentFn = createStripePaymentIntent,
+  confirmPaymentFn = confirmStripePayment,
 }) {
   const [clientSecret, setClientSecret] = useState(null);
   const [loadError, setLoadError] = useState('');
@@ -367,38 +355,18 @@ export default function StripeCheckout({
       setClientSecret(null);
       setLoadError('');
 
-      const request = {
-        orderId: order._id,
-      };
-
-      if (selectedPaymentMethod) {
-        request.paymentMethodId = selectedPaymentMethod;
-      }
-
       try {
-        const data = await createStripePaymentIntent(request);
+        const data = await createIntentFn({
+          orderId: order._id,
+          paymentMethodId: selectedPaymentMethod,
+        });
 
-        console.log('Stripe payment intent response:', data);
+        if (!data?.clientSecret) throw new Error('Stripe client secret was not returned.');
 
-        if (!data?.clientSecret) {
-          throw new Error('Stripe client secret was not returned.');
-        }
-
-        if (!cancelled) {
-          setClientSecret(data.clientSecret);
-        }
+        if (!cancelled) setClientSecret(data.clientSecret);
       } catch (err) {
         if (!cancelled) {
-          console.error(
-            'Failed to create Stripe payment intent:',
-            err
-          );
-
-          setLoadError(
-            err.response?.data?.error ||
-            err.message ||
-            'Failed to create payment'
-          );
+          setLoadError(err.response?.data?.error || err.message || 'Failed to create payment');
         }
       }
     }
@@ -465,6 +433,7 @@ export default function StripeCheckout({
           onError={onError}
           selectedPaymentMethod={selectedPaymentMethod}
           clientSecret={clientSecret}
+          confirmPaymentFn={confirmPaymentFn}
         />
       </Elements>
     </>

@@ -9,11 +9,11 @@ const MAX_SEATS = 10;
 
 const STATUS_STYLES = {
   available:
-    'border-emerald-700 bg-emerald-950/60 text-emerald-300 hover:border-emerald-400 hover:bg-emerald-900/60 hover:text-emerald-200',
+    'border-[rgb(var(--color-available)/0.5)] bg-[rgb(var(--color-available)/0.12)] text-[rgb(var(--color-available))] hover:border-[rgb(var(--color-available)/0.9)] hover:bg-[rgb(var(--color-available)/0.2)]',
   held:
-    'cursor-not-allowed border-marquee-gold bg-marque-gold/40 text-marquee-gold/80',
+    'cursor-not-allowed border-marquee-gold bg-marquee-gold/20 text-marquee-gold',
   booked:
-    'cursor-not-allowed border-red-800/60 bg-red-950/40 text-red-500/60',
+    'cursor-not-allowed border-[rgb(var(--color-booked)/0.4)] bg-[rgb(var(--color-booked)/0.15)] text-[rgb(var(--color-booked))]',
   selected:
     'border-marquee-goldBright bg-marquee-gold text-marquee-bg shadow-glow scale-105',
 };
@@ -85,10 +85,10 @@ export default function SeatMap({ seats, selected, onToggle }) {
       </div>
 
       <div className="mt-10 flex flex-wrap justify-center gap-6 text-xs text-marquee-muted">
-        <Legend swatchClass="border-emerald-700 bg-emerald-950/60" label="Available" />
+        <Legend swatchClass="border-[rgb(var(--color-available)/0.5)] bg-[rgb(var(--color-available)/0.12)]" label="Available" />
         <Legend swatchClass="border-marquee-goldBright bg-marquee-gold" label="Selected" />
-        <Legend swatchClass="border-marquee-gold bg-marque-gold/40" label="Held" />
-        <Legend swatchClass="border-red-800/60 bg-red-950/40" label="Booked" />
+        <Legend swatchClass="border-marquee-gold bg-marquee-gold/20" label="Held" />
+        <Legend swatchClass="border-[rgb(var(--color-booked)/0.4)] bg-[rgb(var(--color-booked)/0.15)]" label="Booked" />
       </div>
       <div className="mt-6 flex flex-wrap justify-center gap-8 text-xs text-marquee-muted pt-3">
         <SeatTypeLegend icon={User} label="Standard Seat" />

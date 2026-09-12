@@ -3,7 +3,7 @@ import api from "./client";
 export async function getMyOrders() {
     const { data } = await api.get('/orders/mine');
 
-    return data.orders;
+    return data;
 };
 
 export async function getOrderById(id) {
