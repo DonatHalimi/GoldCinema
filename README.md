@@ -681,16 +681,16 @@ Sensitive authentication information is intentionally excluded from application 
 
 ---
 
-# License
-
-This project was developed for educational and demonstration purposes.
-
----
-
 # Author
 
 Developed by:
 
-**[Donat Halimi](https://github.com/DonatHalimi)**
+| Author                                             | Repository                                                              |
+| -------------------------------------------------- | ----------------------------------------------------------------------- |
+| **[Donat Halimi](https://github.com/DonatHalimi)** | **[DonatHalimi/GoldCinema](https://github.com/DonatHalimi/GoldCinema)** |
 
-**Repository:** [donathalimi/goldcinema](https://github.com/DonatHalimi/goldcinema)
+---
+
+# License
+
+This project was developed for educational and demonstration purposes.
