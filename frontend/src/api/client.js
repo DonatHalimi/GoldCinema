@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { reportClientLog } from './clientLogs';
 
 const api = axios.create({
   baseURL:
@@ -20,35 +21,32 @@ api.interceptors.response.use(
 
     const isRefreshRequest = originalRequest.url?.includes('/auth/refresh-token');
 
+    if (!originalRequest?.url?.includes('/client-logs')) {
+      reportClientLog({
+        level: 'error',
+        message: `API request failed: ${originalRequest?.method?.toUpperCase() || '?'} ${originalRequest?.url || '?'} — ${message}`,
+        url: window.location.href,
+        context: { status: err.response?.status },
+      });
+    }
+
     if (is401 && isRefreshRequest) {
       window.dispatchEvent(new Event('auth:logout'));
 
       return Promise.reject(new Error('Session expired. Please log in again.'));
     }
 
-    if (
-      is401 &&
-      !originalRequest._retry &&
-      !isLoginRequest &&
-      !isRefreshRequest
-    ) {
+    if (is401 && !originalRequest._retry && !isLoginRequest && !isRefreshRequest) {
       originalRequest._retry = true;
 
       try {
-        await axios.post(`${api.defaults.baseURL}/auth/refresh-token`,
-          {},
-          {
-            withCredentials: true,
-          }
-        );
+        await axios.post(`${api.defaults.baseURL}/auth/refresh-token`, {}, { withCredentials: true, });
 
         return api(originalRequest);
       } catch (refreshErr) {
         window.dispatchEvent(new Event('auth:logout'));
 
-        return Promise.reject(
-          new Error('Session expired. Please log in again.')
-        );
+        return Promise.reject(new Error('Session expired. Please log in again.'));
       }
     }
 

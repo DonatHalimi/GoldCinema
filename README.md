@@ -6,8 +6,6 @@ GoldCinema provides a complete online cinema experience where users can discover
 
 The platform also includes a comprehensive **administration dashboard** for managing cinema content, users, roles, payments, showtimes, and other platform data.
 
-<img width="1918" height="1034" alt="Demo" src="https://github.com/user-attachments/assets/9b78a297-c778-4620-a922-55a33ee0956a" />
-
 ---
 
 ## Table of Contents

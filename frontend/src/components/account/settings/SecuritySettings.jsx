@@ -11,8 +11,10 @@ import LoginAlertsSettings from './LoginAlertsSettings.jsx';
 import PasskeySettings from './PasskeySettings.jsx';
 import TrustedDevicesSettings from './TrustedDeviceSettings.jsx';
 import TwoFactorSettings from './TwoFactorSettings';
+import { useTranslation } from 'react-i18next';
 
 export default function SecuritySettings() {
+    const { t } = useTranslation('account');
     const [showEmailVerify, setShowEmailVerify] = useState(false);
     const [showTotpSetup, setShowTotpSetup] = useState(false);
     const [showDisableModal, setShowDisableModal] = useState(false);
@@ -79,11 +81,11 @@ export default function SecuritySettings() {
     return (
         <div>
             <h2 className="font-display text-2xl font-semibold tracking-wide text-marquee-goldBright">
-                Security
+                {t('security')}
             </h2>
 
             <p className="mt-1 text-sm text-marquee-muted">
-                Manage your account security and authentication methods
+                {t('securityDesc')}
             </p>
 
             <div className="mt-6 space-y-5">

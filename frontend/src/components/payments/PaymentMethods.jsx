@@ -6,6 +6,7 @@ import { deletePaymentMethod, getPaymentMethods, setDefaultPaymentMethod } from 
 import CreditCard3D from '../CreditCard3D';
 import AddPaymentMethodModal from '../payments/AddPaymentMethodModal';
 import RemovePaymentMethodModal from '../payments/RemovePaymentMethodModal';
+import { useTranslation } from 'react-i18next';
 
 const BRAND_LABELS = {
     visa: 'Visa',
@@ -32,6 +33,7 @@ function CardSkeleton() {
 }
 
 export default function PaymentMethods() {
+    const { t } = useTranslation('account');
     const [methods, setMethods] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -93,11 +95,11 @@ export default function PaymentMethods() {
                 <div className="mb-8 flex flex-col gap-4 border-b border-marquee-line pb-6 md:flex-row md:items-center md:justify-between">
                     <div>
                         <h2 className="font-display text-2xl font-semibold tracking-wide text-marquee-goldBright">
-                            Payment Methods
+                            {t('paymentMethodHeader')}
                         </h2>
 
                         <p className="mt-1 text-sm text-marquee-muted">
-                            Manage your saved payment methods
+                            {t('managePayments')}
                         </p>
                     </div>
 
@@ -107,7 +109,7 @@ export default function PaymentMethods() {
                             onClick={() => setIsAddOpen(true)}
                             className="flex items-center gap-2 rounded-full bg-marquee-gold px-5 py-2.5 text-sm font-semibold text-marquee-bg transition hover:bg-marquee-goldBright"
                         >
-                            <Plus className="h-4 w-4" /> Add payment method
+                            <Plus className="h-4 w-4" /> {t('addPaymentMethod')}
                         </button>
                     )}
                 </div>
@@ -152,8 +154,7 @@ export default function PaymentMethods() {
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, x: -20 }}
                                     transition={{ duration: 0.2 }}
-                                    className={`rounded-2xl p-4 transition-colors ${method.isDefault ? 'bg-marquee-bg/60 ring-1 ring-marquee-gold/40' : 'bg-marquee-bg/30 hover:bg-marquee-bg/50'
-                                        }`}
+                                    className={`rounded-2xl p-4 transition-colors ${method.isDefault ? 'bg-marquee-bg/60 ring-1 ring-marquee-gold/40' : 'bg-marquee-bg/30 hover:bg-marquee-bg/50'}`}
                                 >
                                     <div className="relative w-full">
                                         <CreditCard3D
@@ -165,14 +166,14 @@ export default function PaymentMethods() {
                                         {method.isDefault && (
                                             <span className="absolute -right-2 -top-2 z-10 flex items-center gap-1 rounded-full border border-marquee-gold/40 bg-marquee-panel px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-marquee-gold shadow-md">
                                                 <Star className="h-3 w-3 fill-current" />
-                                                Default
+                                                {t('default')}
                                             </span>
                                         )}
                                     </div>
 
                                     <div className="mt-4 flex items-center justify-between border-t border-marquee-line/60 pt-4">
                                         {method.isDefault ? (
-                                            <span className="text-xs text-marquee-muted">Default payment method</span>
+                                            <span className="text-xs text-marquee-muted">{t('defaultPaymentMethod')}</span>
                                         ) : (
                                             <button
                                                 onClick={() => handleMakeDefault(method.id)}
@@ -183,11 +184,8 @@ export default function PaymentMethods() {
                                             </button>
                                         )}
 
-                                        <button
-                                            onClick={() => setRemoveTarget(method)}
-                                            className="flex items-center gap-1 text-xs font-medium text-marquee-marquee/90 hover:text-marquee-marquee transition"
-                                        >
-                                            <Trash2 className="h-3.5 w-3.5" /> Remove
+                                        <button onClick={() => setRemoveTarget(method)} className="flex items-center gap-1 text-xs font-medium text-marquee-marquee/90 hover:text-marquee-marquee transition">
+                                            <Trash2 className="h-3.5 w-3.5" /> {t('remove')}
                                         </button>
                                     </div>
                                 </motion.div>

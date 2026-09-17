@@ -1,6 +1,11 @@
 const yup = require('yup');
 const { objectId } = require('./common');
 
+const translationFieldsSchema = yup.object({
+    title: yup.string().trim().min(2, 'Title is too short.').optional(),
+    description: yup.string().trim().optional(),
+}).noUnknown(true);
+
 const movieCreateSchema = yup.object({
     title: yup
         .string()
@@ -50,6 +55,10 @@ const movieCreateSchema = yup.object({
     active: yup
         .boolean()
         .default(true),
+    translations: yup.object({
+        sq: translationFieldsSchema.optional(),
+        'sr-Latn': translationFieldsSchema.optional(),
+    }).noUnknown(true).optional(),
 }).noUnknown(true);
 
 const movieUpdateSchema = yup.object({
@@ -101,6 +110,10 @@ const movieUpdateSchema = yup.object({
     active: yup
         .boolean()
         .optional(),
+    translations: yup.object({
+        sq: translationFieldsSchema.optional(),
+        'sr-Latn': translationFieldsSchema.optional(),
+    }).noUnknown(true).optional(),
 }).noUnknown(true);
 
 const movieIdSchema = yup.object({

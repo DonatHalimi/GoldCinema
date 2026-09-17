@@ -1,6 +1,14 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
+const movieTranslationSchema = new Schema(
+    {
+        title: { type: String, trim: true },
+        description: { type: String },
+    },
+    { _id: false }
+);
+
 const movieSchema = new Schema(
     {
         title: { type: String, required: true, trim: true, index: true },
@@ -16,6 +24,10 @@ const movieSchema = new Schema(
         active: { type: Boolean, default: true },
         averageRating: { type: Number, default: 0, min: 0, max: 5 },
         reviewCount: { type: Number, default: 0 },
+        translations: {
+            sq: { type: movieTranslationSchema, default: undefined },
+            'sr-Latn': { type: movieTranslationSchema, default: undefined },
+        },
     },
     { timestamps: true }
 );

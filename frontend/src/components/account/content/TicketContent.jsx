@@ -1,10 +1,12 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { getMyOrders } from "../../../api/orders";
 import EmptyTickets from "../../tickets/EmptyTickets";
 import TicketCard from "../../tickets/TicketCard";
 
 export default function TicketContent() {
+    const { t } = useTranslation('account');
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -46,10 +48,10 @@ export default function TicketContent() {
     });
 
     const filters = [
-        { label: 'All', value: 'all' },
-        { label: 'Upcoming', value: 'upcoming' },
-        { label: 'Past', value: 'past' },
-        { label: 'Cancelled', value: 'cancelled' },
+        { label: t('allTix'), value: 'all' },
+        { label: t('upcomingTix'), value: 'upcoming' },
+        { label: t('pastTix'), value: 'past' },
+        { label: t('cancelledTix'), value: 'cancelled' },
     ];
 
     return (
@@ -58,14 +60,14 @@ export default function TicketContent() {
                 <div className="mb-8 flex flex-col gap-4 border-b border-marquee-line pb-6 md:flex-row md:items-center md:justify-between">
                     <div>
                         <h2 className="whitespace-nowrap font-display text-2xl font-semibold tracking-wide text-marquee-goldBright">
-                            {active === 'all' && 'All Tickets'}
-                            {active === 'upcoming' && 'Upcoming Movies'}
-                            {active === 'past' && 'Past Movies'}
-                            {active === 'cancelled' && 'Cancelled Tickets'}
+                            {active === 'all' && t('allTix')}
+                            {active === 'upcoming' && t('upcomingMovies')}
+                            {active === 'past' && t('pastMovies')}
+                            {active === 'cancelled' && t('cancelledTickets')}
                         </h2>
 
                         <p className="mt-1 text-sm text-marquee-muted">
-                            View and manage your movie tickets
+                            {t('manageTickets')}
                         </p>
                     </div>
 
@@ -76,10 +78,7 @@ export default function TicketContent() {
                                 <button
                                     key={filter.value}
                                     onClick={() => setActive(filter.value)}
-                                    className={`relative rounded-full px-5 py-2 text-sm font-medium transition-colors duration-200 ${isActive
-                                        ? "text-marquee-line"
-                                        : "text-marquee-muted hover:text-marquee-gold"
-                                        }`}
+                                    className={`relative rounded-full px-5 py-2 text-sm font-medium transition-colors duration-200 ${isActive ? "text-marquee-line" : "text-marquee-muted hover:text-marquee-gold"}`}
                                 >
                                     {isActive && (
                                         <motion.div
@@ -121,10 +120,7 @@ export default function TicketContent() {
                 {!loading && !error && filteredOrders.length > 0 && (
                     <div key={active} className="flex flex-col gap-4">
                         {filteredOrders.map((ticket) => (
-                            <TicketCard
-                                key={ticket._id}
-                                order={ticket}
-                            />
+                            <TicketCard key={ticket._id} order={ticket} />
                         ))}
                     </div>
                 )}

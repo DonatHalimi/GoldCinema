@@ -3,8 +3,10 @@ import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { getProfile, resendEmailVerification, updatePassword, updateProfile } from '../../../api/auth';
 import { Field, PasswordField } from '../../ui/FormUI';
+import { useTranslation } from 'react-i18next';
 
 export default function ProfileSettings() {
+    const { t } = useTranslation('account');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [changingPassword, setChangingPassword] = useState(false);
@@ -119,17 +121,17 @@ export default function ProfileSettings() {
     return (
         <div>
             <h2 className="font-display text-2xl font-semibold tracking-wide text-marquee-goldBright">
-                Profile Settings
+                {t("profileHeader")}
             </h2>
 
             <p className="mt-1 text-sm text-marquee-muted">
-                Manage your account information
+                {t("manageAccountInformation")}
             </p>
 
             <form onSubmit={handleSave} className="mt-8 space-y-6">
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:items-start">
                     <Field
-                        label="Full Name"
+                        label={t("fullName")}
                         name="name"
                         icon={User}
                         value={form.name || ''}
@@ -144,13 +146,13 @@ export default function ProfileSettings() {
                     <div>
                         <div className="mb-2 flex items-center gap-2">
                             <label className="text-sm font-medium text-marquee-muted">
-                                Email Address
+                                {t("email")}
                             </label>
 
                             {form.emailVerified ? (
                                 <div className="flex items-center gap-1 text-xs text-green-400">
                                     <BadgeCheck className="h-4 w-4" />
-                                    Verified
+                                    {t("isVerified")}
                                 </div>
                             ) : (
                                 <button
@@ -187,31 +189,31 @@ export default function ProfileSettings() {
                         className="flex items-center gap-2 rounded-lg border border-marquee-gold px-5 py-3 text-marquee-gold transition hover:bg-marquee-gold hover:text-marquee-bg disabled:opacity-50"
                     >
                         <Save className="h-4 w-4" />
-                        {saving ? 'Saving...' : 'Save Changes'}
+                        {saving ? t("saving") : t("save")}
                     </button>
                 </div>
             </form>
 
             <div className="mt-12 border-t border-marquee-line pt-8">
                 <h2 className="font-display text-2xl font-semibold tracking-wide text-marquee-goldBright">
-                    Change Password
+                    {t("changePasswordHeader")}
                 </h2>
 
                 <p className="mt-1 text-sm text-marquee-muted">
-                    Secure your account by changing your password
+                    {t("changePasswordDescription")}
                 </p>
 
                 <form onSubmit={handlePasswordChange} className="mt-6 space-y-6">
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                         <PasswordField
-                            label="Current Password"
+                            label={t('currentPsw')}
                             name="currentPassword"
                             value={passwordForm.currentPassword || ''}
                             onChange={(value) => setPasswordForm((prev) => ({ ...prev, currentPassword: value }))}
                         />
 
                         <PasswordField
-                            label="New Password"
+                            label={t('newPsw')}
                             name="newPassword"
                             value={passwordForm.newPassword || ''}
                             onChange={(value) => setPasswordForm((prev) => ({ ...prev, newPassword: value }))}
@@ -224,7 +226,7 @@ export default function ProfileSettings() {
                         className="flex items-center gap-2 rounded-lg border border-marquee-gold px-5 py-3 text-marquee-gold transition hover:bg-marquee-gold hover:text-marquee-bg disabled:opacity-50"
                     >
                         <Lock className="h-4 w-4" />
-                        {changingPassword ? 'Updating...' : 'Update Password'}
+                        {changingPassword ? t('updatingPsw') : t('updatePsw')}
                     </button>
                 </form>
             </div>

@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 const BRAND_THEME = {
     visa: {
         label: 'VISA',
@@ -165,7 +167,7 @@ function BrandMark({ type, label }) {
     }
 
     return (
-        <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-marquee-cream">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#f0e2b8] dark:text-[#f5ecd0]">
             {label}
         </span>
     );
@@ -179,6 +181,8 @@ export default function CreditCard3D({
     masked = true,
     className = '',
 }) {
+    const { t } = useTranslation('account');
+
     const theme = BRAND_THEME[cardType] || BRAND_THEME.generic;
 
     const last4 =
@@ -194,47 +198,49 @@ export default function CreditCard3D({
             role="img"
             aria-label={`${theme.label} card ending in ${last4}, held by ${cardHolderName}`}
         >
-            <div className="relative flex aspect-[1.586/1] w-full flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.09] bg-[#0a0b0e] p-5 shadow-[0_18px_45px_rgba(0,0,0,0.35)] sm:p-6">
-                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,#24252a_0%,#17181c_38%,#0d0e11_72%,#08090b_100%)]" />
+            <div className="relative flex aspect-[1.586/1] w-full flex-col justify-between overflow-hidden rounded-2xl border border-black/40 bg-[#101115] p-5 shadow-[0_18px_45px_rgba(0,0,0,0.35)] sm:p-6 dark:border-white/[0.09] dark:bg-[#0a0b0e]dark:shadow-[0_18px_45px_rgba(0,0,0,0.6)]" >
+                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,#2b2c31_0%,#1a1b1f_38%,#0f1013_72%,#09090b_100%)] dark:bg-[linear-gradient(145deg,#24252a_0%,#17181c_38%,#0d0e11_72%,#08090b_100%)]" />
 
                 {cardType === 'visa' && (
-                    <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-[#1a1f71]/25 blur-3xl" />
+                    <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-[#1a1f71]/30 blur-3xl dark:bg-[#1a1f71]/25" />
                 )}
 
                 <div className="pointer-events-none absolute -bottom-20 -left-16 h-48 w-48 rounded-full blur-3xl"
                     style={{
                         backgroundColor: theme.accent,
-                        opacity: 0.07,
+                        opacity: 0.09,
                     }}
                 />
 
-                <div className="pointer-events-none absolute -right-24 top-10 h-px w-[150%] rotate-[-28deg] bg-white/[0.06]" />
+                <div className="pointer-events-none absolute -right-24 top-10 h-px w-[150%] rotate-[-28deg] bg-white/[0.08] dark:bg-white/[0.06]" />
 
-                <div className="pointer-events-none absolute -right-20 top-16 h-px w-[140%] rotate-[-28deg] bg-white/[0.035]" />
+                <div className="pointer-events-none absolute -right-20 top-16 h-px w-[140%] rotate-[-28deg] bg-white/[0.05] dark:bg-white/[0.035]" />
 
-                <div className="pointer-events-none absolute -left-20 bottom-14 h-px w-[120%] rotate-[-28deg] bg-white/[0.035]" />
+                <div className="pointer-events-none absolute -left-20 bottom-14 h-px w-[120%] rotate-[-28deg] bg-white/[0.05] dark:bg-white/[0.035]" />
 
                 {cardType === 'visa' && (
                     <>
-                        <div className="pointer-events-none absolute -right-24 bottom-[-70px] h-44 w-[85%] rotate-[-25deg] bg-[#1a1f71]/20 blur-2xl" />
+                        <div className="pointer-events-none absolute -right-24 bottom-[-70px] h-44 w-[85%] rotate-[-25deg] bg-[#1a1f71]/25 blur-2xl dark:bg-[#1a1f71]/20" />
 
-                        <div className="pointer-events-none absolute right-[-90px] top-[-30px] h-40 w-[65%] rotate-[-25deg] border-l border-[#30357f]/25" />
+                        <div className="pointer-events-none absolute right-[-90px] top-[-30px] h-40 w-[65%] rotate-[-25deg] border-l border-[#30357f]/30 dark:border-[#30357f]/25" />
                     </>
                 )}
 
-                <div className="pointer-events-none absolute inset-0 opacity-[0.035] [background-image:linear-gradient(135deg,transparent_48%,#fff_49%,transparent_50%)] [background-size:9px_9px]" />
+                <div className="pointer-events-none absolute inset-0 opacity-[0.045] [background-image:linear-gradient(135deg,transparent_48%,#fff_49%,transparent_50%)] [background-size:9px_9px] dark:opacity-[0.035]" />
 
-                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.07)_0%,transparent_20%,transparent_65%,rgba(255,255,255,0.025)_100%)]" />
+                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.09)_0%,transparent_20%,transparent_65%,rgba(255,255,255,0.03)_100%)] dark:bg-[linear-gradient(115deg,rgba(255,255,255,0.07)_0%,transparent_20%,transparent_65%,rgba(255,255,255,0.025)_100%)]" />
 
                 <div className="relative z-10 flex items-start justify-between">
                     <div className="flex items-center gap-3">
                         <Chip />
 
-                        <span className="hidden text-[7px] font-medium uppercase tracking-[0.16em] text-white/25 sm:block">EMV</span>
+                        <span className="hidden text-[7px] font-medium uppercase tracking-[0.16em] text-white/40 sm:block dark:text-white/30">
+                            EMV
+                        </span>
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <div className="text-white/70">
+                        <div className="text-white/80 dark:text-white/70">
                             <ContactlessIcon />
                         </div>
 
@@ -246,23 +252,31 @@ export default function CreditCard3D({
                 </div>
 
                 <div className="relative z-10 mt-auto pt-5">
-                    <div className="text-[clamp(0.95rem,2.4vw,1.45rem)] font-medium tracking-[0.16em] text-marquee-cream [text-shadow:0_1px_2px_rgba(0,0,0,0.45)]">
+                    <div className="text-[clamp(0.95rem,2.4vw,1.45rem)] font-medium tracking-[0.16em] text-[#f5ecd0] [text-shadow:0_1px_2px_rgba(0,0,0,0.55)] dark:text-[#f0e2b8] dark:[text-shadow:0_1px_2px_rgba(0,0,0,0.65)]">
                         {formattedNumber}
                     </div>
                 </div>
 
                 <div className="relative z-10 mt-5 flex items-end justify-between">
                     <div className="min-w-0">
-                        <div className="mb-1 text-[7px] font-medium uppercase tracking-[0.18em] text-white/35">Cardholder</div>
+                        <div className="mb-1 text-[7px] font-medium uppercase tracking-[0.18em] text-white/45 dark:text-white/35">
+                            {t('cardholder')}
+                        </div>
 
-                        <div className="max-w-[170px] truncate text-[clamp(0.55rem,1.5vw,0.78rem)] font-medium uppercase tracking-[0.14em] text-marquee-cream">{cardHolderName || 'CARD HOLDER'}</div>
+                        <div className="max-w-[170px] truncate text-[clamp(0.55rem,1.5vw,0.78rem)] font-medium uppercase tracking-[0.14em] text-[#f5ecd0] dark:text-[#f0e2b8]">
+                            {cardHolderName || 'CARD HOLDER'}
+                        </div>
                     </div>
 
                     <div className="flex items-end gap-5">
                         <div>
-                            <div className="mb-1 text-[7px] font-medium uppercase tracking-[0.18em] text-white/35">Valid Thru</div>
+                            <div className="mb-1 text-[7px] font-medium uppercase tracking-[0.18em] text-white/45 dark:text-white/35">
+                                {t('validThru')}
+                            </div>
 
-                            <div className="text-[clamp(0.6rem,1.6vw,0.82rem)] font-medium tracking-[0.14em] text-marquee-cream">{expirationDate || '--/--'}</div>
+                            <div className="text-[clamp(0.6rem,1.6vw,0.82rem)] font-medium tracking-[0.14em] text-[#f5ecd0] dark:text-[#f0e2b8]">
+                                {expirationDate || '--/--'}
+                            </div>
                         </div>
 
                         <div className="hidden flex-col items-end sm:flex">
@@ -270,14 +284,15 @@ export default function CreditCard3D({
                                 GOLDCINEMA
                             </span>
 
-                            <span className="mt-0.5 text-[6px] tracking-[0.16em] text-white/25">
-                                MEMBER
+                            <span className="mt-0.5 text-[6px] tracking-[0.16em] text-white/30 dark:text-white/25">
+                                {t('member')}
                             </span>
                         </div>
                     </div>
                 </div>
 
-                <div className="pointer-events-none absolute bottom-0 left-[8%] right-[8%] h-px opacity-30"
+                <div
+                    className="pointer-events-none absolute bottom-0 left-[8%] right-[8%] h-px opacity-40 dark:opacity-30"
                     style={{
                         background: `linear-gradient(
                             90deg,
@@ -289,7 +304,7 @@ export default function CreditCard3D({
                 />
 
                 <div
-                    className="pointer-events-none absolute right-0 top-0 h-16 w-16 rounded-bl-full opacity-20"
+                    className="pointer-events-none absolute right-0 top-0 h-16 w-16 rounded-bl-full opacity-25 dark:opacity-20"
                     style={{
                         background: `radial-gradient(
                             circle at top right,

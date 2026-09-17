@@ -8,10 +8,10 @@ export default function Modal({
     onClose,
     children,
     title,
-    maxWidth = 'max-w-md',
     closeDisabled = false,
     showCloseButton = true,
     className = '',
+    width = 'max-w-lg',
 }) {
     useEscapeKey(
         () => {
@@ -74,7 +74,7 @@ export default function Modal({
                         damping: 30,
                     }}
                     onClick={(event) => event.stopPropagation()}
-                    className={`relative w-full ${maxWidth} rounded-xl border border-marquee-line bg-marquee-bg p-6 shadow-2xl ${className}`}
+                    className={`relative w-full ${width} rounded-xl border border-marquee-line bg-marquee-bg p-6 shadow-2xl ${className}`}
                 >
                     {(title || showCloseButton) && (
                         <div className="flex items-center justify-between border-b border-marquee-line/50 pb-3">

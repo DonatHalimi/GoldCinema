@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom';
 import TicketStatus from './TicketStatus';
+import { useTranslation } from 'react-i18next';
 
 export default function TicketCard({ order }) {
-  const checkoutPath = order.paymentStatus === 'paid'
-    ? `/confirmation/${order._id}`
-    : `/checkout/${order._id}`;
+  const { t } = useTranslation('account');
+
+  const checkoutPath = order.paymentStatus === 'paid' ? `/confirmation/${order._id}` : `/checkout/${order._id}`;
 
   if (!order) return null;
 
@@ -14,11 +15,13 @@ export default function TicketCard({ order }) {
       day: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
-    })
-    : 'Date TBD';
+    }) : 'Date TBD';
 
   return (
-    <Link to={checkoutPath} className="group relative flex w-full items-stretch overflow-hidden rounded-xl border border-marquee-line bg-marquee-panel shadow-lg transition-transform duration-200 hover:-translate-y-1 hover:border-marquee-gold">
+    <Link
+      to={checkoutPath}
+      className="group relative flex w-full items-stretch overflow-hidden rounded-xl border border-marquee-line bg-marquee-panel shadow-lg transition-transform duration-200 hover:-translate-y-1 hover:border-marquee-gold"
+    >
       <div className="relative flex flex-1 items-center gap-4 p-4">
         {order.movie?.posterUrl ? (
           <img
@@ -52,9 +55,9 @@ export default function TicketCard({ order }) {
         <div className="absolute right-0 top-3 bottom-3 border-r border-dashed border-marquee-line opacity-40" />
       </div>
 
-      <div className="relative flex w-28 flex-col items-center justify-center bg-black/20 p-4 text-center border-l border-dashed border-marquee-line/50">
-        <div className="absolute -top-3 -left-3 h-6 w-6 rounded-full bg-marquee-panel border border-marquee-line" />
-        <div className="absolute -bottom-3 -left-3 h-6 w-6 rounded-full bg-marquee-panel border border-marquee-line" />
+      <div className="relative flex w-28 flex-col items-center justify-center bg-[#f4ead8] dark:bg-transparent p-4 text-center border-l border-dashed border-marquee-line/50">
+        <div className="absolute -top-3 -left-3 h-6 w-6 rounded-full bg-[#f4ead8] dark:bg-marquee-panel border border-marquee-line" />
+        <div className="absolute -bottom-3 -left-3 h-6 w-6 rounded-full bg-[#f4ead8] dark:bg-marquee-panel border border-marquee-line" />
 
         <p className="font-display text-lg font-bold text-marquee-gold">
           ${order.totalAmount?.toFixed(2) || '0.00'}
@@ -64,8 +67,8 @@ export default function TicketCard({ order }) {
           <TicketStatus status={order.paymentStatus} />
         </div>
 
-        <span className="mt-2 text-[9px] uppercase tracking-widest text-marquee-muted opacity-50">
-          Admit One
+        <span className="mt-2 text-[9px] uppercase tracking-widest text-marquee-muted opacity-60">
+          {t('admitOne')}
         </span>
       </div>
     </Link>

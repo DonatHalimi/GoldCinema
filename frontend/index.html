@@ -21,4 +21,9 @@
     var theme = stored || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
     document.documentElement.setAttribute('data-theme', theme);
   })();
+
+  (function () {
+    var storedLocale = localStorage.getItem('gc-locale') || 'en';
+    document.documentElement.setAttribute('lang', storedLocale);
+  })();
 </script>

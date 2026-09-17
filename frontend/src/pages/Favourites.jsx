@@ -4,8 +4,10 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getMyFavourites } from '../api/favourites';
 import FavouriteButton from '../components/FavouriteButton';
+import { useTranslation } from 'react-i18next';
 
 export default function MyFavourites() {
+    const { t } = useTranslation('account');
     const [movies, setMovies] = useState([]);
     const [cinemas, setCinemas] = useState([]);
     const [tab, setTab] = useState('movies');
@@ -25,8 +27,8 @@ export default function MyFavourites() {
     const list = tab === 'movies' ? movies : cinemas;
 
     const filters = [
-        { label: 'Movies', value: 'movies' },
-        { label: 'Cinemas', value: 'cinemas' },
+        { label: t('movies'), value: 'movies' },
+        { label: t('cinemas'), value: 'cinemas' },
     ];
 
     const handleRemoveFavourite = (itemType, itemId) => {
@@ -43,10 +45,10 @@ export default function MyFavourites() {
                 <div className="mb-8 flex flex-col gap-4 border-b border-marquee-line pb-6 md:flex-row md:items-center md:justify-between">
                     <div>
                         <h2 className="font-display text-2xl font-semibold tracking-wide text-marquee-goldBright">
-                            My Favourites
+                            {t('favouritesHeader')}
                         </h2>
 
-                        <p className="mt-1 text-sm text-marquee-muted">Manage your favourite movies and cinemas</p>
+                        <p className="mt-1 text-sm text-marquee-muted">{t('manageFav')}</p>
                     </div>
 
                     <div className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-marquee-line bg-marquee-bg p-1.5">
@@ -94,12 +96,12 @@ export default function MyFavourites() {
                             <MapPin size={36} className="mx-auto mb-4 text-marquee-goldDim" strokeWidth={1.2} />
                         )}
                         <p className="font-serif text-xl text-marquee-cream">
-                            No favourite {tab} yet
+                            {tab === 'movies' ? t('noFavMovies') : t('noFavCinemas')}
                         </p>
                         <p className="mt-2 text-sm text-marquee-muted">
                             {tab === 'movies'
-                                ? 'Movies you favourite will appear here'
-                                : 'Cinemas you favourite will appear here'}
+                                ? t('noFavMoviesMsg')
+                                : t('noFavCinemasMsg')}
                         </p>
                     </div>
                 )}

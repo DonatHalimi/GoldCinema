@@ -116,6 +116,7 @@ export default function AppRoutes() {
             </Route>
 
             <Route path="/contact" element={<ContactPage />} />
+
             <Route
                 path="/admin/:moduleName?"
                 element={

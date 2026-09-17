@@ -6,8 +6,10 @@ import Disable2faModal from '../../ui/modals/Disable2faModal.jsx';
 import EnableEmail2faModal from '../../ui/modals/EnableEmail2faModal.jsx';
 import EnableSms2faModal from '../../ui/modals/EnableSMS2faModal.jsx';
 import EnableTotpModal from '../../ui/modals/EnableTotpModal.jsx';
+import { useTranslation } from 'react-i18next';
 
 export default function TwoFactorSettings() {
+    const { t } = useTranslation('account');
     const [showEmailVerify, setShowEmailVerify] = useState(false);
     const [showTotpSetup, setShowTotpSetup] = useState(false);
     const [showSmsSetup, setShowSmsSetup] = useState(false);
@@ -89,7 +91,7 @@ export default function TwoFactorSettings() {
                     <div className="flex-1">
                         <div className="flex flex-wrap items-center gap-2">
                             <h3 className="font-semibold text-marquee-cream">
-                                Two-Factor Authentication
+                                {t('2faHeader')}
                             </h3>
 
                             {isEnabled && (
@@ -101,8 +103,7 @@ export default function TwoFactorSettings() {
                         </div>
 
                         <p className="mt-1 text-sm text-marquee-muted">
-                            Add an extra layer of protection to your account
-                            using email or an authenticator app
+                            {t('2faDescription')}
                         </p>
                     </div>
                 </div>

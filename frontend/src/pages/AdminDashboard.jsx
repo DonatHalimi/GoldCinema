@@ -5,6 +5,7 @@ import {
     ChevronDown,
     Clock,
     Film,
+    Languages,
     LayoutDashboard,
     Lock,
     Mail,
@@ -17,6 +18,8 @@ import {
 import { useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import ModuleDataGrid from '../components/auth/ModuleDataGrid';
+import AuditLogViewer from '../components/admin/AuditLogViewer';
+import { ScrollText } from 'lucide-react';
 
 const MODULE_SECTIONS = [
     {
@@ -59,6 +62,33 @@ const MODULE_SECTIONS = [
                     }
                 ]
             },
+            {
+
+                key: 'auditlogs',
+                label: 'Audit Logs',
+                icon: ScrollText,
+                fields: [
+                    { name: 'user', label: 'User' },
+                    { name: 'action', label: 'Action' },
+                    { name: 'timestamp', label: 'Timestamp' },
+                    { name: 'ip', label: 'IP Address' },
+                    { name: 'userAgent', label: 'User Agent' },
+                ]
+            },
+            {
+
+                key: 'translations',
+                label: 'Translations',
+                icon: Languages,
+                fields: [
+                    { name: 'namespace', label: 'Namespace', span: 1 },
+                    { name: 'key', label: 'Key', span: 1 },
+                    { name: 'values.en', label: 'English', span: 1 },
+                    { name: 'values.sq', label: 'Albanian', span: 1 },
+                    { name: 'values.sr-Latn', label: 'Serbian (Latin)', span: 1 },
+                    { name: 'context', label: 'Translator Notes', type: 'textarea' },
+                ],
+            },
         ]
     },
     {
@@ -84,7 +114,96 @@ const MODULE_SECTIONS = [
                                     year: 'numeric',
                                     month: 'short',
                                     day: 'numeric',
-                                }) : '-',
+                                })
+                                : '-',
+                    },
+                ],
+
+                formFields: [
+                    { name: 'title', label: 'Title', type: 'text', required: true },
+                    { name: 'slug', label: 'Slug', type: 'text', required: true },
+                    {
+                        name: 'genres',
+                        label: 'Genres',
+                        type: 'text',
+                        placeholder: 'Action, Drama, Comedy',
+                        defaultValue: '',
+                        span: 1
+                    },
+                    {
+                        name: 'duration',
+                        label: 'Duration (mins)',
+                        type: 'number',
+                        required: true,
+                        min: 1,
+                        span: 1
+                    },
+                    {
+                        name: 'description',
+                        label: 'Description',
+                        type: 'textarea',
+                        required: true,
+                    },
+                    {
+                        name: 'posterUrl',
+                        label: 'Poster URL',
+                        type: 'url',
+                        required: true,
+                    },
+                    {
+                        name: 'trailerUrl',
+                        label: 'Trailer URL',
+                        type: 'url',
+                        defaultValue: '',
+                    },
+                    {
+                        name: 'rating',
+                        label: 'Rating',
+                        type: 'select',
+                        options: ['G', 'PG', 'PG-13', 'R', 'NC-17'],
+                        required: true,
+                        defaultValue: 'PG-13',
+                        span: 1
+                    },
+                    {
+                        name: 'releaseDate',
+                        label: 'Release Date',
+                        type: 'date',
+                        span: 1
+                    },
+                    {
+                        name: 'price',
+                        label: 'Base Price ($)',
+                        type: 'number',
+                        required: true,
+                        min: 0,
+                        step: 0.01,
+                        span: 1
+                    },
+                    {
+                        name: 'active',
+                        label: 'Active',
+                        type: 'checkbox',
+                        defaultValue: true,
+                        span: 1
+                    },
+                    {
+                        name: 'averageRating',
+                        label: 'Average Rating',
+                        type: 'number',
+                        min: 0,
+                        max: 5,
+                        step: 0.1,
+                        defaultValue: 0,
+                        span: 1
+                    },
+                    {
+                        name: 'reviewCount',
+                        label: 'Review Count',
+                        type: 'number',
+                        min: 0,
+                        defaultValue: 0,
+                        span: 1
                     },
                 ],
             },
@@ -210,7 +329,92 @@ const MODULE_SECTIONS = [
     }
 ];
 
-const ALL_MODULES = MODULE_SECTIONS.flatMap(section => section.items);
+const renderAdminItems = (items, navigate, activeModule, level = 0) =>
+    items.map((item) => {
+        if (item.items) {
+            const GroupIcon = item.icon;
+
+            return (
+                <div key={item.title} className="space-y-1">
+                    <div
+                        className={`flex items-center gap-2 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider ${level === 0
+                            ? 'text-marquee-muted'
+                            : 'text-marquee-muted/80'
+                            }`}
+                    >
+                        {GroupIcon && <GroupIcon size={14} />}
+                        <span>{item.title}</span>
+                    </div>
+
+                    <div className="space-y-1 pl-2">
+                        {renderAdminItems(
+                            item.items,
+                            navigate,
+                            activeModule,
+                            level + 1
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        const isActive = activeModule.key === item.key;
+        const IconComponent = item.icon;
+
+        return (
+            <button
+                key={item.key}
+                type="button"
+                onClick={() => navigate(`/admin/${item.key}`)}
+                className={`
+                    relative group flex w-full items-center gap-3
+                    rounded-lg px-3 py-2.5 text-sm font-medium
+                    transition-colors duration-200 z-10
+                    ${level > 0 ? 'pl-5' : ''}
+                    ${isActive
+                        ? 'text-marquee-bg'
+                        : 'text-marquee-muted hover:bg-marquee-panel2 hover:text-marquee-gold'
+                    }
+                `}
+            >
+                {isActive && (
+                    <motion.div
+                        layoutId="activeAdminNav"
+                        transition={{
+                            type: 'spring',
+                            stiffness: 380,
+                            damping: 30,
+                        }}
+                        className="absolute inset-0 rounded-lg bg-marquee-gold shadow-glow -z-10"
+                    />
+                )}
+
+                {IconComponent && (
+                    <IconComponent
+                        size={16}
+                        className={
+                            isActive
+                                ? 'text-marquee-bg'
+                                : 'text-marquee-muted group-hover:text-marquee-gold'
+                        }
+                    />
+                )}
+
+                <span>{item.label}</span>
+            </button>
+        );
+    });
+
+const flattenModules = (items) =>
+    items.flatMap((item) =>
+        item.key
+            ? [item]
+            : item.items
+                ? flattenModules(item.items)
+                : []
+    );
+
+const ALL_MODULES = MODULE_SECTIONS.flatMap(section => flattenModules(section.items));
 
 export default function AdminDashboard() {
     const { moduleName } = useParams();
@@ -277,41 +481,11 @@ export default function AdminDashboard() {
                                                 transition={{ duration: 0.25, ease: "easeInOut" }}
                                                 className="space-y-1 overflow-hidden pl-2"
                                             >
-                                                {section.items.map((mod) => {
-                                                    const isActive = activeModule.key === mod.key;
-                                                    const IconComponent = mod.icon;
-
-                                                    return (
-                                                        <button
-                                                            key={mod.key}
-                                                            onClick={() => navigate(`/admin/${mod.key}`)}
-                                                            className={`
-                                                                relative group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-200 z-10
-                                                                ${isActive ? 'text-marquee-bg z-10' : 'text-marquee-muted hover:bg-marquee-panel2 hover:text-marquee-gold z-10'}`}
-                                                        >
-                                                            {isActive && (
-                                                                <motion.div
-                                                                    layoutId="activeAdminNav"
-                                                                    transition={{
-                                                                        type: "spring",
-                                                                        stiffness: 380,
-                                                                        damping: 30,
-                                                                    }}
-                                                                    className="absolute inset-0 rounded-lg bg-marquee-gold shadow-glow -z-10"
-                                                                />
-                                                            )}
-
-                                                            {IconComponent && (
-                                                                <IconComponent
-                                                                    size={16}
-                                                                    className={isActive ? 'text-marquee-bg' : 'text-marquee-muted group-hover:text-marquee-gold'}
-                                                                />
-                                                            )}
-
-                                                            <span>{mod.label}</span>
-                                                        </button>
-                                                    );
-                                                })}
+                                                {renderAdminItems(
+                                                    section.items,
+                                                    navigate,
+                                                    activeModule
+                                                )}
                                             </motion.div>
                                         )}
                                     </AnimatePresence>
@@ -322,7 +496,11 @@ export default function AdminDashboard() {
                 </div>
             </aside>
 
-            <ModuleDataGrid moduleConfig={activeModule} />
+            {activeModule.key === 'auditlogs' ? (
+                <AuditLogViewer />
+            ) : (
+                <ModuleDataGrid moduleConfig={activeModule} />
+            )}
         </div>
     );
 }

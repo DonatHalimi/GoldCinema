@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import ThemeToggle from '../ui/ThemeToggle';
 import NotificationBell from './NotificationBell';
 import UserDropdown from './UserDropdown';
+import LanguageSwitcher from '../ui/LanguageSwitcher';
 
 const SPOTLIGHT_STYLE = {
     opacity: 'var(--spotlight-opacity, 0)',
@@ -62,6 +63,7 @@ export default function NavLinks({ mobile = false, onNavigate }) {
             </NavItem>
 
             <ThemeToggle />
+            <LanguageSwitcher mobile={mobile} />
 
             {!mobile && <div className="h-4 w-[1px] bg-white/10 mx-1" aria-hidden="true" />}
 

@@ -1,11 +1,15 @@
 const Movie = require('../models/movie');
 const Showtime = require('../models/showtime');
+const { resolveTranslatedFields } = require('../utils/i18nHelpers');
 const { getAvailability } = require('../utils/seatAvailability');
+
+const MOVIE_TRANSLATABLE_FIELDS = ['title', 'description'];
 
 async function getMovies(req, res, next) {
     try {
-        const movies = await Movie.find({ active: true }).sort({ title: 1 });
-        res.json({ movies });
+        const movies = await Movie.find({ active: true }).sort({ title: 1 }).lean();
+        const localized = movies.map((m) => resolveTranslatedFields(m, req.locale, MOVIE_TRANSLATABLE_FIELDS));
+        res.json({ movies: localized });
     } catch (err) {
         next(err);
     }
@@ -13,11 +17,11 @@ async function getMovies(req, res, next) {
 
 async function getMovieById(req, res, next) {
     try {
-        const movie = await Movie.findById(req.params.id);
+        const movie = await Movie.findById(req.params.id).lean();
 
         if (!movie) return res.status(404).json({ error: 'Movie not found.' });
 
-        res.json({ movie });
+        res.json({ movie: resolveTranslatedFields(movie, req.locale, MOVIE_TRANSLATABLE_FIELDS) });
     } catch (err) {
         next(err);
     }

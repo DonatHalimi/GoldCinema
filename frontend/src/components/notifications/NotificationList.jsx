@@ -22,8 +22,8 @@ export default function NotificationList({
 
     if (notifications.length === 0) {
         return (
-            <div className="rounded-xl border border-dashed border-marquee-line bg-marquee-panel2 p-10 text-center">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-marquee-panel2 text-marquee-gold">
+            <div className="rounded-xl border border-dashed border-marquee-line bg-marquee-bg p-12 text-center">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-marquee-bg text-marquee-gold">
                     {filter === 'archived' ? <Archive size={24} className="mx-auto mb-3 h-10 w-10 text-marquee-goldDim" /> :
                         filter === 'unread' ? <MailCheck size={24} className="mx-auto mb-3 h-10 w-10 text-marquee-goldDim" /> :
                             <Bell size={24} className="mx-auto mb-3 h-10 w-10 text-marquee-goldDim" />}

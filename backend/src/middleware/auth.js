@@ -79,6 +79,12 @@ async function requireVerified(req, res, next) {
   }
 }
 
+function requireAdmin(req, res, next) {
+  const roleName = typeof req.user?.role === 'object' ? req.user.role?.name : req.user?.role;
+  if (roleName?.toLowerCase() !== 'admin') return res.status(403).json({ error: 'Admin access required.' });
+  next();
+}
+
 async function checkTrustedDevice(req, res, next) {
   try {
     const rawToken = req.cookies.trustedDeviceToken;
@@ -179,6 +185,7 @@ module.exports = {
   requireAuth,
   optionalAuth,
   requireVerified,
+  requireAdmin,
   checkTrustedDevice,
   getCustomerRoleId,
   issueVerificationEmail,

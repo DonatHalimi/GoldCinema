@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 const STATUS_STYLES = {
     paid: 'text-marquee-gold border-marquee-gold/40',
     pending: 'text-marquee-muted border-marquee-line',
@@ -6,9 +8,14 @@ const STATUS_STYLES = {
 };
 
 export default function TicketStatus({ status }) {
+    const { t } = useTranslation('account');
+
+    const displayStatus = status === 'pending' ? 'unpaid' : status;
+    const translatedStatus = t(displayStatus);
+
     return (
         <span className={`inline-block rounded-full border px-2 py-0.5 text-xs uppercase tracking-wide ${STATUS_STYLES[status] || ''}`}>
-            {status}
+            {translatedStatus}
         </span>
     );
 }

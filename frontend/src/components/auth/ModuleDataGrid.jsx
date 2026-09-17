@@ -1,7 +1,7 @@
-import { Check, ChevronLeft, ChevronRight, Pencil, Plus, Trash, Trash2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Check, ChevronDown, ChevronLeft, ChevronRight, Pencil, Plus, Search, SlidersHorizontal, Trash, Trash2, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
-import { bulkDeleteItems, deleteItem, getItems } from '../../api/admin';
+import { bulkDeleteItems, createItem, deleteItem, getItems, updateItem } from '../../api/admin';
 import useEscapeKey from '../../hooks/useEscKey';
 import CrudModal from '../ui/modals/CrudModal';
 import DeleteConfirmModal from '../ui/modals/DeleteConfirmModal';
@@ -21,16 +21,48 @@ export default function ModuleDataGrid({ moduleConfig }) {
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [deleting, setDeleting] = useState(false);
 
+    const [search, setSearch] = useState('');
+    const [searchInput, setSearchInput] = useState('');
+
+    const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+    const filtersRef = useRef(null);
+
     useEscapeKey(
         () => {
             if (deleteTarget && !deleting) setDeleteTarget(null);
+            setIsFiltersOpen(false);
         },
-        deleteTarget && !deleting
+        (deleteTarget && !deleting) || isFiltersOpen
     );
+
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (
+                filtersRef.current &&
+                !filtersRef.current.contains(event.target)
+            ) {
+                setIsFiltersOpen(false);
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () =>
+            document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setSearch(searchInput.trim());
+            setPage(1);
+        }, 400);
+        return () => clearTimeout(timer);
+    }, [searchInput]);
 
     const fetchModuleData = async () => {
         setLoading(true);
         try {
+            // TODO: pass the search through once the API supports it,
+            // e.g. getItems(moduleConfig.key, page, 10, { search })
             const res = await getItems(moduleConfig.key, page, 10);
             setData(res.data || []);
             setTotalPages(res.pages || 1);
@@ -42,9 +74,31 @@ export default function ModuleDataGrid({ moduleConfig }) {
         }
     };
 
+    const handleModalSubmit = async (formData) => {
+        try {
+            if (selectedItem) {
+                await updateItem(moduleConfig.key, selectedItem._id, formData);
+                toast.success(`${moduleConfig.label} updated successfully.`);
+            } else {
+                await createItem(moduleConfig.key, formData);
+                toast.success(`${moduleConfig.label} created successfully.`);
+            }
+
+            setIsModalOpen(false);
+            setSelectedItem(null);
+            await fetchModuleData();
+        } catch (err) {
+            toast.error(
+                err.response?.data?.message ||
+                err.message ||
+                `Failed to save ${moduleConfig.label}.`
+            );
+        }
+    };
+
     useEffect(() => {
         fetchModuleData();
-    }, [moduleConfig.key, page]);
+    }, [moduleConfig.key, page, search]);
 
     const handleSelectAll = () => {
         setSelectedIds(isAllSelected ? [] : data.map((item) => item._id));
@@ -83,38 +137,135 @@ export default function ModuleDataGrid({ moduleConfig }) {
         }
     };
 
+    const resetAllFilters = () => {
+        setSearchInput('');
+        setSearch('');
+        setPage(1);
+        setIsFiltersOpen(false);
+    };
+
     const fields = moduleConfig?.fields || [];
     const isAllSelected = data.length > 0 && selectedIds.length === data.length;
     const isSomeSelected = selectedIds.length > 0 && !isAllSelected;
 
     return (
-        <div className="flex-1 p-8 bg-marquee-bg text-marquee-cream min-h-screen">
-            <div className="flex items-center justify-between pb-6 mb-6 border-b border-marquee-line">
-                <div>
-                    <h2 className="font-display text-3xl font-semibold tracking-wide text-marquee-goldBright">
-                        {moduleConfig.label}
-                    </h2>
-                    <p className="text-xs text-marquee-muted mt-1">
-                        Manage your movie platform's {moduleConfig.label.toLowerCase()} settings and records.
-                    </p>
-                </div>
+        <div className="flex-1 min-h-screen bg-marquee-bg px-10 pt-6 text-marquee-cream">
+            <div className="sticky top-20 mb-4 rounded-2xl border border-marquee-line bg-marquee-panel p-6 shadow-lg backdrop-blur-md">
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-marquee-gold/50 to-transparent" />
 
-                <div className="flex items-center gap-3">
-                    {selectedIds.length > 0 && (
-                        <button
-                            onClick={() => setDeleteTarget(selectedIds)}
-                            className="flex items-center gap-2 rounded-lg border border-red-600/30 bg-red-600/10 px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-600/20 shadow-[0_0_12px_rgba(220,38,38,0.15)] transition-all"
-                        >
-                            <Trash className="h-4 w-4" /> Delete Selected ({selectedIds.length})
-                        </button>
+                <div className="flex flex-col gap-5">
+                    <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h2 className="font-display text-3xl font-semibold tracking-wide text-marquee-goldBright">
+                                {moduleConfig.label}
+                            </h2>
+                            <p className="mt-1 text-xs text-marquee-muted">
+                                Manage your movie platform's {moduleConfig.label.toLowerCase()} settings and records.
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            {selectedIds.length > 0 && (
+                                <button
+                                    onClick={() => setDeleteTarget(selectedIds)}
+                                    className="flex items-center gap-2 rounded-lg border border-red-600/30 bg-red-600/10 px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-600/20 shadow-[0_0_12px_rgba(220,38,38,0.15)] transition-all"
+                                >
+                                    <Trash className="h-4 w-4" /> Delete Selected ({selectedIds.length})
+                                </button>
+                            )}
+                            <button
+                                onClick={handleCreate}
+                                className="flex items-center gap-2 rounded-lg bg-marquee-gold hover:bg-marquee-goldBright px-4 py-2.5 text-sm font-semibold text-marquee-bg transition-all shadow-[0_0_15px_rgba(245,158,11,0.2)]"
+                            >
+                                <Plus className="h-4 w-4 stroke-[2.5]" /> Add {moduleConfig.label}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3">
+                        <div className="relative min-w-[260px] flex-1">
+                            <Search size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-marquee-muted" />
+                            <input
+                                type="text"
+                                value={searchInput}
+                                onChange={(e) => setSearchInput(e.target.value)}
+                                placeholder={`Search ${moduleConfig.label.toLowerCase()}...`}
+                                className="w-full rounded-xl border border-marquee-line bg-marquee-panel2 py-2.5 pl-10 pr-10 text-sm text-marquee-cream outline-none transition-all placeholder:text-marquee-muted/70 hover:border-marquee-gold/50 focus:border-marquee-gold focus:ring-2 focus:ring-marquee-gold/20"
+                            />
+                            {searchInput && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setSearchInput('');
+                                        setSearch('');
+                                    }}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-marquee-muted transition-colors hover:text-marquee-gold"
+                                >
+                                    <X size={15} />
+                                </button>
+                            )}
+                        </div>
+
+                        <div ref={filtersRef} className="relative">
+                            <button
+                                type="button"
+                                onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+                                className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-marquee-gold/20 ${isFiltersOpen
+                                    ? 'border-marquee-gold/40 bg-marquee-gold/10 text-marquee-gold'
+                                    : 'border-marquee-line bg-marquee-panel2 text-marquee-cream hover:border-marquee-gold/50'
+                                    }`}
+                            >
+                                <SlidersHorizontal size={15} />
+                                <span>Filters</span>
+                                <ChevronDown
+                                    size={15}
+                                    className={`text-marquee-muted transition-transform duration-300 ${isFiltersOpen ? 'rotate-180 text-marquee-gold' : ''
+                                        }`}
+                                />
+                            </button>
+
+                            {isFiltersOpen && (
+                                <div className="absolute right-0 z-50 mt-2 w-[320px]">
+                                    <div className="absolute right-6 -top-[7px] z-20 h-0 w-0 border-l-[7px] border-r-[7px] border-b-[7px] border-l-transparent border-r-transparent border-b-marquee-line" />
+                                    <div className="absolute right-[22px] -top-[5px] z-30 h-0 w-0 border-l-[6px] border-r-[6px] border-b-[6px] border-l-transparent border-r-transparent border-b-marquee-panel" />
+                                    <div className="relative rounded-xl border border-marquee-line bg-marquee-panel p-6 shadow-2xl backdrop-blur-md text-center">
+                                        <SlidersHorizontal size={28} className="mx-auto mb-3 text-marquee-muted/50" />
+                                        <p className="text-sm font-medium text-marquee-muted">
+                                            No filters configured for this module.
+                                        </p>
+                                        <p className="mt-1 text-xs text-marquee-muted/70">
+                                            Add filterable fields to enable filtering.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {search && (
+                        <div className="flex flex-wrap items-center gap-2 border-t border-marquee-line pt-4">
+                            <span className="mr-1 text-[10px] font-semibold uppercase tracking-wider text-marquee-muted">
+                                Active:
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setSearchInput('');
+                                    setSearch('');
+                                }}
+                                className="inline-flex items-center gap-1.5 rounded-full border border-marquee-line bg-marquee-panel2 px-2.5 py-1 text-[10px] font-medium text-marquee-cream transition-colors hover:border-marquee-gold/50 hover:text-marquee-gold"
+                            >
+                                Search: {search}
+                                <X size={11} />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={resetAllFilters}
+                                className="ml-1 text-[10px] font-medium text-marquee-muted transition-colors hover:text-marquee-gold"
+                            >
+                                Clear all
+                            </button>
+                        </div>
                     )}
-
-                    <button
-                        onClick={handleCreate}
-                        className="flex items-center gap-2 rounded-lg bg-marquee-gold hover:bg-marquee-goldBright px-4 py-2.5 text-sm font-semibold text-marquee-bg transition-all shadow-[0_0_15px_rgba(245,158,11,0.2)]"
-                    >
-                        <Plus className="h-4 w-4 stroke-[2.5]" /> Add {moduleConfig.label}
-                    </button>
                 </div>
             </div>
 
@@ -144,17 +295,14 @@ export default function ModuleDataGrid({ moduleConfig }) {
                                             {isSomeSelected && <span className="h-1.5 w-1.5 rounded-sm bg-marquee-gold" />}
                                         </button>
                                     </th>
-
                                     {fields.map((col) => (
                                         <th key={col.name} className="px-6 py-4">
                                             {col.label}
                                         </th>
                                     ))}
-
                                     <th className="px-6 py-4 text-right">Actions</th>
                                 </tr>
                             </thead>
-
                             <tbody className="divide-y divide-marquee-line">
                                 {data.length === 0 ? (
                                     <tr>
@@ -166,11 +314,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
                                     data.map((row) => {
                                         const isSelected = selectedIds.includes(row._id);
                                         return (
-                                            <tr
-                                                key={row._id}
-                                                className={`transition-colors ${isSelected ? 'bg-marquee-gold/10 hover:bg-marquee-gold/20' : 'hover:bg-marquee-panel2'
-                                                    }`}
-                                            >
+                                            <tr key={row._id} className={`transition-colors ${isSelected ? 'bg-marquee-gold/10 hover:bg-marquee-gold/20' : 'hover:bg-marquee-panel2'}`}>
                                                 <td className="px-4 py-4 w-12 text-center">
                                                     <button
                                                         type="button"
@@ -184,7 +328,6 @@ export default function ModuleDataGrid({ moduleConfig }) {
                                                         {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
                                                     </button>
                                                 </td>
-
                                                 {fields.map((col) => {
                                                     const value = getNestedValue(row, col.name);
                                                     return (
@@ -193,7 +336,6 @@ export default function ModuleDataGrid({ moduleConfig }) {
                                                         </td>
                                                     );
                                                 })}
-
                                                 <td className="px-6 py-4 text-right space-x-2">
                                                     <button
                                                         onClick={() => handleEdit(row)}
@@ -202,7 +344,6 @@ export default function ModuleDataGrid({ moduleConfig }) {
                                                     >
                                                         <Pencil className="h-4 w-4" />
                                                     </button>
-
                                                     <button
                                                         onClick={() => setDeleteTarget(row._id)}
                                                         title="Delete"
@@ -218,13 +359,11 @@ export default function ModuleDataGrid({ moduleConfig }) {
                             </tbody>
                         </table>
                     </div>
-
                     <div className="flex items-center justify-between border-t border-marquee-line bg-marquee-panel2 px-6 py-4 text-xs text-marquee-muted">
                         <span>
                             Page <strong className="text-marquee-gold">{page}</strong> of{' '}
                             <strong className="text-marquee-gold">{totalPages}</strong>
                         </span>
-
                         <div className="flex gap-2">
                             <button
                                 disabled={page === 1}
@@ -233,7 +372,6 @@ export default function ModuleDataGrid({ moduleConfig }) {
                             >
                                 <ChevronLeft className="h-3.5 w-3.5" /> Previous
                             </button>
-
                             <button
                                 disabled={page === totalPages || totalPages === 0}
                                 onClick={() => setPage((p) => p + 1)}
@@ -249,10 +387,11 @@ export default function ModuleDataGrid({ moduleConfig }) {
             <CrudModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                onSubmit={() => fetchModuleData()}
+                onSubmit={handleModalSubmit}
                 initialData={selectedItem}
-                fields={fields}
+                fields={moduleConfig?.formFields || fields}
                 title={`${selectedItem ? 'Edit' : 'Create'} ${moduleConfig.label}`}
+                width="max-w-2xl"
             />
 
             <DeleteConfirmModal

@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
+const { auditRequestLogger } = require('./middleware/auditLogger');
 const authRoutes = require('./routes/auth');
 const movieRoutes = require('./routes/movies');
 const showtimeRoutes = require('./routes/showtimes');
@@ -18,6 +19,9 @@ const notificationRoutes = require('./routes/notifications');
 const favouriteRoutes = require('./routes/favourites');
 const reviewRoutes = require('./routes/review');
 const giftCardRoutes = require('./routes/giftCards');
+const auditLogRoutes = require('./routes/auditLogs');
+const clientLogRoutes = require('./routes/clientLogs');
+const i18nRoutes = require('./routes/i18n');
 
 const errorHandler = require('./middleware/errorHandler');
 
@@ -57,6 +61,8 @@ app.use('/api/payments/stripe/webhook', express.raw({ type: 'application/json' }
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(auditRequestLogger);
+
 const strictLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 50,
@@ -85,6 +91,9 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/favourites', favouriteRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/giftcards', giftCardRoutes);
+app.use('/api/admin/audit-logs', auditLogRoutes);
+app.use('/api/client-logs', clientLogRoutes);
+app.use('/api/i18n', i18nRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found.' });

@@ -17,87 +17,90 @@ import {
     User,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { NavLink } from 'react-router-dom';
 
-const ACCOUNT_SECTIONS = [
-    {
-        title: 'Account',
-        icon: Settings,
-        items: [
-            {
-                id: 'profile',
-                label: 'Profile',
-                icon: User,
-            },
-            {
-                id: 'tickets',
-                label: 'Tickets',
-                icon: Ticket,
-            },
-            {
-                id: 'favourites',
-                label: 'Favourites',
-                icon: Heart,
-            },
-        ],
-    },
-    {
-        title: 'Payments',
-        icon: CircleDollarSign,
-        items: [
-            {
-                id: 'payments',
-                label: 'Payment Methods',
-                icon: CreditCard,
-            },
-        ],
-    },
-    {
-        title: 'Security & Privacy',
-        icon: LockKeyhole,
-        items: [
-            {
-                id: 'security',
-                label: 'Security',
-                icon: Shield,
-            },
-            {
-                id: 'sessions',
-                label: 'Sessions',
-                icon: Monitor,
-            },
-        ],
-    },
-    {
-        title: 'Communication',
-        icon: MessagesSquare,
-        items: [
-            {
-                id: 'notifications',
-                label: 'Notifications',
-                icon: Bell,
-            },
-            {
-                id: 'reviews',
-                label: 'My Reviews',
-                icon: MessageSquare,
-            },
-        ],
-    },
-    {
-        title: 'Danger Zone',
-        icon: TriangleAlert,
-        items: [
-            {
-                id: 'danger',
-                label: 'Danger Zone',
-                icon: Trash2,
-            },
-        ],
-    },
-];
-
 export default function AccountSidebar() {
+    const { t } = useTranslation('accountSidebar');
+
+    const ACCOUNT_SECTIONS = [
+        {
+            title: t('accountMenu'),
+            icon: Settings,
+            items: [
+                {
+                    id: 'profile',
+                    label: t('profileItem'),
+                    icon: User,
+                },
+                {
+                    id: 'tickets',
+                    label: t('ticketsItem'),
+                    icon: Ticket,
+                },
+                {
+                    id: 'favourites',
+                    label: t('favouritesItem'),
+                    icon: Heart,
+                },
+            ],
+        },
+        {
+            title: t('paymentMenu'),
+            icon: CircleDollarSign,
+            items: [
+                {
+                    id: 'payments',
+                    label: t('paymentItem'),
+                    icon: CreditCard,
+                },
+            ],
+        },
+        {
+            title: t('securityMenu'),
+            icon: LockKeyhole,
+            items: [
+                {
+                    id: 'security',
+                    label: t('securityItem'),
+                    icon: Shield,
+                },
+                {
+                    id: 'sessions',
+                    label: t('sessionItem'),
+                    icon: Monitor,
+                },
+            ],
+        },
+        {
+            title: t('communicationMenu'),
+            icon: MessagesSquare,
+            items: [
+                {
+                    id: 'notifications',
+                    label: t('notificationItem'),
+                    icon: Bell,
+                },
+                {
+                    id: 'reviews',
+                    label: t('reviewsItem'),
+                    icon: MessageSquare,
+                },
+            ],
+        },
+        {
+            title: t('dangerZoneMenu'),
+            icon: TriangleAlert,
+            items: [
+                {
+                    id: 'danger',
+                    label: t('dangerZoneItem'),
+                    icon: Trash2,
+                },
+            ],
+        },
+    ];
+
     const [openSections, setOpenSections] = useState(() => {
         const initialOpen = {};
 
@@ -119,11 +122,11 @@ export default function AccountSidebar() {
         <aside className="sticky top-24 w-64 rounded-xl border border-marquee-line bg-marquee-panel p-4">
             <div className="mb-6 px-3">
                 <h2 className="font-display text-3xl font-semibold tracking-wide text-marquee-goldBright">
-                    Account
+                    {t('header')}
                 </h2>
 
                 <p className="mt-1 text-xs text-marquee-muted">
-                    Manage your account
+                    {t('subheader')}
                 </p>
             </div>
 

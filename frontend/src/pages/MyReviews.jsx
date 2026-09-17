@@ -76,7 +76,7 @@ export default function MyReviews() {
                     )}
 
                     {!loading && !error && reviews.length === 0 && (
-                        <div className="rounded-xl border border-dashed border-marquee-line bg-marquee-panel2 p-10 text-center">
+                        <div className="rounded-xl border border-dashed border-marquee-line bg-marquee-bg p-12 text-center">
                             <MessageSquare className="mx-auto mb-3 h-10 w-10 text-marquee-goldDim" />
 
                             <p className="font-serif text-xl text-marquee-cream">

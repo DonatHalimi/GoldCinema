@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoldCinema - Feature Showcase</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-zinc-950 text-zinc-100 h-screen overflow-hidden flex flex-col justify-between select-none">
+
+    <header
+        class="w-full px-8 py-4 flex justify-between items-center border-b border-zinc-800/80 bg-zinc-900/50 backdrop-blur-md">
+        <div class="flex items-center space-x-3">
+            <span class="text-2xl">👑</span>
+            <h1
+                class="text-xl font-extrabold tracking-wider bg-gradient-to-r from-amber-200 via-gold-500 to-amber-600 bg-clip-text text-transparent">
+                GOLDEX CINEMA
+            </h1>
+        </div>
+        <div id="slide-indicators" class="flex space-x-2">
+        </div>
+    </header>
+
+    <main class="relative flex-1 flex items-center justify-center p-6 overflow-hidden">
+        <div id="slide-container" class="w-full max-w-4xl h-full flex items-center justify-center relative">
+        </div>
+    </main>
+
+    <footer
+        class="w-full px-8 py-4 flex justify-between items-center border-t border-zinc-800/80 bg-zinc-900/50 backdrop-blur-md text-sm">
+        <button onclick="prevSlide()"
+            class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition font-medium flex items-center space-x-2 text-zinc-300">
+            <span>← Prev</span>
+        </button>
+        <div class="text-zinc-400 font-mono text-xs" id="slide-counter">Slide 1 / 5</div>
+        <div class="flex space-x-3">
+            <button id="auto-play-btn" onclick="toggleAutoPlay()"
+                class="px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-lg transition font-medium">
+                Auto-Play: Off
+            </button>
+            <button onclick="nextSlide()"
+                class="px-4 py-2 bg-gold-500 hover:bg-gold-600 text-zinc-950 font-bold rounded-lg transition flex items-center space-x-2">
+                <span>Next →</span>
+            </button>
+        </div>
+    </footer>
+
+    <script>
+        const slides = [
+            {
+                title: "GoldCinema Experience",
+                subtitle: "Next-Generation Movie Booking Platform",
+                description: "A production-grade, full-stack cinematic masterpiece combining high-performance architecture, high-end UI design, and bulletproof user security.",
+                tag: "PROJECT OVERVIEW",
+                icon: "🎬",
+                highlights: ["Interactive Seat Mapping", "Stripe Payment Integration", "Passkey Security Architecture"]
+            },
+            {
+                title: "Advanced Seat Reservation",
+                subtitle: "Real-time Booking & Hold Logic",
+                description: "Engineered with dynamic grid layouts, live interactive seat selection, and precise countdown hold timers to secure user checkouts seamlessly.",
+                tag: "CORE FEATURE",
+                icon: "💺",
+                highlights: ["Interactive Seat Selection", "Seat Hold Expiration Timers", "Visual Tier Categorization"]
+            },
+            {
+                title: "Enterprise-Grade Security",
+                subtitle: "Passkeys & Multi-Factor Auth",
+                description: "Features modern passwordless authentication via WebAuthn Passkeys alongside TOTP authenticator apps, SMS modals, and robust JWT session handling.",
+                tag: "SECURITY",
+                icon: "🛡️",
+                highlights: ["WebAuthn Passkey Support", "TOTP & SMS OTP Modals", "Secure Cookie / JWT Handling"]
+            },
+            {
+                title: "Instant Ticket Dispatch",
+                subtitle: "Automated Email Confirmations",
+                description: "Integrated backend mailing pipelines using Nodemailer to deliver instantly formatted ticket reservations straight to the user's inbox upon checkout success.",
+                tag: "AUTOMATION",
+                icon: "✉️",
+                highlights: ["Nodemailer Dispatch Engine", "HTML Ticket Templates", "Instant Booking Verifications"]
+            },
+            {
+                title: "Built For Scale",
+                subtitle: "Modern Tech Stack & Aesthetics",
+                description: "Crafted meticulously using Tailwind CSS for fluid responsiveness and Framer Motion styling patterns, structured for speed, scalability, and elegance.",
+                tag: "ARCHITECTURE",
+                icon: "⚡",
+                highlights: ["Tailwind CSS & Framer Motion", "RESTful API Backend", "Optimized Performance Flow"]
+            }
+        ];
+
+        let currentSlide = 0;
+        let isAutoPlaying = false;
+        let autoPlayInterval = null;
+
+        const slideContainer = document.getElementById('slide-container');
+        const slideIndicators = document.getElementById('slide-indicators');
+        const slideCounter = document.getElementById('slide-counter');
+        const autoPlayBtn = document.getElementById('auto-play-btn');
+
+        function renderIndicators() {
+            slideIndicators.innerHTML = '';
+            slides.forEach((_, index) => {
+                const dot = document.createElement('button');
+                dot.className = `h-2 rounded-full transition-all duration-300 ${index === currentSlide ? 'w-8 bg-amber-500' : 'w-2 bg-zinc-700'}`;
+                dot.onclick = () => goToSlide(index);
+                slideIndicators.appendChild(dot);
+            });
+            slideCounter.innerText = `Slide ${currentSlide + 1} / ${slides.length}`;
+        }
+
+        function renderSlide() {
+            const data = slides[currentSlide];
+            slideContainer.innerHTML = `
+                <div class="w-full flex flex-col items-center text-center p-8 bg-zinc-900/40 border border-zinc-800/80 rounded-2xl backdrop-blur-xl shadow-2xl relative overflow-hidden">
+                    <div class="absolute -top-24 -right-24 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-amber-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                    <span class="px-3 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-semibold rounded-full mb-6 tracking-widest uppercase">
+                        ${data.tag}
+                    </span>
+
+                    <div class="text-5xl mb-4 p-4 bg-zinc-800/50 border border-zinc-700/50 rounded-2xl shadow-inner">
+                        ${data.icon}
+                    </div>
+
+                    <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight text-white mb-2">
+                        ${data.title}
+                    </h2>
+                    
+                    <h3 class="text-lg font-medium text-amber-500 mb-4">
+                        ${data.subtitle}
+                    </h3>
+
+                    <p class="text-zinc-400 max-w-xl text-sm md:text-base leading-relaxed mb-8">
+                        ${data.description}
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 w-full max-w-2xl">
+                        ${data.highlights.map(h => `
+                            <div class="px-4 py-3 bg-zinc-950/60 border border-zinc-800/80 rounded-xl text-xs font-medium text-zinc-300 flex items-center justify-center space-x-2 shadow-sm">
+                                <span class="text-amber-500">✦</span>
+                                <span>${h}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            renderIndicators();
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % slides.length;
+            renderSlide();
+        }
+
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+            renderSlide();
+        }
+
+        function goToSlide(index) {
+            currentSlide = index;
+            renderSlide();
+        }
+
+        function toggleAutoPlay() {
+            isAutoPlaying = !isAutoPlaying;
+            if (isAutoPlaying) {
+                autoPlayBtn.innerText = "Auto-Play: On";
+                autoPlayBtn.className = "px-4 py-2 bg-amber-500 text-zinc-950 font-bold rounded-lg transition";
+                autoPlayInterval = setInterval(nextSlide, 4000);
+            } else {
+                autoPlayBtn.innerText = "Auto-Play: Off";
+                autoPlayBtn.className = "px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-lg transition font-medium";
+                clearInterval(autoPlayInterval);
+            }
+        }
+
+        renderSlide();
+    </script>
+</body>
+
+</html>
