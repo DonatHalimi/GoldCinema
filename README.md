@@ -1,16 +1,51 @@
-# GoldCinema - Cinema Booking Platform
+<p align="center">
+  <img width="500" height="100" alt="GoldCinema" src="https://github.com/user-attachments/assets/804703dc-0e03-4b04-8073-48e5a15e11b3" />
+</p>
 
-A full-stack **Cinema Booking Platform** built with **React, Node.js, Express, and MongoDB**.
+<p align="center">
+  <strong>A full-stack digital cinema booking platform</strong>
+</p>
 
-GoldCinema provides a complete online cinema experience where users can discover movies, browse showtimes, select seats, purchase tickets, manage their account, save favourite movies, write reviews, purchase gift cards, and manage their payment methods.
+<p align="center">
+  Discover movies · Browse showtimes · Choose seats · Book tickets · Manage your account
+</p>
 
-The platform also includes a comprehensive **administration dashboard** for managing cinema content, users, roles, payments, showtimes, and other platform data.
+<p align="center">
+  <a href="https://donathalimi.github.io/GoldCinema/">
+    <img src="https://img.shields.io/badge/Live%20Demo-GoldCinema-c9a45c?style=for-the-badge" alt="Live Demo">
+  </a>
+  <a href="https://github.com/DonatHalimi/GoldCinema">
+    <img src="https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github" alt="GitHub Repository">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://react.dev/">
+    <img src="https://img.shields.io/badge/React-20232A?style=flat-square&logo=react&logoColor=61DAFB" alt="React">
+  </a>
+  <a href="https://vite.dev/">
+    <img src="https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite">
+  </a>
+  <a href="https://nodejs.org/">
+    <img src="https://img.shields.io/badge/Node.js-339933?style=flat-square&logo=node.js&logoColor=white" alt="Node.js">
+  </a>
+  <a href="https://expressjs.com/">
+    <img src="https://img.shields.io/badge/Express-000000?style=flat-square&logo=express&logoColor=white" alt="Express">
+  </a>
+  <a href="https://www.mongodb.com/">
+    <img src="https://img.shields.io/badge/MongoDB-47A248?style=flat-square&logo=mongodb&logoColor=white" alt="MongoDB">
+  </a>
+</p>
 
 ---
 
-## Live Demo
+GoldCinema is a complete cinema platform built with a **React frontend**, **Node.js/Express REST API**, and **MongoDB database**.
 
-**[View GoldCinema Live Demo](https://donathalimi.github.io/GoldCinema/)**
+Users can discover movies, explore showtimes, select seats, purchase tickets, manage their accounts, save favourites, write reviews, purchase gift cards, and manage payment methods.
+
+The platform also includes a dedicated **administration dashboard** for managing cinema content, users, roles, bookings, payments, showtimes, and other operational data.
+
+---
 
 ## Table of Contents
 
@@ -25,7 +60,7 @@ The platform also includes a comprehensive **administration dashboard** for mana
   * [Notifications](#notifications)
   * [Administration](#administration)
   * [Internationalization](#internationalization)
-* [Technologies Used](#technologies-used)
+* [Technology Stack](#technology-stack)
 * [Architecture](#architecture)
   - [Database Design](https://github.com/DonatHalimi/GoldCinema#database-design)
 * [Project Structure](#project-structure)
@@ -300,53 +335,50 @@ The frontend and backend use translation keys to provide localized interface con
 Users can switch the application's language through the language selector.
 
 ---
+<p align="center">
+  <a href="https://github.com/DonatHalimi/GoldCinema">
+    <img src="https://img.shields.io/badge/Status-Active%20Development-E8C773?style=flat-square" alt="Status: Active Development">
+  </a>
+  <a href="https://react.dev/">
+    <img src="https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61DAFB?style=flat-square" alt="Frontend: React + Vite">
+  </a>
+  <a href="https://nodejs.org/">
+    <img src="https://img.shields.io/badge/Backend-Node.js%20%2B%20Express-339933?style=flat-square" alt="Backend: Node.js + Express">
+  </a>
+  <a href="https://www.mongodb.com/">
+    <img src="https://img.shields.io/badge/Database-MongoDB-47A248?style=flat-square" alt="Database: MongoDB">
+  </a>
+</p>
 
-# Technologies Used
+# Technology Stack
 
-## Frontend
+- [React](https://react.dev/) — UI library
+- [Vite](https://vite.dev/) — Frontend build tool
+- [Tailwind CSS](https://tailwindcss.com/) — Styling
+- [Redux Toolkit](https://redux-toolkit.js.org/) — State management
+- [React Router](https://reactrouter.com/) — Routing
+- [Axios](https://axios-http.com/) — HTTP client
+- [i18next](https://www.i18next.com/) — Internationalization
+- [Framer Motion](https://motion.dev/) — Animations
+- [Lucide React](https://lucide.dev/) — Icons
 
-* **React**
-* **Vite**
-* **JavaScript / JSX**
-* **Tailwind CSS**
-* **Redux Toolkit**
-* **React Router**
-* **Axios**
-* **i18next**
-* **Framer Motion**
-* **Lucide React**
+### Backend
 
-## Backend
+- [Node.js](https://nodejs.org/) — JavaScript runtime
+- [Express.js](https://expressjs.com/) — REST API framework
+- [MongoDB](https://www.mongodb.com/) — Database
+- [Mongoose](https://mongoosejs.com/) — MongoDB object modeling
 
-* **Node.js**
-* **Express.js**
-* **MongoDB**
-* **Mongoose**
-* **REST API**
-* **JWT Authentication**
-* **WebAuthn / Passkeys**
+### Authentication & Security
 
-## Authentication & Security
+- [JSON Web Tokens](https://jwt.io/) — Token-based authentication
+- [WebAuthn](https://webauthn.guide/) — Passkeys
+- [TOTP](https://en.wikipedia.org/wiki/Time-based_one-time_password) — Authenticator-based MFA
 
-* HTTP-only cookies
-* Access and refresh tokens
-* JWT-based authentication
-* Email verification
-* Password reset
-* Multi-factor authentication
-* TOTP
-* SMS OTP
-* WebAuthn / Passkeys
-* Trusted devices
-* Session management
-* Login attempt tracking
-* Security events
-* Role-based authorization
+### Payments
 
-## Payments
-
-* **Stripe**
-* **PayPal**
+- [Stripe](https://stripe.com/) — Payment processing
+- [PayPal](https://www.paypal.com/) — Payment processing
 
 ## Other Technologies
 
@@ -371,7 +403,7 @@ GoldCinema uses **MongoDB** with **Mongoose** for data persistence. The database
 
 The following Entity Relationship Diagram (ERD) provides a visual representation of the main database collections and their relationships:
 
-[ERD-HERE]
+<img width="1792" height="1765" alt="GoldCinema_ERD drawio" src="https://github.com/user-attachments/assets/126cef85-085a-42d5-8038-83665def37da" />
 
 The ERD illustrates relationships between the main entities involved in movie discovery, cinema management, seat reservations, ticket orders, payments, user accounts, reviews, favourites, and gift cards.
 
@@ -391,6 +423,8 @@ The database is implemented using MongoDB and Mongoose models located in:
 
 ```text
 backend/src/models/
+```
+
 ---
 
 # Project Structure
@@ -479,13 +513,13 @@ Verify MongoDB is available according to your local installation.
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/DonatHalimi/goldcinema.git
+git clone https://github.com/DonatHalimi/GoldCinema.git
 ```
 
 Navigate into the project:
 
 ```bash
-cd goldcinema
+cd GoldCinema
 ```
 
 ---
@@ -517,6 +551,24 @@ Open another terminal or navigate back to the project root:
 cd ../frontend
 npm install
 ```
+
+---
+
+### 5. Start the application
+
+After installing all dependencies, navigate back to the project root:
+
+```bash
+cd ..
+```
+
+Start the application with:
+
+```bash
+npm start
+```
+
+The root `package.json` contains the required scripts to start the GoldCinema application.
 
 ---
 
