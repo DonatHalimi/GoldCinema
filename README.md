@@ -8,6 +8,10 @@ The platform also includes a comprehensive **administration dashboard** for mana
 
 ---
 
+## Live Demo
+
+**[View GoldCinema Live Demo](https://donathalimi.github.io/GoldCinema/)**
+
 ## Table of Contents
 
 * [Overview](#overview)
