@@ -23,6 +23,7 @@ The platform also includes a comprehensive **administration dashboard** for mana
   * [Internationalization](#internationalization)
 * [Technologies Used](#technologies-used)
 * [Architecture](#architecture)
+  - [Database Design](https://github.com/DonatHalimi/GoldCinema#database-design)
 * [Project Structure](#project-structure)
 * [Getting Started](#getting-started)
   * [Prerequisites](#prerequisites)
@@ -360,6 +361,32 @@ GoldCinema follows a layered full-stack architecture.
 
 <img width="4466" height="7164" alt="diagram" src="https://github.com/user-attachments/assets/caf2623e-8185-443b-9da3-54ccceaba955" />
 
+## Database Design
+
+GoldCinema uses **MongoDB** with **Mongoose** for data persistence. The database is organized around the application's core entities, including users, movies, cinemas, screens, seats, showtimes, orders, payments, reviews, gift cards, notifications, and authentication-related data.
+
+The following Entity Relationship Diagram (ERD) provides a visual representation of the main database collections and their relationships:
+
+[ERD-HERE]
+
+The ERD illustrates relationships between the main entities involved in movie discovery, cinema management, seat reservations, ticket orders, payments, user accounts, reviews, favourites, and gift cards.
+
+For example:
+
+- **Cinemas** contain multiple **Screens**.
+- **Screens** contain multiple **Seats**.
+- **Movies** are associated with **Showtimes**.
+- **Showtimes** belong to a specific **Cinema Screen**.
+- **Users** can create **Orders**, **Reviews**, and **Favourites**.
+- **Orders** contain selected seats and are associated with **Payments**.
+- **Seat Holds** temporarily reserve seats for users during checkout.
+- **Gift Cards** can be purchased and redeemed toward orders.
+- **Roles** determine administrative permissions.
+
+The database is implemented using MongoDB and Mongoose models located in:
+
+```text
+backend/src/models/
 ---
 
 # Project Structure

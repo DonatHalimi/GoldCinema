@@ -1,10 +1,14 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" class="dark" data-theme="dark">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GoldCinema - Feature Showcase</title>
+
+    <link rel="icon" type="image/png" href="./icon.png">
+    <link rel="apple-touch-icon" href="./icon.png">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -12,199 +16,196 @@
             theme: {
                 extend: {
                     colors: {
-                        gold: {
-                            400: '#fbbf24',
-                            500: '#f59e0b',
-                            600: '#d97706',
+                        marquee: {
+                            bg: 'rgb(var(--color-bg) / <alpha-value>)',
+                            panel: 'rgb(var(--color-panel) / <alpha-value>)',
+                            panel2: 'rgb(var(--color-panel2) / <alpha-value>)',
+                            line: 'rgb(var(--color-line) / <alpha-value>)',
+                            gold: 'rgb(var(--color-gold) / <alpha-value>)',
+                            goldBright: 'rgb(var(--color-goldBright) / <alpha-value>)',
+                            goldDim: 'rgb(var(--color-goldDim) / <alpha-value>)',
+                            cream: 'rgb(var(--color-cream) / <alpha-value>)',
+                            muted: 'rgb(var(--color-muted) / <alpha-value>)',
                         }
+                    },
+                    fontFamily: {
+                        display: ['"Bebas Neue"', 'Impact', 'sans-serif'],
+                        serif: ['"Playfair Display"', 'Georgia', 'serif'],
+                        body: ['"Inter"', 'system-ui', 'sans-serif'],
+                    },
+                    backgroundImage: {
+                        'film-grain':
+                            'radial-gradient(circle at 1px 1px, rgb(var(--color-goldBright) / 0.06) 1px, transparent 0)',
                     }
                 }
             }
-        }
+        };
     </script>
-    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
 
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="./styles.css">
 </head>
 
-<body class="bg-zinc-950 text-zinc-100 h-screen overflow-hidden flex flex-col justify-between select-none">
-
+<body class="h-screen overflow-hidden flex flex-col select-none bg-marquee-bg text-marquee-cream film-grain">
     <header
-        class="w-full px-8 py-4 flex justify-between items-center border-b border-zinc-800/80 bg-zinc-900/50 backdrop-blur-md">
-        <div class="flex items-center space-x-3">
-            <span class="text-2xl">👑</span>
-            <h1
-                class="text-xl font-extrabold tracking-wider bg-gradient-to-r from-amber-200 via-gold-500 to-amber-600 bg-clip-text text-transparent">
-                GOLDEX CINEMA
-            </h1>
+        class="relative z-20 flex w-full items-center justify-between border-b border-marquee-line/60 bg-marquee-panel/70 px-6 py-4 backdrop-blur-xl sm:px-8">
+        <div>
+            <span class="font-display text-3xl tracking-wide text-marquee-goldBright">
+                GOLD<span class="text-marquee-cream">CINEMA</span>
+            </span>
+            <p class="hidden text-[8px] uppercase tracking-[0.3em] text-marquee-muted sm:block">
+                Feature Showcase
+            </p>
         </div>
-        <div id="slide-indicators" class="flex space-x-2">
-        </div>
+        <button id="theme-toggle" onclick="toggleTheme()"
+            class="flex h-9 w-9 items-center justify-center rounded-lg border border-marquee-line/70 bg-marquee-panel2/70 text-marquee-muted transition hover:border-marquee-gold/40 hover:text-marquee-gold"
+            aria-label="Switch to light mode" title="Switch theme">
+            <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+                stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
+                <circle cx="12" cy="12" r="4"></circle>
+                <path
+                    d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41">
+                </path>
+            </svg>
+        </button>
     </header>
 
-    <main class="relative flex-1 flex items-center justify-center p-6 overflow-hidden">
-        <div id="slide-container" class="w-full max-w-4xl h-full flex items-center justify-center relative">
+    <nav id="side-nav" class="side-nav" aria-label="Slide navigation">
+        <div class="side-nav-brand" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                stroke-linejoin="round" class="h-3.5 w-3.5">
+                <path d="M3 7h18v13H3z" />
+                <path d="M3 7l2-4 4 4 2-4 4 4 2-4 4 4" />
+                <path d="M8 12h8" />
+            </svg>
+            <span>NAV</span>
+        </div>
+    </nav>
+
+    <main class="relative flex h-0 flex-1 items-stretch justify-center overflow-hidden px-5 py-6 sm:px-8">
+        <div
+            class="pointer-events-none absolute -top-40 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-marquee-gold/[0.025] blur-3xl">
+        </div>
+        <div
+            class="pointer-events-none absolute -bottom-40 -left-20 h-80 w-80 rounded-full bg-marquee-goldDim/[0.02] blur-3xl">
+        </div>
+
+        <div id="slide-container"
+            class="relative flex pt-20 h-full w-full max-w-5xl items-start justify-center overflow-y-auto overflow-x-hidden px-0">
         </div>
     </main>
 
     <footer
-        class="w-full px-8 py-4 flex justify-between items-center border-t border-zinc-800/80 bg-zinc-900/50 backdrop-blur-md text-sm">
-        <button onclick="prevSlide()"
-            class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition font-medium flex items-center space-x-2 text-zinc-300">
-            <span>← Prev</span>
-        </button>
-        <div class="text-zinc-400 font-mono text-xs" id="slide-counter">Slide 1 / 5</div>
-        <div class="flex space-x-3">
-            <button id="auto-play-btn" onclick="toggleAutoPlay()"
-                class="px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-lg transition font-medium">
-                Auto-Play: Off
+        class="relative z-20 flex w-full flex-col items-center border-t border-marquee-line/60 bg-marquee-panel/70 backdrop-blur-xl">
+
+        <div id="segment-container" class="flex w-full max-w-5xl items-center justify-center gap-1.5 px-5 pt-3 sm:px-8">
+        </div>
+
+        <div class="flex w-full items-center justify-center gap-4 px-5 py-3 sm:px-8">
+            <button onclick="prevSlide()"
+                class="control-btn flex items-center justify-center gap-2 rounded-lg border border-marquee-line bg-marquee-panel2 px-4 py-2 text-sm font-medium text-marquee-muted transition hover:border-marquee-gold/40 hover:text-marquee-cream"
+                aria-label="Previous slide">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" class="h-4 w-4">
+                    <path d="m15 18-6-6 6-6" />
+                </svg>
+                <span>Prev</span>
             </button>
+
+            <div id="slide-counter"
+                class="text-center font-mono text-[10px] tracking-widest text-marquee-muted min-w-[44px]">
+                1 / 14
+            </div>
+
             <button onclick="nextSlide()"
-                class="px-4 py-2 bg-gold-500 hover:bg-gold-600 text-zinc-950 font-bold rounded-lg transition flex items-center space-x-2">
-                <span>Next →</span>
+                class="control-btn flex items-center gap-2 rounded-lg bg-marquee-gold px-4 py-2 text-sm font-bold text-marquee-bg transition hover:bg-marquee-goldBright"
+                aria-label="Next slide">
+                <span>Next</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" class="h-4 w-4">
+                    <path d="m9 18 6-6-6-6" />
+                </svg>
             </button>
+        </div>
+
+        <div class="flex w-full items-center justify-between gap-4 px-5 pb-3 sm:px-8">
+            <div class="hidden items-center gap-2 text-[10px] text-marquee-muted sm:flex">
+                <span class="kbd">←</span>
+                <span class="kbd">→</span>
+                <span>navigate</span>
+                <span class="mx-1 text-marquee-line">|</span>
+                <span class="kbd">Space</span>
+                <span>play/pause</span>
+            </div>
+
+            <button id="auto-play-btn" onclick="toggleAutoPlay()"
+                class="flex h-8 items-center justify-center gap-2 rounded-lg border border-marquee-line bg-marquee-panel2 px-3 text-xs font-medium text-marquee-muted transition hover:border-marquee-gold/40 hover:text-marquee-cream"
+                aria-label="Toggle auto-play" title="Auto-Play">
+                <svg id="auto-play-icon" viewBox="0 0 24 24" fill="currentColor" class="h-3.5 w-3.5">
+                    <path d="m8 5 11 7-11 7V5Z" />
+                </svg>
+                <span>Auto-Play</span>
+            </button>
+
+            <div class="relative" id="built-by-wrapper">
+                <p class="built-by" id="built-by-trigger">
+                    Built by <a href="https://github.com/DonatHalimi" target="_blank" rel="noopener noreferrer">Donat
+                        Halimi</a>
+                </p>
+
+                <div id="profile-card" class="profile-card" role="tooltip" aria-hidden="true">
+                    <div class="profile-card-inner">
+                        <div class="profile-avatar" aria-hidden="true">DH</div>
+                        <div class="profile-info">
+                            <p class="profile-name">Donat Halimi</p>
+                            <p class="profile-role">Full-Stack Developer</p>
+                            <p class="profile-bio">Building GoldCinema — a complete digital cinema platform.</p>
+                        </div>
+                    </div>
+                    <div class="profile-links">
+                        <a href="https://github.com/DonatHalimi" target="_blank" rel="noopener noreferrer"
+                            class="profile-link">
+                            <svg viewBox="0 0 24 24" fill="currentColor" class="h-3.5 w-3.5">
+                                <path
+                                    d="M12 .5C5.73.5.5 5.73.5 12a11.5 11.5 0 0 0 7.86 10.94c.58.1.79-.25.79-.56v-2.17c-3.2.7-3.88-1.36-3.88-1.36-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.12 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.7 5.39-5.26 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5Z" />
+                            </svg>
+                            <span>GitHub</span>
+                        </a>
+                        <a href="https://go.postman.co/workspace/b036de09-bd7c-4f1b-bd29-3a1579ead5aa" target="_blank"
+                            rel="noopener noreferrer" class="profile-link">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5">
+                                <path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1 1" />
+                                <path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1-1" />
+                            </svg>
+                            <span>Postman</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </footer>
 
-    <script>
-        const slides = [
-            {
-                title: "GoldCinema Experience",
-                subtitle: "Next-Generation Movie Booking Platform",
-                description: "A production-grade, full-stack cinematic masterpiece combining high-performance architecture, high-end UI design, and bulletproof user security.",
-                tag: "PROJECT OVERVIEW",
-                icon: "🎬",
-                highlights: ["Interactive Seat Mapping", "Stripe Payment Integration", "Passkey Security Architecture"]
-            },
-            {
-                title: "Advanced Seat Reservation",
-                subtitle: "Real-time Booking & Hold Logic",
-                description: "Engineered with dynamic grid layouts, live interactive seat selection, and precise countdown hold timers to secure user checkouts seamlessly.",
-                tag: "CORE FEATURE",
-                icon: "💺",
-                highlights: ["Interactive Seat Selection", "Seat Hold Expiration Timers", "Visual Tier Categorization"]
-            },
-            {
-                title: "Enterprise-Grade Security",
-                subtitle: "Passkeys & Multi-Factor Auth",
-                description: "Features modern passwordless authentication via WebAuthn Passkeys alongside TOTP authenticator apps, SMS modals, and robust JWT session handling.",
-                tag: "SECURITY",
-                icon: "🛡️",
-                highlights: ["WebAuthn Passkey Support", "TOTP & SMS OTP Modals", "Secure Cookie / JWT Handling"]
-            },
-            {
-                title: "Instant Ticket Dispatch",
-                subtitle: "Automated Email Confirmations",
-                description: "Integrated backend mailing pipelines using Nodemailer to deliver instantly formatted ticket reservations straight to the user's inbox upon checkout success.",
-                tag: "AUTOMATION",
-                icon: "✉️",
-                highlights: ["Nodemailer Dispatch Engine", "HTML Ticket Templates", "Instant Booking Verifications"]
-            },
-            {
-                title: "Built For Scale",
-                subtitle: "Modern Tech Stack & Aesthetics",
-                description: "Crafted meticulously using Tailwind CSS for fluid responsiveness and Framer Motion styling patterns, structured for speed, scalability, and elegance.",
-                tag: "ARCHITECTURE",
-                icon: "⚡",
-                highlights: ["Tailwind CSS & Framer Motion", "RESTful API Backend", "Optimized Performance Flow"]
-            }
-        ];
+    <div id="toast" class="toast" role="status" aria-live="polite">
+        <div class="toast-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" class="h-4 w-4">
+                <path d="m5 12 4 4L19 6" />
+            </svg>
+        </div>
+        <div class="toast-body">
+            <p class="toast-title">Welcome</p>
+            <p class="toast-message">Use the side nav or arrow keys to explore.</p>
+        </div>
+        <button class="toast-close" aria-label="Dismiss">✕</button>
+    </div>
 
-        let currentSlide = 0;
-        let isAutoPlaying = false;
-        let autoPlayInterval = null;
-
-        const slideContainer = document.getElementById('slide-container');
-        const slideIndicators = document.getElementById('slide-indicators');
-        const slideCounter = document.getElementById('slide-counter');
-        const autoPlayBtn = document.getElementById('auto-play-btn');
-
-        function renderIndicators() {
-            slideIndicators.innerHTML = '';
-            slides.forEach((_, index) => {
-                const dot = document.createElement('button');
-                dot.className = `h-2 rounded-full transition-all duration-300 ${index === currentSlide ? 'w-8 bg-amber-500' : 'w-2 bg-zinc-700'}`;
-                dot.onclick = () => goToSlide(index);
-                slideIndicators.appendChild(dot);
-            });
-            slideCounter.innerText = `Slide ${currentSlide + 1} / ${slides.length}`;
-        }
-
-        function renderSlide() {
-            const data = slides[currentSlide];
-            slideContainer.innerHTML = `
-                <div class="w-full flex flex-col items-center text-center p-8 bg-zinc-900/40 border border-zinc-800/80 rounded-2xl backdrop-blur-xl shadow-2xl relative overflow-hidden">
-                    <div class="absolute -top-24 -right-24 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
-                    <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-amber-600/10 rounded-full blur-3xl pointer-events-none"></div>
-
-                    <span class="px-3 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-semibold rounded-full mb-6 tracking-widest uppercase">
-                        ${data.tag}
-                    </span>
-
-                    <div class="text-5xl mb-4 p-4 bg-zinc-800/50 border border-zinc-700/50 rounded-2xl shadow-inner">
-                        ${data.icon}
-                    </div>
-
-                    <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight text-white mb-2">
-                        ${data.title}
-                    </h2>
-                    
-                    <h3 class="text-lg font-medium text-amber-500 mb-4">
-                        ${data.subtitle}
-                    </h3>
-
-                    <p class="text-zinc-400 max-w-xl text-sm md:text-base leading-relaxed mb-8">
-                        ${data.description}
-                    </p>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 w-full max-w-2xl">
-                        ${data.highlights.map(h => `
-                            <div class="px-4 py-3 bg-zinc-950/60 border border-zinc-800/80 rounded-xl text-xs font-medium text-zinc-300 flex items-center justify-center space-x-2 shadow-sm">
-                                <span class="text-amber-500">✦</span>
-                                <span>${h}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-            renderIndicators();
-        }
-
-        function nextSlide() {
-            currentSlide = (currentSlide + 1) % slides.length;
-            renderSlide();
-        }
-
-        function prevSlide() {
-            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
-            renderSlide();
-        }
-
-        function goToSlide(index) {
-            currentSlide = index;
-            renderSlide();
-        }
-
-        function toggleAutoPlay() {
-            isAutoPlaying = !isAutoPlaying;
-            if (isAutoPlaying) {
-                autoPlayBtn.innerText = "Auto-Play: On";
-                autoPlayBtn.className = "px-4 py-2 bg-amber-500 text-zinc-950 font-bold rounded-lg transition";
-                autoPlayInterval = setInterval(nextSlide, 4000);
-            } else {
-                autoPlayBtn.innerText = "Auto-Play: Off";
-                autoPlayBtn.className = "px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-lg transition font-medium";
-                clearInterval(autoPlayInterval);
-            }
-        }
-
-        renderSlide();
-    </script>
+    <script src="./script.js"></script>
 </body>
 
 </html>
