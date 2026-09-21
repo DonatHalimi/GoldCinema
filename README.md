@@ -19,7 +19,7 @@
     <img src="https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github" alt="GitHub Repository">
   </a>
   &nbsp;
-  <a href="https://documenter.getpostman.com/view/YOUR_COLLECTION_ID" style="text-decoration: none;">
+  <a href="[https://documenter.getpostman.com/view/YOUR_COLLECTION_ID](https://platform-api-team-5444.postman.co/workspace/GoldCinema~b036de09-bd7c-4f1b-bd29-3a1579ead5aa/overview?sideView=agentMode)" style="text-decoration: none;">
     <img src="https://img.shields.io/badge/API%20Docs-Postman-FF6C37?style=for-the-badge&logo=postman&logoColor=white" alt="Postman API Docs">
   </a>
 </p>
@@ -139,7 +139,7 @@ The diagram below provides a high-level overview of how these layers interact. A
 
 The full REST API is documented as a Postman collection:
 
-**[Postman API Documentation →](https://documenter.getpostman.com/view/YOUR_COLLECTION_ID)**
+**[Postman API Documentation →]([https://documenter.getpostman.com/view/YOUR_COLLECTION_ID](https://platform-api-team-5444.postman.co/workspace/GoldCinema~b036de09-bd7c-4f1b-bd29-3a1579ead5aa/overview?sideView=agentMode))**
 
 The collection includes:
 
