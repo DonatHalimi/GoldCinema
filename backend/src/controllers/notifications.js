@@ -178,7 +178,7 @@ async function toggleArchiveStatus(req, res, next) {
 
         notification.archivedAt = notification.archived
             ? new Date()
-            : null; archivedAt
+            : null;
 
         await notification.save();
 
