@@ -55,6 +55,17 @@ async function finalizeOrder({ hold, userId, provider, reference, amount }) {
     });
 
     await hold.deleteOne();
+
+    await order.populate('movie', 'title');
+
+    await notifyPurchase({
+        userId: order.user,
+        orderId: order._id,
+        movieTitle: order.movie?.title || 'Movie',
+        seats: order.seats || [],
+        amount: order.totalAmount || 0,
+    });
+
     return order;
 }
 
