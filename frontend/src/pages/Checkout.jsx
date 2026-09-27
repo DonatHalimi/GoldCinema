@@ -9,10 +9,12 @@ import GiftCardBox from '../components/checkout/GiftCardBox';
 import GiftCardFullCoverage from '../components/checkout/GiftCardFullCoverage';
 import PaymentSection from '../components/checkout/PaymentSelection';
 import SeatHoldTimer from '../components/checkout/SeatHoldTimer';
+import { useNotifications } from '../context/NotificationContext';
 
 export default function Checkout() {
   const { orderId } = useParams();
   const navigate = useNavigate();
+  const { fetchNotifications } = useNotifications();
 
   const [order, setOrder] = useState(null);
   const [movie, setMovie] = useState(null);
@@ -118,7 +120,7 @@ export default function Checkout() {
     }
   }
 
-  function handleSuccess(response) {
+  async function handleSuccess(response) {
     const paidOrder = response.order ?? response;
 
     if (!paidOrder?._id) {
@@ -127,6 +129,10 @@ export default function Checkout() {
     }
 
     sessionStorage.removeItem(`selectedSeats-${order.showtime}`);
+
+    // The purchase notification is created by the backend before the payment
+    // endpoint returns. Refresh the shared notification state before leaving checkout.
+    await fetchNotifications();
 
     navigate(`/confirmation/${paidOrder._id}`);
   }
