@@ -33,8 +33,7 @@ export function NotificationProvider({ children }) {
         setLoading(true);
 
         try {
-            const response = await getNotifications(filter, page, 20);
-            const data = response.data;
+            const data = await getNotifications(filter, page, 20);
 
             setNotifications(data.notifications || []);
             setTotalCount(data.totalCount || 0);
@@ -66,9 +65,9 @@ export function NotificationProvider({ children }) {
 
     const markAsRead = useCallback(async (id, read = true) => {
         try {
-            const response = await markNotificationAsRead(id, read);
+            const data = await markNotificationAsRead(id, read);
 
-            const updatedNotification = response.data.notification;
+            const updatedNotification = data.notification;
 
             setNotifications((current) =>
                 current.map((notification) =>
@@ -78,8 +77,8 @@ export function NotificationProvider({ children }) {
                 )
             );
 
-            if (typeof response.data.unreadCount === 'number') {
-                setUnreadCount(response.data.unreadCount);
+            if (typeof data.unreadCount === 'number') {
+                setUnreadCount(data.unreadCount);
             }
         } catch (error) {
             console.error('[NOTIFICATIONS] Failed to update read status:', error.response?.data || error.message);
@@ -88,9 +87,9 @@ export function NotificationProvider({ children }) {
 
     const markAllAsRead = useCallback(async () => {
         try {
-            const response = await markAllNotificationsAsRead();
+            const data = await markAllNotificationsAsRead();
 
-            setUnreadCount(response.data.unreadCount ?? 0);
+            setUnreadCount(data.unreadCount ?? 0);
 
             setNotifications((current) =>
                 current.map((notification) =>
@@ -111,10 +110,10 @@ export function NotificationProvider({ children }) {
     const toggleArchive = useCallback(
         async (id, archived) => {
             try {
-                const response = await toggleNotificationArchive(id, archived);
+                const data = await toggleNotificationArchive(id, archived);
 
-                if (typeof response.data.unreadCount === 'number') {
-                    setUnreadCount(response.data.unreadCount);
+                if (typeof data.unreadCount === 'number') {
+                    setUnreadCount(data.unreadCount);
                 }
 
                 await fetchNotifications();
@@ -127,10 +126,10 @@ export function NotificationProvider({ children }) {
 
     const archiveAllRead = useCallback(async () => {
         try {
-            const response = await archiveAllReadNotifications();
+            const data = await archiveAllReadNotifications();
 
-            if (typeof response.data.unreadCount === 'number') {
-                setUnreadCount(response.data.unreadCount);
+            if (typeof data.unreadCount === 'number') {
+                setUnreadCount(data.unreadCount);
             }
 
             await fetchNotifications();
@@ -141,10 +140,10 @@ export function NotificationProvider({ children }) {
 
     const archiveAll = useCallback(async () => {
         try {
-            const response = await markAllNotificationsAsArchived();
+            const data = await markAllNotificationsAsArchived();
 
-            if (typeof response.data.unreadCount === 'number') {
-                setUnreadCount(response.data.unreadCount);
+            if (typeof data.unreadCount === 'number') {
+                setUnreadCount(data.unreadCount);
             }
 
             await fetchNotifications();
@@ -155,10 +154,10 @@ export function NotificationProvider({ children }) {
 
     const unarchiveAll = useCallback(async () => {
         try {
-            const response = await markAllNotificationsAsUnarchived();
+            const data = await markAllNotificationsAsUnarchived();
 
-            if (typeof response.data.unreadCount === 'number') {
-                setUnreadCount(response.data.unreadCount);
+            if (typeof data.unreadCount === 'number') {
+                setUnreadCount(data.unreadCount);
             }
 
             setFilter('all');
