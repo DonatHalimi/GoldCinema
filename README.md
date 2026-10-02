@@ -42,15 +42,13 @@
   </a>
 </p>
 
-> ⚠️ **Live Demo Notice** — The hosted demo runs on a free-tier backend. The first request after inactivity may take **20–30 seconds** to cold-start. Payments use **Stripe test mode only** — no real charges are made.
-
 ---
 
 GoldCinema is a complete cinema platform built with a **React frontend**, **Node.js/Express REST API**, and **MongoDB database**.
 
 Users can discover movies, explore showtimes, select seats, purchase tickets, manage their accounts, save favourites, write reviews, purchase gift cards, and manage payment methods.
 
-The platform also includes a dedicated **administration dashboard** for managing cinema content, users, roles, bookings, payments, showtimes, and other operational data.
+The platform also includes a dedicated **administration dashboard** for managing cinema content, users, roles, bookings, payments, showtimes, staff, equipment, and other operational data.
 
 ---
 
@@ -67,6 +65,9 @@ The platform also includes a dedicated **administration dashboard** for managing
   - [Reviews & Favourites](#reviews--favourites)
   - [Notifications](#notifications)
   - [Administration](#administration)
+  - [Staff & Operations](#staff--operations)
+  - [Equipment & Maintenance](#equipment--maintenance)
+  - [Analytics](#analytics)
   - [Internationalization](#internationalization)
 - [Technology Stack](#technology-stack)
 - [Architecture](#architecture)
@@ -99,7 +100,7 @@ Users can browse movies currently showing in the cinema, view movie details and 
 
 The application also provides a dedicated account area where users can manage their profile, tickets, favourites, reviews, payment methods, notifications, sessions, and security settings.
 
-An administrative dashboard provides tools for managing the cinema's content and operational data.
+An administrative dashboard provides tools for managing the cinema's content and operational data, including staff scheduling, equipment inventory, maintenance tracking, and business analytics.
 
 The project follows a **client-server architecture**, with the frontend, backend, and database separated into distinct layers. The frontend communicates with the backend through a REST API, while the backend handles application logic, authentication, validation, and database operations.
 
@@ -149,6 +150,10 @@ The collection includes:
 - Payment intent creation (Stripe + PayPal)
 - Gift card endpoints
 - Admin CRUD endpoints
+- Staff, shift, and employee scheduling endpoints
+- Screen configuration endpoints
+- Equipment and maintenance log endpoints
+- Analytics endpoints (movie performance, customer analytics)
 - Environment variables for local and deployed URLs
 
 <p align="right"><sub><a href="#table-of-contents">↑ Top</a></sub></p>
@@ -357,6 +362,7 @@ Administrators can manage cinema-related data including:
 * Showtimes
 * Cinemas
 * Screens
+* Screen configurations
 * Seats
 * Orders
 * Payments
@@ -367,8 +373,121 @@ Administrators can manage cinema-related data including:
 * Notifications
 * Slideshows
 * Contacts
+* Staff members
+* Shifts
+* Equipment
+* Maintenance logs
+* Analytics
 
 The administration system uses reusable CRUD components and server-side authorization to restrict administrative functionality.
+
+<p align="right"><sub><a href="#table-of-contents">↑ Top</a></sub></p>
+
+---
+
+## Staff & Operations
+
+GoldCinema supports cinema staff management and scheduling.
+
+### Staff Management
+
+Administrators can create and manage staff members.
+
+* Register staff members linked to a user account
+* Assign job positions (usher, cashier, projectionist, manager, cleaner)
+* Assign staff to a specific cinema
+* Track hire date and hourly rate
+* Activate or deactivate staff records
+* Filter staff by cinema, position, and active status
+
+### Shift Scheduling
+
+Administrators can schedule and manage staff shifts.
+
+* Create shifts for staff members
+* Assign shifts to a cinema
+* Set start and end times
+* Automatic conflict detection for overlapping shifts
+* Track shift status (scheduled, confirmed, completed, no-show, cancelled)
+* Filter shifts by staff, cinema, status, or date range
+* Update shift status as it progresses
+
+Staff members can also view their own profile and upcoming shifts through a dedicated endpoint.
+
+<p align="right"><sub><a href="#table-of-contents">↑ Top</a></sub></p>
+
+---
+
+## Equipment & Maintenance
+
+GoldCinema tracks physical equipment owned by each cinema and its maintenance history.
+
+### Equipment Registry
+
+Administrators can maintain an inventory of cinema equipment.
+
+* Projectors
+* Sound systems
+* HVAC units
+* Point-of-sale terminals
+* Lighting systems
+* Custom equipment types
+
+Each item tracks its serial number, purchase date, warranty expiry, and current status (operational, maintenance, broken, retired).
+
+### Screen Configurations
+
+Each screen can be configured with technical specifications:
+
+* Screen type (standard, IMAX, 4DX, ScreenX, Dolby)
+* Sound system
+* Projector type
+* Physical dimensions
+* 3D and high-frame-rate capability
+
+### Maintenance Logs
+
+Administrators can log maintenance events.
+
+* Routine maintenance
+* Repairs
+* Inspections
+* Emergency work
+
+Each log records the maintenance type, cost, technician, and next due date. Repair logs for broken equipment automatically transition the equipment's status to "maintenance".
+
+<p align="right"><sub><a href="#table-of-contents">↑ Top</a></sub></p>
+
+---
+
+## Analytics
+
+GoldCinema includes a dedicated analytics module for business intelligence.
+
+### Movie Performance
+
+Track daily performance for each movie.
+
+* Showtime count per day
+* Tickets sold
+* Revenue generated
+* Average occupancy percentage
+* Average customer rating
+
+Administrators can trigger recomputation for any date range and view aggregated summaries across all movies.
+
+### Customer Analytics
+
+Track engagement and spending per customer.
+
+* Total amount spent
+* Visit count
+* Favourite genre
+* Last visit date
+* Lifetime value
+* Churn risk (low, medium, high, unknown)
+
+Analytics are derived collections populated by an aggregation service, not user-written records.
 
 <p align="right"><sub><a href="#table-of-contents">↑ Top</a></sub></p>
 
@@ -447,6 +566,7 @@ Users can switch the application's language through the language selector.
 * File uploads
 * RESTful API architecture
 * Automated API tests
+* MongoDB aggregation pipelines for analytics
 
 <p align="right"><sub><a href="#table-of-contents">↑ Top</a></sub></p>
 
@@ -457,8 +577,8 @@ Users can switch the application's language through the language selector.
 GoldCinema follows a layered full-stack architecture, with each layer holding a distinct responsibility:
 
 - **Frontend (React + Vite)** — Renders the UI, manages client-side routing and state (Redux Toolkit), handles form validation, and communicates with the backend exclusively through the REST API. It never talks to the database directly.
-- **Backend (Node.js + Express)** — Exposes the REST API, enforces authentication and authorization, validates incoming requests, runs business logic (seat holds, pricing, payment intent creation), and is the only layer allowed to read from or write to the database.
-- **Database (MongoDB + Mongoose)** — Stores all persistent data: users, movies, cinemas, screens, seats, showtimes, orders, payments, gift cards, reviews, notifications, and audit/security records. Mongoose schemas enforce structure and validation at the model layer.
+- **Backend (Node.js + Express)** — Exposes the REST API, enforces authentication and authorization, validates incoming requests, runs business logic (seat holds, pricing, payment intent creation, shift conflict detection, analytics computation), and is the only layer allowed to read from or write to the database.
+- **Database (MongoDB + Mongoose)** — Stores all persistent data: users, movies, cinemas, screens, seats, showtimes, orders, payments, gift cards, reviews, notifications, staff, shifts, equipment, maintenance logs, analytics, and audit/security records. Mongoose schemas enforce structure and validation at the model layer.
 
 This separation means the frontend can be swapped (e.g. a mobile app) without touching the backend, and the database can be scaled or migrated independently.
 
@@ -470,18 +590,18 @@ This separation means the frontend can be swapped (e.g. a mobile app) without to
 
 ## Database Design
 
-GoldCinema uses **MongoDB** with **Mongoose** for data persistence. The database is organized around the application's core entities, including users, movies, cinemas, screens, seats, showtimes, orders, payments, reviews, gift cards, notifications, and authentication-related data.
+GoldCinema uses **MongoDB** with **Mongoose** for data persistence. The database is organized around the application's core entities, including users, movies, cinemas, screens, seats, showtimes, orders, payments, reviews, gift cards, notifications, staff, equipment, analytics, and authentication-related data.
 
-The following Entity Relationship Diagram (ERD) provides a visual representation of the main database collections and their relationships:
+The following [Entity Relationship Diagram (ERD)](https://www.geeksforgeeks.org/dbms/introduction-of-er-model/) provides a visual representation of the main database collections and their relationships:
 
-<img width="1792" height="1764" alt="GoldCinema_ERD drawio" src="https://github.com/user-attachments/assets/a1f0a6c9-dd9b-4ac0-8a32-213a3eda765c" />
+<img width="3612" height="3960" alt="GoldCinema" src="https://github.com/user-attachments/assets/f238d5fb-cafe-4877-bcd9-2f2854f5823e" />
 
-The ERD illustrates relationships between the main entities involved in movie discovery, cinema management, seat reservations, ticket orders, payments, user accounts, reviews, favourites, and gift cards.
+The ERD illustrates relationships between the main entities involved in movie discovery, cinema management, seat reservations, ticket orders, payments, user accounts, reviews, favourites, gift cards, staff scheduling, equipment tracking, and business analytics.
 
 For example:
 
 - **Cinemas** contain multiple **Screens**.
-- **Screens** contain multiple **Seats**.
+- **Screens** contain multiple **Seats** and one **Screen Configuration**.
 - **Movies** are associated with **Showtimes**.
 - **Showtimes** belong to a specific **Cinema Screen**.
 - **Users** can create **Orders**, **Reviews**, and **Favourites**.
@@ -489,6 +609,10 @@ For example:
 - **Seat Holds** temporarily reserve seats for users during checkout.
 - **Gift Cards** can be purchased and redeemed toward orders.
 - **Roles** determine administrative permissions.
+- **Staff** link a user to a cinema and a job position.
+- **Shifts** schedule staff members at a cinema.
+- **Equipment** belongs to a cinema and is tracked with **Maintenance Logs**.
+- **Movie Performance** and **Customer Analytics** are derived analytics collections.
 
 The database is implemented using MongoDB and Mongoose models located in:
 
@@ -528,6 +652,7 @@ donathalimi-goldcinema/
 │   │   ├── api/                          # API client modules
 │   │   ├── components/                   # Reusable UI components
 │   │   │   ├── account/
+│   │   │   ├── admin/
 │   │   │   ├── auth/
 │   │   │   ├── checkout/
 │   │   │   ├── confirmation/
@@ -540,6 +665,7 @@ donathalimi-goldcinema/
 │   │   │   ├── reviews/
 │   │   │   ├── tickets/
 │   │   │   └── ui/
+│   │   ├── config/                       # Admin module configuration
 │   │   ├── context/                      # React contexts
 │   │   ├── hooks/                        # Custom React hooks
 │   │   ├── pages/                        # Application pages
@@ -825,6 +951,7 @@ The application contains models for:
 * Movies
 * Cinemas
 * Screens
+* Screen Configurations
 * Seats
 * Showtimes
 * Orders
@@ -837,7 +964,14 @@ The application contains models for:
 * Slideshows
 * Contacts
 * Login Attempts
+* Audit Logs
 * Snacks
+* Staff
+* Shifts
+* Equipment
+* Maintenance Logs
+* Movie Performance
+* Customer Analytics
 
 <p align="right"><sub><a href="#table-of-contents">↑ Top</a></sub></p>
 
@@ -938,7 +1072,17 @@ Once GoldCinema is running, users can:
 16. Review notifications and security activity.
 17. Manage active sessions and authentication settings.
 
-Administrators can access the **Admin Dashboard** to manage the cinema's operational and content data.
+Administrators can access the **Admin Dashboard** to manage the cinema's operational and content data, including:
+
+- Users, roles, and permissions
+- Movies, cinemas, screens, and screen configurations
+- Showtimes and seat maps
+- Orders, payments, and gift cards
+- Reviews, notifications, and contacts
+- Slideshows and translations
+- Staff members and shift scheduling
+- Equipment inventory and maintenance logs
+- Movie performance and customer analytics
 
 <p align="right"><sub><a href="#table-of-contents">↑ Top</a></sub></p>
 
@@ -967,6 +1111,7 @@ These include:
 * Request validation
 * Centralized error handling
 * Security event tracking
+* Audit logging for admin mutations and payment events
 
 Sensitive authentication information is intentionally excluded from application audit and security records.
 
