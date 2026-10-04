@@ -1,6 +1,6 @@
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import TicketStatus from './TicketStatus';
-import { useTranslation } from 'react-i18next';
 
 export default function TicketCard({ order }) {
   const { t } = useTranslation('account');

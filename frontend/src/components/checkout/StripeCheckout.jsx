@@ -1,18 +1,12 @@
-import {
-  Elements,
-  PaymentElement,
-  useElements,
-  useStripe,
-} from '@stripe/react-stripe-js';
+import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import { CreditCard, Plus, Star } from 'lucide-react';
+import { CreditCard, Lock, Plus, Star } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { confirmStripePayment, createStripePaymentIntent } from '../../api/payments';
 import AddPaymentMethodModal from '../payments/AddPaymentMethodModal';
+import SlideToConfirm from './SlideToConfirm';
 
-const stripePromise = loadStripe(
-  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
-);
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 const BRAND_LABELS = {
   visa: 'Visa',
@@ -24,12 +18,41 @@ const BRAND_LABELS = {
   unionpay: 'UnionPay',
 };
 
+const formatMoney = (amount, currency = 'USD') =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(Number(amount || 0));
+
 function formatBrand(brand) {
+  return BRAND_LABELS[brand] || (brand ? brand.charAt(0).toUpperCase() + brand.slice(1) : 'Card');
+}
+
+function Row({ label, value }) {
   return (
-    BRAND_LABELS[brand] ||
-    (brand
-      ? brand.charAt(0).toUpperCase() + brand.slice(1)
-      : 'Card')
+    <div className="flex items-center justify-between py-2 text-sm">
+      <dt className="text-marquee-muted">{label}</dt>
+      <dd className="text-marquee-cream">{value}</dd>
+    </div>
+  );
+}
+
+function OrderSummary({ order, paymentLabel }) {
+  const currency = order.currency || 'USD';
+  const ticketCount = order.seats?.length || 0;
+  const total = formatMoney(order.totalAmount, currency);
+
+  return (
+    <dl className="divide-y divide-marquee-line/60 rounded-xl border border-marquee-line bg-marquee-panel2 px-4">
+      <Row label={`Seats (${ticketCount})`} value={order.seats?.join(', ')} />
+      <Row label="Tickets" value={formatMoney(order.ticketAmount, currency)} />
+      {order.snackAmount > 0 && <Row label="Snacks" value={formatMoney(order.snackAmount, currency)} />}
+      {order.giftCardAmount > 0 && (
+        <Row label={`Gift card ${order.giftCardCode || ''}`} value={`−${formatMoney(order.giftCardAmount, currency)}`} />
+      )}
+      <Row label="Pay with" value={paymentLabel} />
+      <div className="flex items-center justify-between py-3">
+        <dt className="text-sm font-semibold text-marquee-cream">Total</dt>
+        <dd className="font-display text-2xl tracking-wide text-marquee-gold">{total}</dd>
+      </div>
+    </dl>
   );
 }
 
@@ -45,9 +68,7 @@ function SavedPaymentMethods({
   if (paymentMethodsLoading) {
     return (
       <div className="mb-6 rounded-lg border border-marquee-line bg-marquee-panel2 p-4">
-        <p className="text-sm text-marquee-muted">
-          Loading saved payment methods...
-        </p>
+        <p className="text-sm text-marquee-muted">Loading saved payment methods...</p>
       </div>
     );
   }
@@ -57,10 +78,7 @@ function SavedPaymentMethods({
       <div className="mb-6 rounded-xl border border-dashed border-marquee-line bg-marquee-panel2 p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold text-marquee-cream">
-              No saved payment methods
-            </p>
-
+            <p className="text-sm font-semibold text-marquee-cream">No saved payment methods</p>
             <p className="mt-1 text-xs text-marquee-muted">
               You can enter a new card below or save a card for faster checkout next time
             </p>
@@ -91,26 +109,18 @@ function SavedPaymentMethods({
   return (
     <div className="mb-6 space-y-3">
       <div>
-        <p className="text-sm font-semibold text-marquee-cream">
-          Saved payment methods
-        </p>
-
-        <p className="mt-1 text-xs text-marquee-muted">
-          Select a saved card or use a new card below
-        </p>
+        <p className="text-sm font-semibold text-marquee-cream">Saved payment methods</p>
+        <p className="mt-1 text-xs text-marquee-muted">Select a saved card or use a new card below</p>
       </div>
 
       {methods.map((method) => {
-        const selected =
-          selectedPaymentMethod === method.id;
+        const selected = selectedPaymentMethod === method.id;
 
         return (
           <button
             key={method.id}
             type="button"
-            onClick={() =>
-              setSelectedPaymentMethod(method.id)
-            }
+            onClick={() => setSelectedPaymentMethod(method.id)}
             className={`w-full rounded-xl border p-4 text-left transition ${selected
               ? 'border-marquee-gold bg-marquee-gold/10'
               : 'border-marquee-line bg-marquee-panel2 hover:border-marquee-gold/40'
@@ -122,18 +132,10 @@ function SavedPaymentMethods({
 
                 <div>
                   <p className="font-semibold text-marquee-cream">
-                    {formatBrand(method.brand)}{' '}
-                    •••• {method.last4}
+                    {formatBrand(method.brand)} •••• {method.last4}
                   </p>
-
                   <p className="mt-1 text-xs text-marquee-muted">
-                    Expires{' '}
-                    {String(method.expMonth).padStart(
-                      2,
-                      '0'
-                    )}
-                    /
-                    {String(method.expYear).slice(-2)}
+                    Expires {String(method.expMonth).padStart(2, '0')}/{String(method.expYear).slice(-2)}
                   </p>
                 </div>
               </div>
@@ -148,20 +150,14 @@ function SavedPaymentMethods({
 
             <div className="mt-3 flex items-center gap-2">
               <span
-                className={`h-4 w-4 rounded-full border flex items-center justify-center ${selected
-                  ? 'border-marquee-gold'
-                  : 'border-marquee-line'
+                className={`h-4 w-4 rounded-full border flex items-center justify-center ${selected ? 'border-marquee-gold' : 'border-marquee-line'
                   }`}
               >
-                {selected && (
-                  <span className="h-2 w-2 rounded-full bg-marquee-gold" />
-                )}
+                {selected && <span className="h-2 w-2 rounded-full bg-marquee-gold" />}
               </span>
 
               <span className="text-xs text-marquee-muted">
-                {selected
-                  ? 'Selected payment method'
-                  : 'Use this card'}
+                {selected ? 'Selected payment method' : 'Use this card'}
               </span>
             </div>
           </button>
@@ -180,10 +176,7 @@ function SavedPaymentMethods({
           <CreditCard className="h-5 w-5 text-marquee-goldDim" />
 
           <div>
-            <p className="font-semibold text-marquee-cream">
-              Use a new card
-            </p>
-
+            <p className="font-semibold text-marquee-cream">Use a new card</p>
             <p className="mt-1 text-xs text-marquee-muted">
               Enter your card details securely with Stripe.
             </p>
@@ -201,16 +194,32 @@ function StripeForm({
   selectedPaymentMethod,
   clientSecret,
   confirmPaymentFn,
+  paymentLabel,
 }) {
   const stripe = useStripe();
   const elements = useElements();
   const [submitting, setSubmitting] = useState(false);
+  const [paymentComplete, setPaymentComplete] = useState(false);
+
+  useEffect(() => {
+    setPaymentComplete(false);
+  }, [selectedPaymentMethod]);
+
+  async function confirmOrder(paymentIntent) {
+    try {
+      const data = await confirmPaymentFn(order, paymentIntent);
+      onSuccess(data.order ?? data.giftCard);
+    } catch (err) {
+      onError(err.response?.data?.error || err.message || 'Payment confirmation failed.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   async function confirmSavedCard() {
-    const { error, paymentIntent } =
-      await stripe.confirmCardPayment(clientSecret, {
-        payment_method: selectedPaymentMethod,
-      });
+    const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: selectedPaymentMethod,
+    });
 
     if (error) {
       onError(error.message || 'Payment failed. Please try again.');
@@ -234,10 +243,7 @@ function StripeForm({
       return;
     }
 
-    const {
-      error: submitError,
-      paymentIntent,
-    } = await stripe.confirmPayment({
+    const { error: submitError, paymentIntent } = await stripe.confirmPayment({
       elements,
       redirect: 'if_required',
     });
@@ -257,36 +263,19 @@ function StripeForm({
     await confirmOrder(paymentIntent);
   }
 
-  async function confirmOrder(paymentIntent) {
-    try {
-      const data = await confirmPaymentFn(order, paymentIntent);
+  const currency = order.currency || 'USD';
+  const total = formatMoney(order.totalAmount, currency);
+  const canPay = Boolean(selectedPaymentMethod) || paymentComplete;
+  const ready = Boolean(stripe && elements) && canPay && !submitting;
 
-      onSuccess(data.order ?? data.giftCard);
-    } catch (err) {
-      onError(
-        err.response?.data?.error ||
-        err.message ||
-        'Payment confirmation failed.'
-      );
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-
-    if (!stripe || !elements) return;
-
-    setSubmitting(true);
+  async function handleConfirmedPay() {
+    if (submitting) return;
     onError('');
+    setSubmitting(true);
 
     try {
-      if (selectedPaymentMethod) {
-        await confirmSavedCard();
-      } else {
-        await confirmNewCard();
-      }
+      if (selectedPaymentMethod) await confirmSavedCard();
+      else await confirmNewCard();
     } catch (err) {
       onError(err.message || 'Payment failed. Please try again.');
       setSubmitting(false);
@@ -294,24 +283,25 @@ function StripeForm({
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-6"
-    >
+    <div className="space-y-6">
       {!selectedPaymentMethod && (
-        <PaymentElement />
+        <PaymentElement onChange={(e) => setPaymentComplete(e.complete)} />
       )}
 
-      <button
-        type="submit"
-        disabled={!stripe || submitting}
-        className="w-full rounded-full bg-marquee-gold px-6 py-3 font-semibold text-marquee-bg transition hover:bg-marquee-goldBright disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        {submitting
-          ? 'Processing payment...'
-          : `Pay $${order.totalAmount.toFixed(2)} with card`}
-      </button>
-    </form>
+      <OrderSummary order={order} paymentLabel={paymentLabel} />
+
+      <SlideToConfirm
+        label="Slide to pay"
+        ariaLabel={`Confirm payment of ${total}. Drag right, or press Enter.`}
+        price={total}
+        onConfirm={handleConfirmedPay}
+        loading={!ready}
+      />
+
+      <p className="flex items-center justify-center gap-1.5 text-xs text-marquee-muted">
+        <Lock className="h-3 w-3 text-marquee-gold" /> Payments are processed securely by Stripe and PayPal
+      </p>
+    </div>
   );
 }
 
@@ -327,9 +317,7 @@ export default function StripeCheckout({
 }) {
   const [clientSecret, setClientSecret] = useState(null);
   const [loadError, setLoadError] = useState('');
-
-  const [selectedPaymentMethod, setSelectedPaymentMethod] =
-    useState(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
 
   useEffect(() => {
     if (!paymentMethods.length) {
@@ -337,13 +325,8 @@ export default function StripeCheckout({
       return;
     }
 
-    const defaultMethod = paymentMethods.find(
-      (method) => method.isDefault
-    );
-
-    setSelectedPaymentMethod(
-      defaultMethod?.id || paymentMethods[0]?.id || null
-    );
+    const defaultMethod = paymentMethods.find((method) => method.isDefault);
+    setSelectedPaymentMethod(defaultMethod?.id || paymentMethods[0]?.id || null);
   }, [paymentMethods]);
 
   useEffect(() => {
@@ -362,7 +345,6 @@ export default function StripeCheckout({
         });
 
         if (!data?.clientSecret) throw new Error('Stripe client secret was not returned.');
-
         if (!cancelled) setClientSecret(data.clientSecret);
       } catch (err) {
         if (!cancelled) {
@@ -376,34 +358,29 @@ export default function StripeCheckout({
     return () => {
       cancelled = true;
     };
-  }, [order?._id, selectedPaymentMethod]);
+  }, [order?._id, selectedPaymentMethod, createIntentFn]);
 
   if (!stripePromise) {
     return (
       <p className="rounded-md border border-marquee-line bg-marquee-panel2 p-4 text-sm text-marquee-muted">
-        Stripe isn't configured yet. Set{' '}
-        <code>VITE_STRIPE_PUBLISHABLE_KEY</code>{' '}
-        in the frontend .env file to enable card
-        payments.
+        Stripe isn't configured yet. Set <code>VITE_STRIPE_PUBLISHABLE_KEY</code> in the frontend .env
+        file to enable card payments.
       </p>
     );
   }
 
   if (loadError) {
-    return (
-      <p className="text-sm text-marquee-marquee">
-        {loadError}
-      </p>
-    );
+    return <p className="text-sm text-marquee-marquee">{loadError}</p>;
   }
 
   if (!clientSecret) {
-    return (
-      <p className="text-sm text-marquee-muted">
-        Preparing secure payment form...
-      </p>
-    );
+    return <p className="text-sm text-marquee-muted">Preparing secure payment form...</p>;
   }
+
+  const selectedMethod = paymentMethods.find((m) => m.id === selectedPaymentMethod);
+  const paymentLabel = selectedMethod
+    ? `${formatBrand(selectedMethod.brand)} •••• ${selectedMethod.last4}`
+    : 'New card';
 
   return (
     <>
@@ -434,6 +411,7 @@ export default function StripeCheckout({
           selectedPaymentMethod={selectedPaymentMethod}
           clientSecret={clientSecret}
           confirmPaymentFn={confirmPaymentFn}
+          paymentLabel={paymentLabel}
         />
       </Elements>
     </>

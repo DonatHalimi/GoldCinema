@@ -1,5 +1,6 @@
 import { CheckCircle, Loader2, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { updateReview } from '../../api/reviews';
 import Modal from '../ui/modals/Modal';
@@ -10,13 +11,15 @@ export default function EditReviewModal({
     onClose,
     onSaved,
 }) {
+    const { t } = useTranslation('account');
+
     const [rating, setRating] = useState(review?.rating || 0);
     const [comment, setComment] = useState(review?.comment || '');
     const [error, setError] = useState('');
     const [saving, setSaving] = useState(false);
     const [success, setSuccess] = useState('');
 
-    const movieTitle = review?.movie?.title || 'this movie';
+    const movieTitle = review?.movie?.title || t('thisMovie');
 
     useEffect(() => {
         setRating(review?.rating || 0);
@@ -27,12 +30,11 @@ export default function EditReviewModal({
 
     async function handleSubmit(e) {
         e.preventDefault();
-
         setError('');
         setSuccess('');
 
         if (!rating) {
-            setError('Please select a rating.');
+            setError(t('selectRating'));
             return;
         }
 
@@ -42,9 +44,7 @@ export default function EditReviewModal({
             trimmedComment.length < 3 ||
             trimmedComment.length > 1000
         ) {
-            setError(
-                'Comment must be between 3 and 1000 characters.'
-            );
+            setError(t('commentLength'));
             return;
         }
 
@@ -56,17 +56,16 @@ export default function EditReviewModal({
                 comment: trimmedComment,
             });
 
-            const successMessage = 'Review updated successfully';
+            const successMessage = t('reviewUpdatedSuccessfully');
 
             setSuccess(successMessage);
             toast.success(successMessage);
-
             onSaved(updated);
         } catch (err) {
             const errorMessage =
                 err.response?.data?.error ||
                 err.message ||
-                'Failed to update review.';
+                t('failedToUpdateReview');
 
             setError(errorMessage);
             toast.error(errorMessage);
@@ -79,12 +78,12 @@ export default function EditReviewModal({
         <Modal
             isOpen={true}
             onClose={onClose}
-            title="Edit Review"
+            title={t('editReview')}
             closeDisabled={saving}
         >
             <div className="mt-5">
                 <p className="text-sm text-marquee-muted">
-                    Editing your review for{' '}
+                    {t('editingReviewFor')}{' '}
                     <span className="font-semibold text-marquee-cream">
                         {movieTitle}
                     </span>
@@ -94,12 +93,10 @@ export default function EditReviewModal({
             {error && (
                 <div className="mt-5 flex items-start gap-3 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3">
                     <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
-
                     <div>
                         <p className="text-sm font-semibold text-red-400">
-                            Unable to update review
+                            {t('unableToUpdateReview')}
                         </p>
-
                         <p className="mt-1 text-sm text-red-300/90">
                             {error}
                         </p>
@@ -110,12 +107,10 @@ export default function EditReviewModal({
             {success && (
                 <div className="mt-5 flex items-start gap-3 rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-3">
                     <CheckCircle className="mt-0.5 h-5 w-5 shrink-0 text-green-400" />
-
                     <div>
                         <p className="text-sm font-semibold text-green-400">
-                            Review updated
+                            {t('reviewUpdated')}
                         </p>
-
                         <p className="mt-1 text-sm text-green-300/90">
                             {success}
                         </p>
@@ -129,7 +124,7 @@ export default function EditReviewModal({
             >
                 <div>
                     <span className="mb-2 block text-sm font-medium text-marquee-muted">
-                        Rating
+                        {t('ratingReview')}
                     </span>
 
                     <StarRating
@@ -145,7 +140,7 @@ export default function EditReviewModal({
                 <label className="block">
                     <div className="mb-2 flex items-center justify-between">
                         <span className="text-sm font-medium text-marquee-muted">
-                            Comment
+                            {t('commentReview')}
                         </span>
 
                         <span className="text-xs text-marquee-muted">
@@ -171,21 +166,19 @@ export default function EditReviewModal({
                         type="button"
                         onClick={onClose}
                         disabled={saving}
-                        className="rounded-full border border-marquee-line px-4 py-2 text-sm text-marquee-muted transition-colors hover:border-marquee-gold hover:text-marquee-cream disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-marquee-line px-3 py-2 text-xs font-medium text-marquee-muted transition hover:border-marquee-gold/40 hover:text-marquee-gold disabled:opacity-50"
                     >
-                        Cancel
+                        {t('cancelReview')}
                     </button>
 
                     <button
                         type="submit"
                         disabled={saving}
-                        className="inline-flex items-center gap-2 rounded-full bg-marquee-gold px-5 py-2 text-sm font-semibold text-marquee-bg transition-all hover:bg-marquee-goldBright disabled:cursor-not-allowed disabled:opacity-40"
+                        className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border border-marquee-gold bg-marquee-panel2 px-6 py-3 text-sm font-semibold text-marquee-gold transition-all hover:border-marquee-gold/40 hover:bg-marquee-gold/10 hover:text-marquee-gold disabled:opacity-50"
                     >
-                        {saving && (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                        )}
+                        {saving && <Loader2 className="h-4 w-4 animate-spin" />}
 
-                        {saving ? 'Saving...' : 'Save Changes'}
+                        {saving ? t('savingReview') : t('saveReview')}
                     </button>
                 </div>
             </form>

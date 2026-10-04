@@ -1,10 +1,10 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { Film, MapPin, MonitorPlay } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { getMyFavourites } from '../api/favourites';
 import FavouriteButton from '../components/FavouriteButton';
-import { useTranslation } from 'react-i18next';
 
 export default function MyFavourites() {
     const { t } = useTranslation('account');
@@ -211,12 +211,7 @@ export default function MyFavourites() {
                                         itemType={tab === 'movies' ? 'movie' : 'cinema'}
                                         itemId={item._id}
                                         onToggle={(favourited) => {
-                                            if (!favourited) {
-                                                handleRemoveFavourite(
-                                                    tab === 'movies' ? 'movie' : 'cinema',
-                                                    item._id
-                                                );
-                                            }
+                                            if (!favourited) handleRemoveFavourite(tab === 'movies' ? 'movie' : 'cinema', item._id);
                                         }}
                                         className="static shrink-0 bg-transparent hover:bg-marquee-panel2"
                                     />

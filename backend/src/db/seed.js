@@ -12,6 +12,11 @@ const Showtime = require('../models/showtime');
 const Role = require('../models/role');
 const User = require('../models/user');
 const Snack = require('../models/snack');
+const Staff = require('../models/staff');
+const Shift = require('../models/shift');
+const ScreenConfiguration = require('../models/screenConfiguration');
+const Equipment = require('../models/equipment');
+const MaintenanceLog = require('../models/maintenanceLog');
 const bcrypt = require('bcryptjs');
 
 function createSlug(text) {
@@ -74,9 +79,6 @@ function logSeatTypes(seats) {
   console.log(`  • Total: ${seats.length} seats`);
 }
 
-// ==============================
-// MOVIE DATA
-// ==============================
 const MOVIES = [
   {
     title: 'The Shawshank Redemption',
@@ -210,9 +212,6 @@ const MOVIES = [
   },
 ];
 
-// ==============================
-// SHOWTIME CONFIGURATION
-// ==============================
 const SHOWTIMES_CONFIG = {
   times: ['12:00', '15:00', '18:00', '21:00'],
   startDate: new Date('2026-10-01'),
@@ -220,9 +219,6 @@ const SHOWTIMES_CONFIG = {
   maxShowtimesPerMovie: 10,
 };
 
-// ==============================
-// SEED FUNCTION
-// ==============================
 async function seed() {
   try {
     await connectDB();
@@ -235,6 +231,11 @@ async function seed() {
       rolesCount,
       usersCount,
       snacksCount,
+      staffCount,
+      shiftsCount,
+      screenConfigCount,
+      equipmentCount,
+      maintenanceLogCount,
     ] = await Promise.all([
       Movie.countDocuments(),
       Cinema.countDocuments(),
@@ -243,6 +244,11 @@ async function seed() {
       Role.countDocuments(),
       User.countDocuments(),
       Snack.countDocuments(),
+      Staff.countDocuments(),
+      Shift.countDocuments(),
+      ScreenConfiguration.countDocuments(),
+      Equipment.countDocuments(),
+      MaintenanceLog.countDocuments(),
     ]);
 
     if (
@@ -252,7 +258,12 @@ async function seed() {
       showtimeCount ||
       rolesCount ||
       usersCount ||
-      snacksCount
+      snacksCount ||
+      staffCount ||
+      shiftsCount ||
+      screenConfigCount ||
+      equipmentCount ||
+      maintenanceLogCount
     ) {
       console.log('⚠️  Database already seeded. Skipping seed.');
       process.exit(0);
@@ -260,9 +271,6 @@ async function seed() {
 
     console.log('\n🚀 Starting database seed...\n');
 
-    // ==============================
-    // 1. CREATE MOVIES
-    // ==============================
     console.log('📽️  Creating movies...');
     const movies = await Movie.insertMany(
       MOVIES.map((movie) => ({
@@ -272,9 +280,6 @@ async function seed() {
     );
     console.log(`  ✅ ${movies.length} movies created\n`);
 
-    // ==============================
-    // 2. CREATE ROLES
-    // ==============================
     console.log('👤 Creating roles...');
     const roles = await Role.insertMany([
       { name: 'admin', description: 'Administrator role' },
@@ -284,12 +289,9 @@ async function seed() {
     const customerRole = roles.find((role) => role.name === 'customer');
     console.log(`  ✅ ${roles.length} roles created\n`);
 
-    // ==============================
-    // 3. CREATE USERS
-    // ==============================
     console.log('👥 Creating users...');
     const passwordHash = await bcrypt.hash('Donathalimi1', 10);
-    await User.insertMany([
+    const users = await User.insertMany([
       {
         name: 'Donat Halimi',
         email: 'donat.halimi03@gmail.com',
@@ -304,12 +306,37 @@ async function seed() {
         role: customerRole._id,
         emailVerified: true,
       },
+      {
+        name: 'Sarah Manager',
+        email: 'manager@goldcinema.com',
+        passwordHash,
+        role: adminRole._id,
+        emailVerified: true,
+      },
+      {
+        name: 'Mike Usher',
+        email: 'usher@goldcinema.com',
+        passwordHash,
+        role: customerRole._id,
+        emailVerified: true,
+      },
+      {
+        name: 'Lisa Cashier',
+        email: 'cashier@goldcinema.com',
+        passwordHash,
+        role: customerRole._id,
+        emailVerified: true,
+      },
+      {
+        name: 'Tom Projectionist',
+        email: 'projectionist@goldcinema.com',
+        passwordHash,
+        role: customerRole._id,
+        emailVerified: true,
+      },
     ]);
-    console.log(`  ✅ 2 users created\n`);
+    console.log(`  ✅ ${users.length} users created\n`);
 
-    // ==============================
-    // 4. CREATE CINEMA
-    // ==============================
     console.log('🏢 Creating cinema...');
     const cinema = await Cinema.create({
       name: 'GoldCinema Pristina',
@@ -322,9 +349,6 @@ async function seed() {
     });
     console.log(`  ✅ Cinema "${cinema.name}" created\n`);
 
-    // ==============================
-    // 5. CREATE SCREEN AND SEATS
-    // ==============================
     console.log('💺 Creating screen and seats...');
     const seatsData = generateSeats(8, 10);
     const createdSeats = await Seat.insertMany(seatsData);
@@ -346,9 +370,20 @@ async function seed() {
     logSeatTypes(seatsData);
     console.log(`  ✅ Screen "${screen.name}" created\n`);
 
-    // ==============================
-    // 6. CREATE SHOWTIMES
-    // ==============================
+    console.log('⚙️  Creating screen configuration...');
+    const screenConfig = await ScreenConfiguration.create({
+      screen: screen._id,
+      screenType: 'standard',
+      soundSystem: 'Dolby Atmos',
+      projectorType: '4K Laser',
+      screenWidth: 12.5,
+      screenHeight: 5.5,
+      has3D: true,
+      hasHFR: true,
+      notes: 'Primary screen — supports 3D and high frame rate content.',
+    });
+    console.log(`  ✅ Screen configuration created (${screenConfig.screenType})\n`);
+
     console.log('🎬 Creating showtimes...');
     const showtimes = [];
     const { times, startDate, daysToGenerate, maxShowtimesPerMovie } =
@@ -391,9 +426,236 @@ async function seed() {
     await Showtime.insertMany(showtimes);
     console.log(`  ✅ ${showtimes.length} showtimes created\n`);
 
-    // ==============================
-    // 7. SEED COMPLETE
-    // ==============================
+    console.log('🧑‍💼 Creating staff...');
+    const adminUser = users[0];
+    const managerUser = users[2];
+    const usherUser = users[3];
+    const cashierUser = users[4];
+    const projectionistUser = users[5];
+
+    const staffMembers = await Staff.insertMany([
+      {
+        user: adminUser._id,
+        employeeId: 'EMP-0001',
+        position: 'manager',
+        cinema: cinema._id,
+        hireDate: new Date('2023-01-15'),
+        hourlyRate: 25,
+        isActive: true,
+        notes: 'Founder and general manager.',
+      },
+      {
+        user: managerUser._id,
+        employeeId: 'EMP-0002',
+        position: 'manager',
+        cinema: cinema._id,
+        hireDate: new Date('2023-06-01'),
+        hourlyRate: 22,
+        isActive: true,
+      },
+      {
+        user: usherUser._id,
+        employeeId: 'EMP-0003',
+        position: 'usher',
+        cinema: cinema._id,
+        hireDate: new Date('2024-02-10'),
+        hourlyRate: 12,
+        isActive: true,
+      },
+      {
+        user: cashierUser._id,
+        employeeId: 'EMP-0004',
+        position: 'cashier',
+        cinema: cinema._id,
+        hireDate: new Date('2024-03-20'),
+        hourlyRate: 13,
+        isActive: true,
+      },
+      {
+        user: projectionistUser._id,
+        employeeId: 'EMP-0005',
+        position: 'projectionist',
+        cinema: cinema._id,
+        hireDate: new Date('2023-09-05'),
+        hourlyRate: 18,
+        isActive: true,
+      },
+    ]);
+    console.log(`  ✅ ${staffMembers.length} staff members created\n`);
+
+    console.log('🗓️  Creating shifts...');
+    const today = new Date();
+    const shiftsToCreate = [];
+
+    for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+      const day = new Date(today);
+      day.setDate(day.getDate() + dayOffset);
+      day.setHours(0, 0, 0, 0);
+
+      const morningStart = new Date(day);
+      morningStart.setHours(10, 0, 0, 0);
+      const morningEnd = new Date(day);
+      morningEnd.setHours(16, 0, 0, 0);
+
+      const eveningStart = new Date(day);
+      eveningStart.setHours(16, 0, 0, 0);
+      const eveningEnd = new Date(day);
+      eveningEnd.setHours(23, 0, 0, 0);
+
+      const usher = staffMembers.find((s) => s.position === 'usher');
+      const cashier = staffMembers.find((s) => s.position === 'cashier');
+      const projectionist = staffMembers.find((s) => s.position === 'projectionist');
+      const manager = staffMembers.find((s) => s.position === 'manager');
+
+      shiftsToCreate.push(
+        {
+          staff: usher._id,
+          cinema: cinema._id,
+          startTime: morningStart,
+          endTime: morningEnd,
+          role: 'usher',
+          status: 'scheduled',
+        },
+        {
+          staff: cashier._id,
+          cinema: cinema._id,
+          startTime: morningStart,
+          endTime: morningEnd,
+          role: 'cashier',
+          status: 'scheduled',
+        },
+        {
+          staff: projectionist._id,
+          cinema: cinema._id,
+          startTime: eveningStart,
+          endTime: eveningEnd,
+          role: 'projectionist',
+          status: 'scheduled',
+        },
+        {
+          staff: manager._id,
+          cinema: cinema._id,
+          startTime: eveningStart,
+          endTime: eveningEnd,
+          role: 'manager',
+          status: 'scheduled',
+        }
+      );
+    }
+
+    await Shift.insertMany(shiftsToCreate);
+    console.log(`  ✅ ${shiftsToCreate.length} shifts created\n`);
+
+    console.log('🛠️  Creating equipment...');
+    const equipmentItems = await Equipment.insertMany([
+      {
+        cinema: cinema._id,
+        name: 'Barco DP4K-32B Projector',
+        type: 'projector',
+        serialNumber: 'BRC-4K-0001',
+        purchaseDate: new Date('2023-01-10'),
+        warrantyExpiry: new Date('2026-01-10'),
+        status: 'operational',
+        notes: 'Primary 4K laser projector for Screen 1.',
+      },
+      {
+        cinema: cinema._id,
+        name: 'Dolby Atmos Processor',
+        type: 'sound',
+        serialNumber: 'DOL-ATM-0001',
+        purchaseDate: new Date('2023-01-10'),
+        warrantyExpiry: new Date('2028-01-10'),
+        status: 'operational',
+        notes: 'Drives the 64-channel sound system.',
+      },
+      {
+        cinema: cinema._id,
+        name: 'HVAC Unit — Hall A',
+        type: 'hvac',
+        serialNumber: 'HVAC-A-001',
+        purchaseDate: new Date('2023-01-10'),
+        warrantyExpiry: new Date('2028-01-10'),
+        status: 'operational',
+      },
+      {
+        cinema: cinema._id,
+        name: 'POS Terminal 1',
+        type: 'pos',
+        serialNumber: 'POS-0001',
+        purchaseDate: new Date('2023-02-15'),
+        warrantyExpiry: new Date('2026-02-15'),
+        status: 'operational',
+        notes: 'Front-desk ticketing terminal.',
+      },
+      {
+        cinema: cinema._id,
+        name: 'POS Terminal 2',
+        type: 'pos',
+        serialNumber: 'POS-0002',
+        purchaseDate: new Date('2023-02-15'),
+        warrantyExpiry: new Date('2026-02-15'),
+        status: 'maintenance',
+        notes: 'Card reader intermittently failing — scheduled for inspection.',
+      },
+      {
+        cinema: cinema._id,
+        name: 'Emergency Lighting System',
+        type: 'lighting',
+        serialNumber: 'LGT-EMG-001',
+        purchaseDate: new Date('2023-01-10'),
+        warrantyExpiry: new Date('2033-01-10'),
+        status: 'operational',
+      },
+    ]);
+    console.log(`  ✅ ${equipmentItems.length} equipment items created\n`);
+
+    console.log('📋 Creating maintenance logs...');
+    const projector = equipmentItems.find((e) => e.type === 'projector');
+    const pos2 = equipmentItems.find((e) => e.serialNumber === 'POS-0002');
+    const hvac = equipmentItems.find((e) => e.type === 'hvac');
+
+    const maintenanceLogs = await MaintenanceLog.insertMany([
+      {
+        equipment: projector._id,
+        maintenanceType: 'routine',
+        description: 'Cleaned lens and checked cooling fans. Air filter replaced.',
+        cost: 45,
+        performedBy: 'Barco Certified Technician',
+        performedAt: new Date('2024-11-15'),
+        nextDueAt: new Date('2025-05-15'),
+        notes: 'No issues detected.',
+      },
+      {
+        equipment: projector._id,
+        maintenanceType: 'inspection',
+        description: 'Laser brightness calibration and color accuracy check.',
+        cost: 120,
+        performedBy: 'Barco Certified Technician',
+        performedAt: new Date('2025-05-20'),
+        nextDueAt: new Date('2025-11-20'),
+      },
+      {
+        equipment: pos2._id,
+        maintenanceType: 'repair',
+        description: 'Card reader module replaced due to intermittent failures.',
+        cost: 85,
+        performedBy: 'Internal IT',
+        performedAt: new Date('2025-09-10'),
+        nextDueAt: new Date('2026-03-10'),
+        notes: 'Replacement module ordered from vendor.',
+      },
+      {
+        equipment: hvac._id,
+        maintenanceType: 'routine',
+        description: 'Filter replacement and refrigerant top-up.',
+        cost: 200,
+        performedBy: 'CoolAir Services',
+        performedAt: new Date('2025-08-01'),
+        nextDueAt: new Date('2026-02-01'),
+      },
+    ]);
+    console.log(`  ✅ ${maintenanceLogs.length} maintenance logs created\n`);
+
     console.log('✨ Database seeded successfully! ✨\n');
     process.exit(0);
   } catch (error) {

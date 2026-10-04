@@ -2,6 +2,7 @@ import { startAuthentication } from '@simplewebauthn/browser';
 import { KeyRound, Loader2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { getPasskeyLoginOptions, verifyPasskeyLogin } from '../api/auth';
 import SocialLoginButtons from '../components/auth/SocialLoginButtons';
 import { Field, PasswordField, PasswordStrength } from '../components/ui/FormUI';
@@ -12,7 +13,7 @@ const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const facebookAppId = import.meta.env.VITE_FACEBOOK_APP_ID;
 
 export default function Register() {
-  const { register, loginWithGoogle, loginWithFacebook } = useAuth();
+  const { register, loginWithGoogle, loginWithFacebook, loginWithGithub } = useAuth();
   const navigate = useNavigate();
 
   const googleBtnRef = useRef(null);
@@ -310,9 +311,7 @@ export default function Register() {
                 ? 'border-green-500/30 bg-green-500/10 text-green-400'
                 : 'border-red-500/30 bg-red-500/10 text-red-400'}`}
             >
-              {passwordsMatch
-                ? '✓ Passwords match'
-                : '✕ Passwords do not match'}
+              {passwordsMatch ? '✓ Passwords match' : '✕ Passwords do not match'}
             </div>
           )}
 
@@ -347,7 +346,7 @@ export default function Register() {
             className="flex w-full items-center justify-center gap-2 rounded-full border border-marquee-line bg-marquee-panel px-6 py-3 font-semibold text-marquee-cream transition hover:border-marquee-gold disabled:opacity-40"
           >
             <KeyRound className="h-5 w-5 text-marquee-gold" />
-            Sign in with Passkey
+            Login with Passkey
           </button>
 
           <SocialLoginButtons
@@ -355,13 +354,14 @@ export default function Register() {
             googleBtnRef={googleBtnRef}
             onGoogle={handleGoogleLogin}
             onFacebook={handleFacebookLogin}
+            handleGithub={loginWithGithub}
           />
         </form >
 
         <p className="mt-6 text-left text-sm text-marquee-muted">
           Already have an account?{' '}
           <Link to="/login" className="text-marquee-gold hover:text-marquee-goldBright">
-            Sign in
+            Login
           </Link>
         </p>
       </div>

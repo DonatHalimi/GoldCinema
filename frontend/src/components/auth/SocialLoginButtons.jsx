@@ -1,11 +1,19 @@
 import { SocialLoginButton } from '../ui/FormUI';
-import { FacebookIcon, GoogleIcon } from '../ui/Icons';
+import { FacebookIcon, GithubIcon, GoogleIcon } from '../ui/Icons';
 
 export default function SocialLoginButtons({
     googleBtnRef,
     onFacebookLogin,
+    handleGithub,
     disabled,
 }) {
+    console.log('SocialLoginButtons props:', {
+        googleBtnRef,
+        onFacebookLogin,
+        handleGithub,
+        disabled,
+    });
+
     return (
         <>
             <div className="group relative h-[48px] w-full overflow-hidden rounded-full border border-marquee-gold">
@@ -26,6 +34,19 @@ export default function SocialLoginButtons({
                     disabled={disabled}
                 >
                     Continue with Facebook
+                </SocialLoginButton>
+            </div>
+
+            <div className="group relative h-[48px] w-full overflow-hidden rounded-full border border-marquee-gold">
+                <SocialLoginButton
+                    icon={<GithubIcon variant="login" className="h-5 w-5" />}
+                    onClick={() => {
+                        console.log('GITHUB BUTTON CLICKED');
+                        handleGithub?.();
+                    }}
+                    disabled={disabled}
+                >
+                    Continue with GitHub
                 </SocialLoginButton>
             </div>
         </>

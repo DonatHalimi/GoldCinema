@@ -1,5 +1,6 @@
 import { AnimatePresence } from 'framer-motion';
 import { Archive, Bell, MailCheck, RefreshCw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import NotificationItem from './NotificationItem';
 
 export default function NotificationList({
@@ -11,11 +12,15 @@ export default function NotificationList({
     onDelete,
     onDeleteRequest,
 }) {
+    const { t } = useTranslation('account');
+
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center py-12 text-marquee-muted">
-                <RefreshCw size={24} className="animate-spin mb-2 text-marquee-gold" />
-                <p className="text-sm">Loading notifications...</p>
+                <RefreshCw size={24} className="mb-2 animate-spin text-marquee-gold" />
+                <p className="text-sm">
+                    {t('loadingNotifications')}
+                </p>
             </div>
         );
     }
@@ -29,16 +34,10 @@ export default function NotificationList({
                             <Bell size={24} className="mx-auto mb-3 h-10 w-10 text-marquee-goldDim" />}
                 </div>
                 <p className="font-serif text-xl text-marquee-cream">
-                    {filter === 'archived' ? 'No archived notifications' :
-                        filter === 'unread' ? 'No unread notifications' :
-                            'No notifications yet'}
+                    {filter === 'archived' ? t('noArchivedNotifications') : filter === 'unread' ? t('noUnreadNotifications') : t('noNotifications')}
                 </p>
                 <p className="mt-1 text-sm text-marquee-muted">
-                    {filter === 'archived'
-                        ? 'Archived notifications will be stored here for future reference.'
-                        : filter === 'unread'
-                            ? 'You have read all your notifications.'
-                            : 'Notifications regarding ticket purchases and login activity will appear here.'}
+                    {filter === 'archived' ? t('archivedEmptyDescription') : filter === 'unread' ? t('unreadEmptyDescription') : t('emptyDescription')}
                 </p>
             </div>
         );

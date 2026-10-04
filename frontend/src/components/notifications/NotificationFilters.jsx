@@ -1,7 +1,9 @@
 import { motion } from 'framer-motion';
-import { FILTERS } from '../../utils/notificationHelpers';
+import { useNotificationFilters } from '../../utils/notificationHelpers';
 
 export default function NotificationFilters({ currentFilter, onFilterChange, unreadCount }) {
+    const FILTERS = useNotificationFilters();
+
     return (
         <div className="inline-flex items-center gap-1.5 rounded-full border border-marquee-line bg-marquee-bg p-1.5">
             {FILTERS.map((f) => {

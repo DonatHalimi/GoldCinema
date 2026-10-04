@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { Gift } from 'lucide-react';
+import { useState } from 'react';
 import { finalizeOrderWithGiftCard } from '../../api/giftCard';
 
 export default function GiftCardFullCoverage({ order, onSuccess }) {

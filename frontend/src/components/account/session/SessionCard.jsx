@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { Clock, Globe, Key, Shield, Wifi } from 'lucide-react';
+import { Clock, Globe, Key, Monitor, Shield, Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { formatSessionDate, timeAgo } from '../../../utils/sessionUtils';
 import SessionDeviceIcon from './SessionDeviceIcon';
 import SessionMethodBadge from './SessionMethodBadge';
@@ -9,6 +10,7 @@ export default function SessionCard({
     onRevoke,
     revoking,
 }) {
+    const { t } = useTranslation('account');
     const {
         deviceLabel,
         ipAddress,
@@ -58,8 +60,8 @@ export default function SessionCard({
 
                         {isCurrent && (
                             <span className="inline-flex items-center gap-1 rounded-full bg-marquee-goldBright/15 px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase text-marquee-goldBright">
-                                <Wifi size={10} />
-                                Current
+                                <Monitor size={10} />
+                                {t('sessionsCurrent')}
                             </span>
                         )}
 
@@ -68,7 +70,7 @@ export default function SessionCard({
                         {rememberMe && (
                             <span className="inline-flex items-center gap-1 rounded-full border border-marquee-muted/30 px-2 py-0.5 text-[10px] font-medium text-marquee-muted">
                                 <Key size={9} />
-                                Remembered
+                                {t('sessionsRemembered')}
                             </span>
                         )}
                     </div>
@@ -76,32 +78,23 @@ export default function SessionCard({
                     <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-marquee-muted">
                         {ipAddress && (
                             <span className="flex items-center gap-1">
-                                <Globe
-                                    size={11}
-                                    className="text-marquee-goldDim"
-                                />
+                                <Globe size={11} className="text-marquee-goldDim" />
                                 {ipAddress}
                             </span>
                         )}
 
                         <span className="flex items-center gap-1">
-                            <Clock
-                                size={11}
-                                className="text-marquee-goldDim"
-                            />
-                            Last active: {timeAgo(lastActiveAt)}
+                            <Clock size={11} className="text-marquee-goldDim" />
+                            {t('sessionsLastActive')} {timeAgo(lastActiveAt)}
                         </span>
 
                         <span className="flex items-center gap-1">
-                            <Shield
-                                size={11}
-                                className="text-marquee-goldDim"
-                            />
-                            Signed in: {formatSessionDate(createdAt)}
+                            <Shield size={11} className="text-marquee-goldDim" />
+                            {t('sessionsLoggedIn2')} {formatSessionDate(createdAt)}
                         </span>
 
                         <span className="text-marquee-muted/60">
-                            Expires: {formatSessionDate(expiresAt)}
+                            {t('sessionsExpires')} {formatSessionDate(expiresAt)}
                         </span>
                     </div>
                 </div>
@@ -114,9 +107,10 @@ export default function SessionCard({
                         type="button"
                         onClick={() => onRevoke(session.id)}
                         disabled={revoking}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 px-3 py-1.5 text-xs font-semibold text-red-400 transition-all hover:border-red-500/60 hover:bg-red-500/10 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-red-500/30 bg-marquee-bg/40 px-3 py-2 text-xs font-semibold text-red-400 transition-all hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400 disabled:opacity-50"
                     >
-                        {revoking ? 'Revoking…' : 'Revoke'}
+                        <Trash2 className="h-3.5 w-3.5" />
+                        {revoking ? t('revokeLoading') : t('sessionsRevoke')}
                     </button>
                 </div>
             )}

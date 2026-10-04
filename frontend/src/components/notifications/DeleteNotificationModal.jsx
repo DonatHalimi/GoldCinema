@@ -1,4 +1,6 @@
 import { Archive, Loader2, TriangleAlert } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+
 import Modal from '../ui/modals/Modal';
 
 export default function DeleteNotificationModal({
@@ -8,7 +10,9 @@ export default function DeleteNotificationModal({
     title,
     deleting = false,
 }) {
-    const isBulkDelete = title === 'all archived notifications';
+    const { t } = useTranslation('account');
+
+    const isBulkDelete = title === t('allArchivedNotifs');
 
     return (
         <Modal
@@ -17,23 +21,22 @@ export default function DeleteNotificationModal({
             closeDisabled={deleting}
             title={
                 isBulkDelete
-                    ? 'Delete Archived Notifications'
-                    : 'Delete Notification'
+                    ? t('deleteArchivedNotifTitle')
+                    : t('deleteNotifTitle')
             }
         >
             <div className="mt-5 rounded-lg border border-red-500/20 bg-red-500/5 p-4">
                 <div className="flex items-center gap-2">
                     <TriangleAlert className="h-4 w-4 shrink-0 text-red-400" />
                     <p className="text-sm font-semibold text-red-400">
-                        This action cannot be undone.
+                        {t('deleteNotifWarning')}
                     </p>
                 </div>
 
                 <p className="mt-2 text-sm leading-relaxed text-marquee-muted">
-                    Are you sure you want to permanently delete{' '}
                     {isBulkDelete
-                        ? 'all archived notifications?'
-                        : 'this notification?'}
+                        ? t('confirmDeleteArchivedNotif')
+                        : t('confirmDeleteNotif')}
                 </p>
             </div>
 
@@ -41,17 +44,16 @@ export default function DeleteNotificationModal({
                 <div className="mt-5 rounded-lg border border-marquee-line bg-marquee-panel2 p-4">
                     <div className="flex items-center gap-2">
                         <Archive className="h-4 w-4 shrink-0 text-marquee-gold" />
-
                         <p className="text-xs font-medium uppercase tracking-wide text-marquee-muted">
                             {isBulkDelete
-                                ? 'Archived Notifications'
-                                : 'Notification'}
+                                ? t('archivedNotifs')
+                                : t('notification')}
                         </p>
                     </div>
 
                     <p className="mt-2 truncate text-sm font-semibold text-marquee-cream">
                         {isBulkDelete
-                            ? 'All archived notifications'
+                            ? t('allArchivedNotifs')
                             : title}
                     </p>
                 </div>
@@ -64,7 +66,7 @@ export default function DeleteNotificationModal({
                     disabled={deleting}
                     className="rounded-full border border-marquee-line px-4 py-2 text-sm text-marquee-muted transition-colors hover:border-marquee-gold hover:text-marquee-cream disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                    Cancel
+                    {t('cancelDeleteNotif')}
                 </button>
 
                 <button
@@ -77,7 +79,9 @@ export default function DeleteNotificationModal({
                         <Loader2 className="h-4 w-4 animate-spin" />
                     )}
 
-                    {deleting ? 'Deleting...' : 'Delete'}
+                    {deleting
+                        ? t('deletingNotif')
+                        : t('deleteNotif')}
                 </button>
             </div>
         </Modal>

@@ -6,6 +6,7 @@ const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
 const { auditRequestLogger } = require('./middleware/auditLogger');
 const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/user');
 const movieRoutes = require('./routes/movies');
 const showtimeRoutes = require('./routes/showtimes');
 const seatHoldRoutes = require('./routes/seatHold');
@@ -22,6 +23,12 @@ const giftCardRoutes = require('./routes/giftCards');
 const auditLogRoutes = require('./routes/auditLogs');
 const clientLogRoutes = require('./routes/clientLogs');
 const i18nRoutes = require('./routes/i18n');
+const staffRoutes = require('./routes/staff');
+const shiftRoutes = require('./routes/shift');
+const screenConfigurationRoutes = require('./routes/screenConfigurations');
+const equipmentRoutes = require('./routes/equipment');
+const maintenanceLogRoutes = require('./routes/maintenanceLogs');
+const analyticsRoutes = require('./routes/analytics');
 
 const errorHandler = require('./middleware/errorHandler');
 
@@ -79,6 +86,7 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/auth', passkeyRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/movies', movieRoutes);
 app.use('/api/showtimes', showtimeRoutes);
 app.use('/api', seatHoldRoutes);
@@ -94,6 +102,12 @@ app.use('/api/giftcards', giftCardRoutes);
 app.use('/api/admin/audit-logs', auditLogRoutes);
 app.use('/api/client-logs', clientLogRoutes);
 app.use('/api/i18n', i18nRoutes);
+app.use('/api/staff', staffRoutes);
+app.use('/api/shifts', shiftRoutes);
+app.use('/api/screen-configurations', screenConfigurationRoutes);
+app.use('/api/equipment', equipmentRoutes);
+app.use('/api/maintenance-logs', maintenanceLogRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found.' });

@@ -3,6 +3,7 @@ const GiftCard = require('../models/giftCard');
 const { generateQRTicket } = require('../utils/qr');
 const { SeatHold } = require('../models');
 const { sendTicketEmail } = require('../utils/mailer');
+const { notifyPurchase } = require('../utils/notifications');
 const MIN_CHARGEABLE_AMOUNT = 0.5;
 
 async function getMyOrders(req, res, next) {
@@ -200,6 +201,14 @@ async function finalizeWithGiftCard(req, res, next) {
         await order.save();
 
         if (order.holdId) await SeatHold.findByIdAndDelete(order.holdId);
+
+        await notifyPurchase({
+            userId: order.user._id,
+            orderId: order._id,
+            movieTitle: order.movie?.title || 'Movie',
+            seats: order.seats || [],
+            amount: order.totalAmount || 0,
+        });
 
         await sendTicketEmail(order.user.email, order, qrDataUrl);
 

@@ -21,11 +21,13 @@ export default function EnableTotpModal({ onClose, onSuccess }) {
             setError('');
 
             const data = await setupTotp2FA();
+            const qrDataUrl = data?.qrDataUrl ?? data?.data?.qrDataUrl;
+            const secret = data?.secret ?? data?.data?.secret;
 
-            if (!data?.qrDataUrl || !data?.secret) throw new Error('Authenticator setup response is missing QR code or secret.');
+            if (!qrDataUrl || !secret) throw new Error('Authenticator setup response is missing QR code or secret.');
 
-            setQr(data.qrDataUrl);
-            setSecret(data.secret);
+            setQr(qrDataUrl);
+            setSecret(secret);
         } catch (err) {
             setError(err.response?.data?.error || 'Failed to initialize authenticator setup.');
         } finally {
@@ -52,11 +54,13 @@ export default function EnableTotpModal({ onClose, onSuccess }) {
             setLoading(true);
             setError('');
 
-            const { data } = await verifyTotp2FA(codeToSubmit);
+            const response = await verifyTotp2FA(codeToSubmit);
 
-            setBackupCodes(data.backupCodes);
+            const backupCodes = response?.backupCodes ?? response?.data?.backupCodes ?? [];
+
+            setBackupCodes(backupCodes);
         } catch (err) {
-            setError(err.response?.data?.error || 'Invalid verification code');
+            setError(err.response?.data?.error || err.message || 'Invalid verification code');
         } finally {
             setLoading(false);
         }
@@ -64,6 +68,7 @@ export default function EnableTotpModal({ onClose, onSuccess }) {
 
     const handleChange = (index, value) => {
         if (!/^\d*$/.test(value)) return;
+        if (error) setError('');
 
         const newOtp = [...otp];
 
@@ -208,6 +213,14 @@ export default function EnableTotpModal({ onClose, onSuccess }) {
 
                         {error && <p className="text-sm text-red-400">{error}</p>}
 
+                        {error && !qr && !backupCodes.length && (
+                            <div className="mt-5 rounded-lg border border-red-500/20 bg-red-500/10 p-4">
+                                <p className="text-sm text-red-400">
+                                    {error}
+                                </p>
+                            </div>
+                        )}
+
                         <button
                             type="submit"
                             disabled={
@@ -224,17 +237,7 @@ export default function EnableTotpModal({ onClose, onSuccess }) {
                                         Verifying
                                     </span>
                                 </>
-                            ) : (
-                                'Verify & Enable'
-                            )}
-
-                            {error && !qr && !backupCodes.length && (
-                                <div className="mt-5 rounded-lg border border-red-500/20 bg-red-500/10 p-4">
-                                    <p className="text-sm text-red-400">
-                                        {error}
-                                    </p>
-                                </div>
-                            )}
+                            ) : ('Verify & Enable')}
                         </button>
                     </form>
                 </div>

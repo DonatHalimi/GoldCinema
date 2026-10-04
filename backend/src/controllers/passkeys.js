@@ -123,11 +123,11 @@ async function verifyPasskeyAuthentication(req, res, next) {
 
         const user = await User.findOne({ 'passkeys.credentialId': credentialId }).populate('role');
 
-        if (!user) return res.status(401).json({ error: 'Passkey not recognized.' });
+        if (!user) return res.status(401).json({ error: 'passkeyNotRecognized' });
 
         const passkey = user.passkeys.find((item) => item.credentialId === credentialId);
 
-        if (!passkey) return res.status(401).json({ error: 'Passkey is not registered for any account.' });
+        if (!passkey) return res.status(401).json({ error: 'passkeyNotRegistered' });
 
         let matchedChallenge = null;
         if (global.pendingChallenges) {
@@ -156,11 +156,10 @@ async function verifyPasskeyAuthentication(req, res, next) {
                 },
             });
         } catch (error) {
-            return res.status(401).json({ error: 'Passkey authentication failed.' });
+            return res.status(401).json({ error: 'passkeyAuthenticationFailed' });
         }
 
-        if (!verification.verified) return res.status(401).json({ error: 'Passkey authentication failed.' });
-
+        if (!verification.verified) return res.status(401).json({ error: 'passkeyAuthenticationFailed' });
 
         if (matchedChallenge) global.pendingChallenges.delete(matchedChallenge);
 
@@ -181,7 +180,13 @@ async function verifyPasskeyAuthentication(req, res, next) {
         });
 
         await user.save();
-        setCookies(res, accessToken, refreshToken, refreshMaxAgeMs);
+
+        setCookies(
+            res,
+            accessToken,
+            refreshToken,
+            refreshMaxAgeMs
+        );
 
         if (user.loginAlerts !== false) {
             const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
@@ -195,7 +200,7 @@ async function verifyPasskeyAuthentication(req, res, next) {
         }
 
         user.securityEvents.push({
-            title: 'Logged in with Passkey',
+            title: 'loggedInWithPasskey',
             description: `IP: ${req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown'}`,
             type: 'login_passkey',
             createdAt: new Date(),
@@ -203,8 +208,8 @@ async function verifyPasskeyAuthentication(req, res, next) {
 
         createNotification({
             userId: user._id,
-            title: 'Passkey Login Detected',
-            message: 'You logged in to GoldCinema using a Passkey.',
+            title: 'notifPasskeyLoginTitle',
+            message: 'notifPasskeyLoginMessage',
             type: 'login',
             link: '/account/security',
             metadata: {
@@ -214,7 +219,7 @@ async function verifyPasskeyAuthentication(req, res, next) {
         });
 
         return res.json({
-            message: 'Logged in successfully.',
+            message: 'passkeyLoginSuccessful',
             user: {
                 id: user._id,
                 name: user.name,

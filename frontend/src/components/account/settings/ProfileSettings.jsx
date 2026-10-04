@@ -1,9 +1,9 @@
 import { BadgeAlert, BadgeCheck, Lock, Mail, Save, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { getProfile, resendEmailVerification, updatePassword, updateProfile } from '../../../api/auth';
 import { Field, PasswordField } from '../../ui/FormUI';
-import { useTranslation } from 'react-i18next';
 
 export default function ProfileSettings() {
     const { t } = useTranslation('account');
@@ -200,7 +200,7 @@ export default function ProfileSettings() {
                 </h2>
 
                 <p className="mt-1 text-sm text-marquee-muted">
-                    {t("changePasswordDescription")}
+                    {t("changePasswordDesc")}
                 </p>
 
                 <form onSubmit={handlePasswordChange} className="mt-6 space-y-6">

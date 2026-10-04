@@ -1,4 +1,8 @@
+import { useTranslation } from "react-i18next";
+
 export default function CheckoutSummary({ movie, showtime, order }) {
+    const { t } = useTranslation('account');
+
     return (
         <div className="mb-5 rounded-xl border border-marquee-line bg-marquee-panel p-6">
             <div className="flex justify-between gap-4">
@@ -33,7 +37,7 @@ export default function CheckoutSummary({ movie, showtime, order }) {
                         )}
 
                         <p className="mt-2 font-mono text-sm text-marquee-muted">
-                            Seats: {order.seats?.join(', ')}
+                            {t('seatsNr')}: {order.seats?.join(', ')}
                         </p>
                     </div>
                 </div>

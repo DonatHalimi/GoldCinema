@@ -1,10 +1,6 @@
-import {
-    Archive,
-    ArchiveRestore,
-    CheckCheck,
-    Trash2,
-} from 'lucide-react';
+import { Archive, ArchiveRestore, CheckCheck, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import DeleteNotificationModal from './DeleteNotificationModal';
 
 export default function NotificationToolbar({
@@ -18,6 +14,7 @@ export default function NotificationToolbar({
     onUnarchiveAll,
     onClearArchived,
 }) {
+    const { t } = useTranslation('account');
     const [showClearArchivedPopup, setShowClearArchivedPopup] = useState(false);
 
     const hasReadNotifications = notifications.some(
@@ -38,9 +35,9 @@ export default function NotificationToolbar({
     return (
         <div className="flex items-center justify-between text-xs">
             <p className="my-4 font-medium text-marquee-muted">
-                Showing {notificationsCount}{' '}
-                {filter === 'all' ? 'active' : filter} notification
-                {notificationsCount === 1 ? '' : 's'}
+                {t('showingNotifications2')} {notificationsCount}{' '}
+                {filter === 'all' ? t('activeNotifications') : filter} {t('notificationLabel')}
+                {notificationsCount === 1 ? '' : t('pluralNotifications')}
             </p>
 
             <div className="my-4 flex items-center gap-2">
@@ -51,7 +48,7 @@ export default function NotificationToolbar({
                         className="inline-flex items-center gap-1.5 rounded-lg border border-marquee-line bg-marquee-panel px-3 py-1.5 font-medium text-marquee-cream transition hover:border-marquee-gold hover:text-marquee-gold"
                     >
                         <CheckCheck size={14} />
-                        Mark all as read
+                        {t('markAllAsRead')}
                     </button>
                 )}
 
@@ -62,7 +59,7 @@ export default function NotificationToolbar({
                         className="inline-flex items-center gap-1.5 rounded-lg border border-marquee-line bg-marquee-panel px-3 py-1.5 font-medium text-marquee-cream transition hover:border-marquee-gold hover:text-marquee-gold"
                     >
                         <Archive size={14} />
-                        Archive read
+                        {t('archiveRead')}
                     </button>
                 )}
 
@@ -73,7 +70,7 @@ export default function NotificationToolbar({
                         className="inline-flex items-center gap-1.5 rounded-lg border border-marquee-line bg-marquee-panel px-3 py-1.5 font-medium text-marquee-cream transition hover:border-marquee-gold hover:text-marquee-gold"
                     >
                         <Archive size={14} />
-                        Archive all
+                        {t('archiveAll')}
                     </button>
                 )}
 
@@ -88,7 +85,7 @@ export default function NotificationToolbar({
                         className="inline-flex items-center gap-1.5 rounded-lg border border-marquee-line bg-marquee-panel px-3 py-1.5 font-medium text-marquee-cream transition hover:border-marquee-gold hover:text-marquee-gold"
                     >
                         <ArchiveRestore size={14} />
-                        Unarchive all
+                        {t('unarchiveAll')}
                     </button>
                 )}
 
@@ -100,14 +97,14 @@ export default function NotificationToolbar({
                             className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 font-medium text-red-400 transition hover:bg-red-500/20"
                         >
                             <Trash2 size={14} />
-                            Clear archived
+                            {t('clearArchived')}
                         </button>
 
                         <DeleteNotificationModal
                             isOpen={showClearArchivedPopup}
                             onConfirm={handleConfirmClearArchived}
                             onCancel={handleCancelClearArchived}
-                            title="all archived notifications"
+                            title={t('allArchivedNotifications')}
                         />
                     </div>
                 )}

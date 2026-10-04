@@ -1,6 +1,21 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+
 import { useNavigate } from 'react-router-dom';
-import { changeUserPassword, deleteUserAccount, forgotUserPassword, getProfile, loginUser, loginUserWithFacebook, loginUserWithGoogle, logoutUser, registerUser, resetUserPassword, verifyUserLogin } from '../api/auth';
+
+import {
+    changeUserPassword,
+    deleteUserAccount,
+    forgotUserPassword,
+    getProfile,
+    loginUser,
+    loginUserWithFacebook,
+    loginUserWithGoogle,
+    logoutUser,
+    registerUser,
+    resetUserPassword,
+    verifyUserLogin,
+} from '../api/auth';
+
 import { LoadingAnimation } from '../components/ui/LoadingAnimation';
 
 const AuthContext = createContext(null);
@@ -29,7 +44,13 @@ export function AuthProvider({ children }) {
     useEffect(() => {
         const handleForcedLogout = () => {
             setUser(null);
-            navigate('/login', { replace: true, state: { message: 'Your session has been revoked.' } });
+
+            navigate('/login', {
+                replace: true,
+                state: {
+                    message: 'Your session has been revoked.',
+                },
+            });
         };
 
         window.addEventListener('auth:logout', handleForcedLogout);
@@ -46,13 +67,11 @@ export function AuthProvider({ children }) {
 
     const forgotPassword = async (email) => {
         const { data } = await forgotUserPassword(email);
-
         return data;
     };
 
     const resetPassword = async (token, password) => {
         const { data } = await resetUserPassword(token, password);
-
         return data;
     };
 
@@ -69,6 +88,7 @@ export function AuthProvider({ children }) {
         }
 
         setUser(data.user);
+
         return data;
     };
 
@@ -107,6 +127,7 @@ export function AuthProvider({ children }) {
         }
 
         setUser(data.user);
+
         return data;
     };
 
@@ -123,11 +144,19 @@ export function AuthProvider({ children }) {
         }
 
         setUser(data.user);
+
         return data;
     };
 
+    const loginWithGithub = () => {
+        window.location.href = 'http://localhost:4000/api/auth/github';
+    };
+
     const changePassword = async (currentPassword, newPassword) => {
-        const { data } = await changeUserPassword(currentPassword, newPassword);
+        const { data } = await changeUserPassword(
+            currentPassword,
+            newPassword
+        );
 
         setUser(null);
 
@@ -153,9 +182,7 @@ export function AuthProvider({ children }) {
     };
 
     if (loading) {
-        return (
-            <LoadingAnimation />
-        );
+        return <LoadingAnimation />;
     }
 
     return (
@@ -172,6 +199,7 @@ export function AuthProvider({ children }) {
                 deleteAccount,
                 loginWithGoogle,
                 loginWithFacebook,
+                loginWithGithub,
                 logout,
                 loading,
             }}

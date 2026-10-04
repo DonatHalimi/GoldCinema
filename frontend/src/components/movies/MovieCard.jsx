@@ -13,8 +13,11 @@ export default function MovieCard({ movie }) {
   const fullGenres = movie.genres?.join(' / ');
 
   return (
-    <div className="relative">
-      <Link to={`/movies/${movie._id}`} className="group block overflow-hidden rounded-lg border border-marquee-line bg-marquee-panel transition hover:border-marquee-gold hover:shadow-glow">
+    <div className="group relative">
+      <Link
+        to={`/movies/${movie._id}`}
+        className="block overflow-hidden rounded-lg border border-marquee-line bg-marquee-panel transition hover:border-marquee-gold hover:shadow-glow"
+      >
         <div className="aspect-[2/3] overflow-hidden bg-marquee-panel2">
           <img
             src={movie.posterUrl}
@@ -22,23 +25,30 @@ export default function MovieCard({ movie }) {
             loading="lazy"
             className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           />
-          <FavouriteButton itemType="movie" itemId={movie._id} className="absolute right-2 top-2" />
         </div>
+
         <div className="p-4">
           <div className="mb-1 flex items-center gap-2 text-xs uppercase tracking-wider text-marquee-goldDim">
-            <span title={fullGenres}>
-              {truncateText(movie.genres, 20)}
-            </span>
+            <span title={fullGenres}>{truncateText(movie.genres, 20)}</span>
             <span aria-hidden="true">•</span>
             <span>{movie.rating}</span>
           </div>
-          <h3 className="font-serif text-xl font-semibold text-marquee-cream" title={movie.title}>
+          <h3
+            className="font-serif text-xl font-semibold text-marquee-cream"
+            title={movie.title}
+          >
             {truncateText(movie.title, 18)}
           </h3>
-          <p className="mt-1 text-sm text-marquee-muted">{movie.duration} min • ${movie.price.toFixed(2)}</p>
+          <p className="mt-1 text-sm text-marquee-muted">
+            {movie.duration} min • ${movie.price.toFixed(2)}
+          </p>
         </div>
-        <FavouriteButton itemType="movie" itemId={movie._id} className="absolute right-2 top-2" />
       </Link>
+
+      {/* Wrapper owns positioning; FavouriteButton keeps its own relative for tooltip */}
+      <div className="absolute right-2 top-2 z-20">
+        <FavouriteButton itemType="movie" itemId={movie._id} />
+      </div>
     </div>
   );
 }

@@ -407,7 +407,7 @@ async function sendLoginAlertEmail({ to, name, time, ipAddress, loginMethod }) {
           <div class="brand">GOLD<span style="color:#ffffff;">CINEMA</span></div>
         </div>
         <div class="content">
-          <h2 style="color: #ffffff; margin-top: 0;">New Sign-In Detected</h2>
+          <h2 style="color: #ffffff; margin-top: 0;">New Log-In Detected</h2>
           <p class="detail-line">Hi <strong>${safeName}</strong>,</p>
           <p class="detail-line">We noticed a new login to your GoldCinema account.</p>
 
@@ -433,7 +433,7 @@ async function sendLoginAlertEmail({ to, name, time, ipAddress, loginMethod }) {
   await transporter.sendMail({
     from: process.env.SMTP_FROM || 'GoldCinema <no-reply@goldcinema.example>',
     to,
-    subject: '⚠️ New Sign-In to your GoldCinema account',
+    subject: '⚠️ New Log-In to your GoldCinema account',
     text: `Hi ${name},\n\nWe noticed a new login to your GoldCinema account via ${loginMethod} at ${safeTime} from IP: ${safeIp}.\n\nIf this wasn't you, please secure your account immediately.`,
     html: htmlContent,
   });

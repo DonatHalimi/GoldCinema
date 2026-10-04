@@ -1,7 +1,10 @@
 import { motion } from 'framer-motion';
 import { Laptop } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+
 
 export default function SessionEmptyState() {
+    const { t } = useTranslation('account');
     return (
         <motion.div
             initial={{ opacity: 0 }}
@@ -13,9 +16,9 @@ export default function SessionEmptyState() {
             </div>
 
             <div>
-                <p className="text-sm font-medium text-marquee-cream">Only this device</p>
+                <p className="text-sm font-medium text-marquee-cream">{t('sessionsOnlyThisDevice')}</p>
 
-                <p className="mt-1 text-xs text-marquee-muted">No other active sessions found.</p>
+                <p className="mt-1 text-xs text-marquee-muted">{t('sessionsNoOtherActiveSessions')}</p>
             </div>
         </motion.div>
     );

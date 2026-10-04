@@ -24,6 +24,10 @@ const { issueTrustedDevice } = require('../utils/deviceTrust');
 const { addSecurityEvent, buildSessionMeta } = require('../utils/securityEvents');
 const { sendSms } = require('../utils/smsClient');
 
+function hasPasswordAuthentication(user) {
+    return Boolean(user.passwordHash);
+}
+
 async function register(req, res, next) {
     try {
         const { name, email, password } = req.body;
@@ -315,8 +319,11 @@ async function changePassword(req, res, next) {
         const user = await User.findById(req.user.id);
         if (!user) return res.status(404).json({ error: 'User not found.' });
 
-        const match = await bcrypt.compare(currentPassword, user.passwordHash);
-        if (!match) return res.status(401).json({ error: 'Current password is incorrect.' });
+        if (hasPasswordAuthentication(user)) {
+            const match = await bcrypt.compare(password, user.passwordHash);
+
+            if (!match) return res.status(401).json({ error: 'Incorrect password.' });
+        }
 
         if (currentPassword === newPassword) return res.status(400).json({ error: 'New password must be different from your current password.' });
 
@@ -340,8 +347,11 @@ async function deleteAccount(req, res, next) {
         const user = await User.findById(req.user.id);
         if (!user) return res.status(404).json({ error: 'User not found.' });
 
-        const match = await bcrypt.compare(password, user.passwordHash);
-        if (!match) return res.status(401).json({ error: 'Incorrect password.' });
+        if (hasPasswordAuthentication(user)) {
+            const match = await bcrypt.compare(password, user.passwordHash);
+
+            if (!match) return res.status(401).json({ error: 'Incorrect password.' });
+        }
 
         user.isActive = false;
         user.deletedAt = new Date();
@@ -1010,10 +1020,10 @@ async function sendEmail2faDisableCode(req, res, next) {
     try {
         const { password } = req.body;
 
-        if (!password) {
-            return res.status(400).json({
-                error: 'Password is required.',
-            });
+        if (hasPasswordAuthentication(user)) {
+            const passwordValid = await bcrypt.compare(password, user.passwordHash);
+
+            if (!passwordValid) return res.status(401).json({ error: 'Incorrect password.' });
         }
 
         const user = await User.findById(req.user.id)
@@ -1464,7 +1474,7 @@ async function revokeSession(req, res, next) {
 
         if (!target) return res.status(404).json({ error: 'Session not found.' });
 
-        if (currentRefreshToken && target.token === currentRefreshToken) return res.status(400).json({ error: 'You cannot revoke your current session this way. Use Sign Out instead.', });
+        if (currentRefreshToken && target.token === currentRefreshToken) return res.status(400).json({ error: 'You cannot revoke your current session this way. Use Log Out instead.', });
 
         user.refreshTokens = user.refreshTokens.filter((rt) => rt._id.toString() !== id);
         await addSecurityEvent(user, {

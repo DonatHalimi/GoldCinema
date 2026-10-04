@@ -1,10 +1,12 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, ChevronUp, ClipboardList, KeyRound, Laptop, ShieldCheck } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { getActivityData } from '../../api/auth';
 
 export default function SecurityActivityCard() {
+    const { t } = useTranslation('account');
     const [activities, setActivities] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showAll, setShowAll] = useState(false);
@@ -45,18 +47,18 @@ export default function SecurityActivityCard() {
                 </div>
 
                 <div>
-                    <h3 className="font-semibold text-marquee-cream">Recent Security Activity</h3>
+                    <h3 className="font-semibold text-marquee-cream">{t('recentActivity')}</h3>
                     <p className="text-sm text-marquee-muted">
-                        Review recent logins, password changes, and other important security events
+                        {t('recentActivityDesc')}
                     </p>
                 </div>
             </div>
 
             <div className="mt-5">
                 {loading ? (
-                    <p className="text-sm text-marquee-muted">Loading activity...</p>
+                    <p className="text-sm text-marquee-muted">{t('loadingActivity')}</p>
                 ) : activities.length === 0 ? (
-                    <p className="text-sm text-marquee-muted">No security events recorded yet.</p>
+                    <p className="text-sm text-marquee-muted">{t('noActivity')}</p>
                 ) : (
                     <>
                         <div className="space-y-3">
@@ -103,12 +105,12 @@ export default function SecurityActivityCard() {
                             >
                                 {showAll ? (
                                     <>
-                                        <span>Show Less</span>
+                                        <span>{t('showLessActivity')}</span>
                                         <ChevronUp className="h-4 w-4" />
                                     </>
                                 ) : (
                                     <>
-                                        <span>Show All ({activities.length - 5} more)</span>
+                                        <span>{t('showAllActivity')} ({activities.length - 5} more)</span>
                                         <ChevronDown className="h-4 w-4" />
                                     </>
                                 )}

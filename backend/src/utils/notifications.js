@@ -41,21 +41,29 @@ async function notifyLogin({ userId, req, method = 'Password' }) {
     });
 }
 
-async function notifyPurchase({ userId, orderId, movieTitle = 'Movie', seats = [], amount = 0 }) {
+async function notifyPurchase({
+    userId,
+    orderId,
+    movieTitle = 'Movie',
+    seats = [],
+    amount = 0,
+}) {
     const seatStr = Array.isArray(seats) ? seats.join(', ') : seats;
     const formattedAmount = Number(amount || 0).toFixed(2);
 
     return createNotification({
         userId,
-        title: 'Ticket Purchase Confirmed',
-        message: `Your booking for "${movieTitle}" (Seats: ${seatStr}) has been confirmed. Total: $${formattedAmount}`,
+        title: 'notifPurchaseTitle',
+        message: 'notifPurchaseMessage',
         type: 'purchase',
         link: '/account/tickets',
         metadata: {
             orderId,
             movieTitle,
             seats,
+            seatStr,
             amount: Number(amount || 0),
+            formattedAmount,
         },
     });
 }

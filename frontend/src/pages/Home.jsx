@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import api from '../api/client';
 import MovieCard from '../components/movies/MovieCard';
-import { useTranslation } from 'react-i18next';
 
 export default function Home() {
   const { t } = useTranslation('home');
@@ -21,9 +21,7 @@ export default function Home() {
 
   useEffect(() => {
     if (location.state?.registered) {
-      toast.success(
-        'Account created! Verification email has been sent. Check your inbox'
-      );
+      toast.success('Account created! Verification email has been sent. Check your inbox');
       window.history.replaceState({}, document.title);
     }
   }, []);

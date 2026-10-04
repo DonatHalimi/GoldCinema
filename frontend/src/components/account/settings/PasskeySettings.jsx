@@ -2,12 +2,15 @@ import { startRegistration } from '@simplewebauthn/browser';
 import { AnimatePresence, motion } from 'framer-motion';
 import { BadgeCheck, ChevronDown, ChevronUp, Fingerprint, KeyRound, Pencil, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { getPasskeyRegistrationOptions, getPasskeys, verifyPasskeyRegistration } from '../../../api/auth';
 import DisablePasskeyModal from '../../ui/modals/DisablePasskeyModal';
 import RenamePasskeyModal from '../../ui/modals/RenamePasskeyModal';
 
+
 export default function PasskeySettings() {
+    const { t } = useTranslation('account');
     const [passkeys, setPasskeys] = useState([]);
     const [loading, setLoading] = useState(true);
     const [registering, setRegistering] = useState(false);
@@ -79,19 +82,19 @@ export default function PasskeySettings() {
                     <div className="flex-1">
                         <div className="flex flex-wrap items-center gap-2">
                             <h3 className="font-semibold text-marquee-cream">
-                                Passkeys
+                                {t('passkeysHeading')}
                             </h3>
 
                             {passkeys.length > 0 && (
                                 <span className="flex items-center gap-1.5 text-xs font-medium text-green-400">
                                     <BadgeCheck className="h-4 w-4" />
-                                    Active
+                                    {t('passkeysActive')}
                                 </span>
                             )}
                         </div>
 
                         <p className="mt-1 text-sm text-marquee-muted">
-                            Manage your registered passkeys for fast, secure passwordless login
+                            {t('passkeysDesc')}
                         </p>
                     </div>
                 </div>
@@ -119,7 +122,7 @@ export default function PasskeySettings() {
                                             </p>
 
                                             <p className="text-xs text-marquee-muted">
-                                                Added on {new Date(passkey.createdAt).toLocaleDateString('en-GB')}
+                                                {t('passkeysAdded')} {new Date(passkey.createdAt).toLocaleDateString('en-GB')}
                                             </p>
                                         </div>
                                     </div>
@@ -128,19 +131,19 @@ export default function PasskeySettings() {
                                         <button
                                             type="button"
                                             onClick={() => setSelectedPasskeyForRename(passkey)}
-                                            className="inline-flex items-center gap-1.5 rounded-full border border-marquee-line px-3 py-1.5 text-xs font-semibold text-marquee-muted transition hover:bg-marquee-line/50 hover:text-marquee-cream"
+                                            className="inline-flex items-center gap-1.5 rounded-lg border border-marquee-line px-3 py-2 text-xs font-medium text-marquee-muted transition hover:border-marquee-gold/40 hover:text-marquee-gold disabled:opacity-50"
                                         >
                                             <Pencil className="h-3.5 w-3.5" />
-                                            Edit
+                                            {t('editPasskey')}
                                         </button>
 
                                         <button
                                             type="button"
                                             onClick={() => setSelectedPasskeyForRemoval(passkey)}
-                                            className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 px-3 py-1.5 text-xs font-semibold text-red-400 transition hover:bg-red-500/10"
+                                            className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-red-500/30 bg-marquee-bg/40 px-3 py-2 text-xs font-semibold text-red-400 transition-all hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400 disabled:opacity-50"
                                         >
                                             <Trash2 className="h-3.5 w-3.5" />
-                                            Remove
+                                            {t('removePasskey')}
                                         </button>
                                     </div>
                                 </motion.div>
@@ -148,18 +151,15 @@ export default function PasskeySettings() {
                         </AnimatePresence>
 
                         {passkeys.length > 5 && (
-                            <button
-                                onClick={() => setShowAll(!showAll)}
-                                className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-lg border border-marquee-line bg-marquee-panel2 py-2 text-xs font-medium text-marquee-gold transition hover:bg-marquee-line/20"
-                            >
+                            <button onClick={() => setShowAll(!showAll)} className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-lg border border-marquee-line bg-marquee-panel2 py-2 text-xs font-medium text-marquee-gold transition hover:bg-marquee-line/20">
                                 {showAll ? (
                                     <>
-                                        <span>Show Less</span>
+                                        <span>{t('showLessPasskeys')}</span>
                                         <ChevronUp className="h-4 w-4" />
                                     </>
                                 ) : (
                                     <>
-                                        <span>Show All ({passkeys.length - 5} more)</span>
+                                        <span>{t('showAllPasskeys')} {passkeys.length - 5} {t('`morePasskeys`')}</span>
                                         <ChevronDown className="h-4 w-4" />
                                     </>
                                 )}
@@ -173,10 +173,10 @@ export default function PasskeySettings() {
                         type="button"
                         onClick={handleRegisterPasskey}
                         disabled={registering || loading}
-                        className="inline-flex items-center gap-2 rounded-full border border-marquee-gold px-5 py-2 text-sm font-semibold text-marquee-gold transition hover:bg-marquee-gold hover:text-zinc-950 disabled:opacity-50"
+                        className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-marquee-gold bg-marquee-panel2 px-3 py-2 text-xs font-semibold text-marquee-gold transition-all hover:border-marquee-gold/40 hover:bg-marquee-gold/10 hover:text-marquee-gold disabled:opacity-50"
                     >
-                        <Fingerprint className="h-4 w-4" />
-                        {registering ? 'Registering...' : 'Add Passkey'}
+                        <Fingerprint className="h-3.5 w-3.5" />
+                        {registering ? t('registeringPasskey') : t('addPasskey')}
                     </button>
                 </div>
             </div>

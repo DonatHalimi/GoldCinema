@@ -1,5 +1,6 @@
 import { Loader2, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { deleteAccount } from '../../../api/auth';
@@ -8,6 +9,8 @@ import { PasswordField } from '../FormUI';
 import Modal from './Modal';
 
 export default function DeleteAccountModal({ onClose }) {
+    const { t } = useTranslation('account');
+
     const [password, setPassword] = useState('');
     const [confirmation, setConfirmation] = useState('');
     const [loading, setLoading] = useState(false);
@@ -15,18 +18,21 @@ export default function DeleteAccountModal({ onClose }) {
     const navigate = useNavigate();
     const { logout } = useAuth();
 
-    const canDelete = password.trim().length > 0 &&
-        confirmation === 'DELETE' &&
+    const deleteWord = t('deleteConfirmationWord');
+
+    const canDelete =
+        password.trim().length > 0 &&
+        confirmation === deleteWord &&
         !loading;
 
     const handleDelete = async () => {
         if (!password.trim()) {
-            toast.error('Please enter your password.');
+            toast.error(t('enterPassword'));
             return;
         }
 
-        if (confirmation !== 'DELETE') {
-            toast.error('Please type DELETE to confirm.');
+        if (confirmation !== deleteWord) {
+            toast.error(t('typeDeleteConfirm2', { word: deleteWord }));
             return;
         }
 
@@ -41,7 +47,10 @@ export default function DeleteAccountModal({ onClose }) {
 
             navigate('/');
         } catch (err) {
-            toast.error(err.response?.data?.error || 'Unable to delete account.');
+            toast.error(
+                err.response?.data?.error ||
+                t('deleteAccountError')
+            );
         } finally {
             setLoading(false);
         }
@@ -51,7 +60,7 @@ export default function DeleteAccountModal({ onClose }) {
         <Modal
             isOpen={true}
             onClose={onClose}
-            title="Delete Account"
+            title={t('deleteAccountTitle')}
             closeDisabled={loading}
         >
             <div className="mt-5 rounded-lg border border-red-500/20 bg-red-500/5 p-4">
@@ -59,20 +68,18 @@ export default function DeleteAccountModal({ onClose }) {
                     <TriangleAlert className="h-4 w-4 shrink-0 text-red-400" />
 
                     <p className="text-sm font-semibold text-red-400">
-                        This action cannot be undone.
+                        {t('deleteAccountWarning')}
                     </p>
                 </div>
 
                 <p className="mt-2 text-sm leading-relaxed text-marquee-muted">
-                    Your account and associated personal data will be
-                    permanently deleted. You will also be signed out of
-                    all active sessions.
+                    {t('deleteAccountDesc')}
                 </p>
             </div>
 
             <div className="mt-5">
                 <PasswordField
-                    label="Password"
+                    label={t('passwordDeleteAccount')}
                     value={password}
                     onChange={setPassword}
                     required
@@ -80,12 +87,14 @@ export default function DeleteAccountModal({ onClose }) {
             </div>
 
             <div className="mt-5">
-                <label htmlFor="delete-confirmation" className="mb-2 block text-sm font-medium text-marquee-cream">
-                    Type{' '}
+                <label
+                    htmlFor="delete-confirmation"
+                    className="mb-2 block text-sm font-medium text-marquee-cream"
+                >
+                    {t('deleteConfirmationLabel')}{' '}
                     <span className="font-semibold text-red-400">
-                        DELETE
-                    </span>{' '}
-                    to confirm
+                        {deleteWord}
+                    </span>
                 </label>
 
                 <input
@@ -93,28 +102,28 @@ export default function DeleteAccountModal({ onClose }) {
                     type="text"
                     value={confirmation}
                     onChange={(e) => setConfirmation(e.target.value)}
-                    placeholder="DELETE"
+                    placeholder={deleteWord}
                     autoComplete="off"
                     disabled={loading}
                     className={`w-full rounded-lg border bg-marquee-panel2 px-4 py-2.5 text-sm text-marquee-cream outline-none transition-all placeholder:text-marquee-muted/50 ${confirmation.length > 0 &&
-                        confirmation !== 'DELETE'
+                        confirmation !== deleteWord
                         ? 'border-red-500/50 focus:border-red-500'
-                        : confirmation === 'DELETE'
+                        : confirmation === deleteWord
                             ? 'border-green-500/50 focus:border-green-500'
                             : 'border-marquee-line focus:border-marquee-gold'
                         } disabled:cursor-not-allowed disabled:opacity-60`}
                 />
 
                 {confirmation.length > 0 &&
-                    confirmation !== 'DELETE' && (
+                    confirmation !== deleteWord && (
                         <p className="mt-1.5 text-xs text-red-400">
-                            Please type DELETE exactly as shown.
+                            {t('typeDeleteExactly2', { word: deleteWord, })}
                         </p>
                     )}
 
-                {confirmation === 'DELETE' && (
+                {confirmation === deleteWord && (
                     <p className="mt-1.5 text-xs text-green-400">
-                        Confirmation accepted.
+                        {t('confirmationAccepted')}
                     </p>
                 )}
             </div>
@@ -124,20 +133,20 @@ export default function DeleteAccountModal({ onClose }) {
                     type="button"
                     onClick={onClose}
                     disabled={loading}
-                    className="rounded-full border border-marquee-line px-4 py-2 text-sm text-marquee-muted transition-colors hover:border-marquee-gold hover:text-marquee-cream disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-marquee-line px-3 py-2 text-xs font-medium text-marquee-muted transition hover:border-marquee-gold/40 hover:text-marquee-gold disabled:opacity-50"
                 >
-                    Cancel
+                    {t('cancelDeleteAccount')}
                 </button>
 
                 <button
                     type="button"
                     onClick={handleDelete}
                     disabled={!canDelete}
-                    className="inline-flex items-center gap-2 rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white transition-all hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-red-500/30 bg-marquee-bg/40 px-3 py-2 text-xs font-semibold text-red-400 transition-all hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400 disabled:opacity-50"
                 >
                     {loading && <Loader2 className="h-4 w-4 animate-spin" />}
 
-                    {loading ? 'Deleting...' : 'Delete Account'}
+                    {loading ? t('deleting') : t('deleteAccount')}
                 </button>
             </div>
         </Modal>

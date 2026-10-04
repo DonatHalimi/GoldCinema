@@ -15,6 +15,9 @@
     "@simplewebauthn/browser": "^13.3.0",
     "@stripe/react-stripe-js": "^6.8.0",
     "@stripe/stripe-js": "^9.12.1",
+    "@swup/head-plugin": "^2.3.1",
+    "@swup/parallel-plugin": "^0.4.0",
+    "@swup/preload-plugin": "^3.2.12",
     "axios": "^1.18.1",
     "framer-motion": "^13.0.0",
     "i18next": "^26.4.2",
@@ -27,6 +30,7 @@
     "react-redux": "^9.3.0",
     "react-router-dom": "^7.18.1",
     "react-toastify": "^11.1.0",
+    "swup": "^4.10.0",
     "yup": "^1.7.1"
   },
   "devDependencies": {

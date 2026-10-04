@@ -48,10 +48,6 @@ export default function PaymentSection({
                     captureOrderFn={capturePaypalOrderFn}
                 />
             )}
-
-            <p className="mt-6 text-center text-xs text-marquee-muted">
-                🔒 Payments are processed securely by Stripe and PayPal.
-            </p>
         </div>
     );
 }

@@ -1,5 +1,6 @@
-import { Check, ChevronDown, ChevronLeft, ChevronRight, Pencil, Plus, Search, SlidersHorizontal, Trash, Trash2, X } from 'lucide-react';
+import { Check, ChevronDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Pencil, Plus, Search, SlidersHorizontal, Trash, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { bulkDeleteItems, createItem, deleteItem, getItems, updateItem } from '../../api/admin';
 import useEscapeKey from '../../hooks/useEscKey';
@@ -11,6 +12,7 @@ const getNestedValue = (obj, path) => {
 };
 
 export default function ModuleDataGrid({ moduleConfig }) {
+    const { t } = useTranslation('dashboard');
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [page, setPage] = useState(1);
@@ -23,6 +25,8 @@ export default function ModuleDataGrid({ moduleConfig }) {
 
     const [search, setSearch] = useState('');
     const [searchInput, setSearchInput] = useState('');
+    const [roleOptions, setRoleOptions] = useState([]);
+    const [loadingRoles, setLoadingRoles] = useState(false);
 
     const [isFiltersOpen, setIsFiltersOpen] = useState(false);
     const filtersRef = useRef(null);
@@ -34,6 +38,35 @@ export default function ModuleDataGrid({ moduleConfig }) {
         },
         (deleteTarget && !deleting) || isFiltersOpen
     );
+
+    useEffect(() => {
+        if (moduleConfig.key !== 'users') return;
+
+        const fetchRoles = async () => {
+            setLoadingRoles(true);
+
+            try {
+                const res = await getItems('roles', 1, 1000);
+
+                const roles = res.data || [];
+
+                setRoleOptions(
+                    roles.map((role) => ({
+                        label: role.name,
+                        value: role._id,
+                    }))
+                );
+            } catch (err) {
+                toast.error(
+                    t('errors.fetchRoles', { message: err.response?.data?.message || err.message })
+                );
+            } finally {
+                setLoadingRoles(false);
+            }
+        };
+
+        fetchRoles();
+    }, [moduleConfig.key, t]);
 
     useEffect(() => {
         function handleClickOutside(event) {
@@ -61,14 +94,12 @@ export default function ModuleDataGrid({ moduleConfig }) {
     const fetchModuleData = async () => {
         setLoading(true);
         try {
-            // TODO: pass the search through once the API supports it,
-            // e.g. getItems(moduleConfig.key, page, 10, { search })
             const res = await getItems(moduleConfig.key, page, 10);
             setData(res.data || []);
             setTotalPages(res.pages || 1);
             setSelectedIds([]);
         } catch (err) {
-            toast.error(`Error fetching ${moduleConfig.label}: ` + (err.response?.data?.message || err.message));
+            toast.error(t('errors.fetchModule', { label: moduleConfig.label, message: err.response?.data?.message || err.message }));
         } finally {
             setLoading(false);
         }
@@ -78,10 +109,10 @@ export default function ModuleDataGrid({ moduleConfig }) {
         try {
             if (selectedItem) {
                 await updateItem(moduleConfig.key, selectedItem._id, formData);
-                toast.success(`${moduleConfig.label} updated successfully.`);
+                toast.success(t('success.updated', { label: moduleConfig.label }));
             } else {
                 await createItem(moduleConfig.key, formData);
-                toast.success(`${moduleConfig.label} created successfully.`);
+                toast.success(t('success.created', { label: moduleConfig.label }));
             }
 
             setIsModalOpen(false);
@@ -91,7 +122,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
             toast.error(
                 err.response?.data?.message ||
                 err.message ||
-                `Failed to save ${moduleConfig.label}.`
+                t('errors.failedSave', { label: moduleConfig.label })
             );
         }
     };
@@ -131,7 +162,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
             setSelectedIds([]);
             fetchModuleData();
         } catch (err) {
-            toast.error('Failed to delete item(s): ' + (err.response?.data?.message || err.message));
+            toast.error(t('errors.failedDelete', { message: err.response?.data?.message || err.message }));
         } finally {
             setDeleting(false);
         }
@@ -148,9 +179,25 @@ export default function ModuleDataGrid({ moduleConfig }) {
     const isAllSelected = data.length > 0 && selectedIds.length === data.length;
     const isSomeSelected = selectedIds.length > 0 && !isAllSelected;
 
+    const formFields =
+        moduleConfig.key === 'users'
+            ? [
+                { name: 'name', label: t('form.name'), type: 'text', required: true },
+                { name: 'email', label: t('form.email'), type: 'email', required: true },
+                {
+                    name: 'role',
+                    label: t('form.role'),
+                    type: 'select',
+                    options: roleOptions,
+                    required: true,
+                    disabled: loadingRoles,
+                },
+            ]
+            : moduleConfig?.formFields || fields;
+
     return (
-        <div className="flex-1 min-h-screen bg-marquee-bg px-10 pt-6 text-marquee-cream">
-            <div className="sticky top-20 mb-4 rounded-2xl border border-marquee-line bg-marquee-panel p-6 shadow-lg backdrop-blur-md">
+        <div className="flex-1 min-h-screen bg-marquee-bg px-10 pt-6 pb-12 text-marquee-cream">
+            <div className="sticky top-20 mb-6 rounded-2xl border border-marquee-line bg-marquee-panel/95 p-6 shadow-xl backdrop-blur-md z-30">
                 <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-marquee-gold/50 to-transparent" />
 
                 <div className="flex flex-col gap-5">
@@ -160,23 +207,23 @@ export default function ModuleDataGrid({ moduleConfig }) {
                                 {moduleConfig.label}
                             </h2>
                             <p className="mt-1 text-xs text-marquee-muted">
-                                Manage your movie platform's {moduleConfig.label.toLowerCase()} settings and records.
+                                {t('moduleSubtitle', { label: moduleConfig.label.toLowerCase() })}
                             </p>
                         </div>
                         <div className="flex items-center gap-3">
                             {selectedIds.length > 0 && (
                                 <button
                                     onClick={() => setDeleteTarget(selectedIds)}
-                                    className="flex items-center gap-2 rounded-lg border border-red-600/30 bg-red-600/10 px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-600/20 shadow-[0_0_12px_rgba(220,38,38,0.15)] transition-all"
+                                    className="flex items-center gap-2 rounded-lg border border-red-600/30 bg-red-600/10 px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-600/20 transition-all"
                                 >
-                                    <Trash className="h-4 w-4" /> Delete Selected ({selectedIds.length})
+                                    <Trash className="h-4 w-4" /> {t('deleteSelected', { count: selectedIds.length })}
                                 </button>
                             )}
                             <button
                                 onClick={handleCreate}
                                 className="flex items-center gap-2 rounded-lg bg-marquee-gold hover:bg-marquee-goldBright px-4 py-2.5 text-sm font-semibold text-marquee-bg transition-all shadow-[0_0_15px_rgba(245,158,11,0.2)]"
                             >
-                                <Plus className="h-4 w-4 stroke-[2.5]" /> Add {moduleConfig.label}
+                                <Plus className="h-4 w-4 stroke-[2.5]" /> {t('addModule', { label: moduleConfig.label })}
                             </button>
                         </div>
                     </div>
@@ -188,7 +235,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
                                 type="text"
                                 value={searchInput}
                                 onChange={(e) => setSearchInput(e.target.value)}
-                                placeholder={`Search ${moduleConfig.label.toLowerCase()}...`}
+                                placeholder={t('searchPlaceholder', { label: moduleConfig.label.toLowerCase() })}
                                 className="w-full rounded-xl border border-marquee-line bg-marquee-panel2 py-2.5 pl-10 pr-10 text-sm text-marquee-cream outline-none transition-all placeholder:text-marquee-muted/70 hover:border-marquee-gold/50 focus:border-marquee-gold focus:ring-2 focus:ring-marquee-gold/20"
                             />
                             {searchInput && (
@@ -215,7 +262,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
                                     }`}
                             >
                                 <SlidersHorizontal size={15} />
-                                <span>Filters</span>
+                                <span>{t('filters')}</span>
                                 <ChevronDown
                                     size={15}
                                     className={`text-marquee-muted transition-transform duration-300 ${isFiltersOpen ? 'rotate-180 text-marquee-gold' : ''
@@ -230,10 +277,10 @@ export default function ModuleDataGrid({ moduleConfig }) {
                                     <div className="relative rounded-xl border border-marquee-line bg-marquee-panel p-6 shadow-2xl backdrop-blur-md text-center">
                                         <SlidersHorizontal size={28} className="mx-auto mb-3 text-marquee-muted/50" />
                                         <p className="text-sm font-medium text-marquee-muted">
-                                            No filters configured for this module.
+                                            {t('noFiltersConfigured')}
                                         </p>
                                         <p className="mt-1 text-xs text-marquee-muted/70">
-                                            Add filterable fields to enable filtering.
+                                            {t('addFilterableFields')}
                                         </p>
                                     </div>
                                 </div>
@@ -244,7 +291,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
                     {search && (
                         <div className="flex flex-wrap items-center gap-2 border-t border-marquee-line pt-4">
                             <span className="mr-1 text-[10px] font-semibold uppercase tracking-wider text-marquee-muted">
-                                Active:
+                                {t('activeFilters')}
                             </span>
                             <button
                                 type="button"
@@ -254,7 +301,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
                                 }}
                                 className="inline-flex items-center gap-1.5 rounded-full border border-marquee-line bg-marquee-panel2 px-2.5 py-1 text-[10px] font-medium text-marquee-cream transition-colors hover:border-marquee-gold/50 hover:text-marquee-gold"
                             >
-                                Search: {search}
+                                {t('searchBadge', { search })}
                                 <X size={11} />
                             </button>
                             <button
@@ -262,7 +309,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
                                 onClick={resetAllFilters}
                                 className="ml-1 text-[10px] font-medium text-marquee-muted transition-colors hover:text-marquee-gold"
                             >
-                                Clear all
+                                {t('clearAll')}
                             </button>
                         </div>
                     )}
@@ -271,19 +318,19 @@ export default function ModuleDataGrid({ moduleConfig }) {
 
             {loading ? (
                 <div className="py-20 text-center text-marquee-muted">
-                    <p className="animate-pulse text-sm">Loading {moduleConfig.label} records...</p>
+                    <p className="animate-pulse text-sm">{t('loadingRecords', { label: moduleConfig.label })}</p>
                 </div>
             ) : (
                 <div className="overflow-hidden rounded-xl border border-marquee-line bg-marquee-panel shadow-[0_0_20px_-10px_rgba(230,199,115,0.175)]">
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm text-marquee-cream">
+                        <table className="w-full text-left text-sm text-marquee-cream border-separate border-spacing-0">
                             <thead className="bg-marquee-panel2 border-b border-marquee-line uppercase text-[11px] font-semibold text-marquee-cream tracking-wider">
                                 <tr>
                                     <th className="px-4 py-4 w-12 text-center">
                                         <button
                                             type="button"
                                             onClick={handleSelectAll}
-                                            aria-label="Select all rows"
+                                            aria-label={t('selectAllRows')}
                                             className={`inline-flex h-4 w-4 items-center justify-center rounded border transition-all ${isAllSelected
                                                 ? 'bg-marquee-gold border-marquee-gold text-marquee-bg shadow-[0_0_8px_rgba(245,158,11,0.4)]'
                                                 : isSomeSelected
@@ -300,14 +347,14 @@ export default function ModuleDataGrid({ moduleConfig }) {
                                             {col.label}
                                         </th>
                                     ))}
-                                    <th className="px-6 py-4 text-right">Actions</th>
+                                    <th className="px-6 py-4 text-right">{t('actionsTable')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-marquee-line">
                                 {data.length === 0 ? (
                                     <tr>
                                         <td colSpan={fields.length + 3} className="px-6 py-8 text-center text-marquee-muted">
-                                            No {moduleConfig.label.toLowerCase()} found.
+                                            {t('noRecordsFound', { label: moduleConfig.label.toLowerCase() })}
                                         </td>
                                     </tr>
                                 ) : (
@@ -319,7 +366,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
                                                     <button
                                                         type="button"
                                                         onClick={() => handleSelectRow(row._id)}
-                                                        aria-label={`Select row ${row._id}`}
+                                                        aria-label={t('selectRow', { id: row._id })}
                                                         className={`inline-flex h-4 w-4 items-center justify-center rounded border transition-all ${isSelected
                                                             ? 'bg-marquee-gold border-marquee-gold text-marquee-bg shadow-[0_0_8px_rgba(245,158,11,0.4)]'
                                                             : 'border-marquee-line bg-marquee-panel2 hover:border-marquee-gold'
@@ -339,14 +386,14 @@ export default function ModuleDataGrid({ moduleConfig }) {
                                                 <td className="px-6 py-4 text-right space-x-2">
                                                     <button
                                                         onClick={() => handleEdit(row)}
-                                                        title="Edit"
+                                                        title={t('edit')}
                                                         className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-marquee-gold bg-marquee-gold/10 text-marquee-gold hover:bg-marquee-gold/20 transition-all"
                                                     >
                                                         <Pencil className="h-4 w-4" />
                                                     </button>
                                                     <button
                                                         onClick={() => setDeleteTarget(row._id)}
-                                                        title="Delete"
+                                                        title={t('delete')}
                                                         className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-600/30 bg-red-600/10 text-red-600 hover:bg-red-600/20 transition-all"
                                                     >
                                                         <Trash2 className="h-4 w-4" />
@@ -361,23 +408,44 @@ export default function ModuleDataGrid({ moduleConfig }) {
                     </div>
                     <div className="flex items-center justify-between border-t border-marquee-line bg-marquee-panel2 px-6 py-4 text-xs text-marquee-muted">
                         <span>
-                            Page <strong className="text-marquee-gold">{page}</strong> of{' '}
-                            <strong className="text-marquee-gold">{totalPages}</strong>
+                            {t('paginationInfo', { page, totalPages })}
                         </span>
+
                         <div className="flex gap-2">
+                            <button
+                                disabled={page === 1}
+                                onClick={() => setPage(1)}
+                                aria-label={t('firstPage')}
+                                title={t('firstPage')}
+                                className="flex h-8 w-8 items-center justify-center rounded-lg border border-marquee-gold bg-marquee-panel text-marquee-cream hover:bg-marquee-gold hover:text-marquee-bg disabled:opacity-40 transition-all"
+                            >
+                                <ChevronsLeft className="h-3.5 w-3.5" />
+                            </button>
+
                             <button
                                 disabled={page === 1}
                                 onClick={() => setPage((p) => p - 1)}
                                 className="flex items-center gap-1 rounded-lg border border-marquee-gold bg-marquee-panel text-marquee-cream px-3 py-1.5 hover:bg-marquee-gold hover:text-marquee-bg disabled:opacity-40 transition-all"
                             >
-                                <ChevronLeft className="h-3.5 w-3.5" /> Previous
+                                <ChevronLeft className="h-3.5 w-3.5" /> {t('previous')}
                             </button>
+
                             <button
                                 disabled={page === totalPages || totalPages === 0}
                                 onClick={() => setPage((p) => p + 1)}
                                 className="flex items-center gap-1 rounded-lg border border-marquee-gold bg-marquee-panel text-marquee-cream px-3 py-1.5 hover:bg-marquee-gold hover:text-marquee-bg disabled:opacity-40 transition-all"
                             >
-                                Next <ChevronRight className="h-3.5 w-3.5" />
+                                {t('next')} <ChevronRight className="h-3.5 w-3.5" />
+                            </button>
+
+                            <button
+                                disabled={page === totalPages || totalPages === 0}
+                                onClick={() => setPage(totalPages)}
+                                aria-label={t('lastPage')}
+                                title={t('lastPage')}
+                                className="flex h-8 w-8 items-center justify-center rounded-lg border border-marquee-gold bg-marquee-panel text-marquee-cream hover:bg-marquee-gold hover:text-marquee-bg disabled:opacity-40 transition-all"
+                            >
+                                <ChevronsRight className="h-3.5 w-3.5" />
                             </button>
                         </div>
                     </div>
@@ -389,8 +457,8 @@ export default function ModuleDataGrid({ moduleConfig }) {
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleModalSubmit}
                 initialData={selectedItem}
-                fields={moduleConfig?.formFields || fields}
-                title={`${selectedItem ? 'Edit' : 'Create'} ${moduleConfig.label}`}
+                fields={formFields}
+                title={`${selectedItem ? t('editModalTitle') : t('createModalTitle')} ${moduleConfig.label}`}
                 width="max-w-2xl"
             />
 

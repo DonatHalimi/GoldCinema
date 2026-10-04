@@ -78,7 +78,7 @@ export default function RenamePasskeyModal({ passkey, onClose, onSuccess }) {
         >
             <p className="mt-4 text-sm text-marquee-muted">
                 Give this passkey a recognizable name or choose
-                a quick suggestion below.
+                a quick suggestion below
             </p>
 
             <form

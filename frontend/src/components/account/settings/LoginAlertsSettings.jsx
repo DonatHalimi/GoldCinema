@@ -1,10 +1,12 @@
 import { motion } from 'framer-motion';
 import { Bell } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { updateLoginAlerts } from '../../../api/auth';
 
 export default function LoginAlertsSettings({ initialLoginAlerts = true, onUpdate }) {
+    const { t } = useTranslation('account');
     const [loginAlerts, setLoginAlerts] = useState(initialLoginAlerts);
     const [alertsLoading, setAlertsLoading] = useState(false);
 
@@ -39,10 +41,10 @@ export default function LoginAlertsSettings({ initialLoginAlerts = true, onUpdat
 
                     <div>
                         <h3 className="font-semibold text-marquee-cream">
-                            Login Alerts
+                            {t('loginAlertsHeader')}
                         </h3>
                         <p className="text-sm text-marquee-muted">
-                            Get notified via email whenever your account is accessed from a new login
+                            {t('loginAlertsDesc')}
                         </p>
                     </div>
                 </div>

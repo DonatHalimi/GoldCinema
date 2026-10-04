@@ -10,6 +10,7 @@ import { NotificationProvider } from './context/NotificationContext.jsx';
 import './index.css';
 import { store } from './store/store.js';
 import { initGlobalErrorLogging } from './utils/clientLogger.js';
+import ScrollToTop from './components/ScrollToTop.jsx';
 
 initGlobalErrorLogging();
 
@@ -20,6 +21,8 @@ createRoot(document.getElementById('root')).render(
         <AuthProvider>
           <NotificationProvider>
             <FavouritesProvider>
+              <ScrollToTop />
+
               <App />
             </FavouritesProvider>
           </NotificationProvider>

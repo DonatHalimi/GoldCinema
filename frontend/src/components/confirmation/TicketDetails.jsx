@@ -1,9 +1,13 @@
+import { useTranslation } from "react-i18next";
+
 export default function TicketDetails({ order }) {
+    const { t } = useTranslation('account');
+
     return (
         <div className="border-t border-dashed border-marquee-line px-6 py-4">
             <div className="flex items-center justify-between text-sm">
                 <span className="text-marquee-muted">
-                    Seats
+                    {t('seatsNr')}
                 </span>
 
                 <span className="font-mono text-marquee-cream">

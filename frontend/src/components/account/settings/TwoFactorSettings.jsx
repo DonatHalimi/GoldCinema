@@ -1,12 +1,12 @@
 import { BadgeCheck, Mail, MessageSquare, ShieldCheck, Smartphone, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { activateEmail2FA, getProfile } from '../../../api/auth.js';
 import Disable2faModal from '../../ui/modals/Disable2faModal.jsx';
 import EnableEmail2faModal from '../../ui/modals/EnableEmail2faModal.jsx';
 import EnableSms2faModal from '../../ui/modals/EnableSMS2faModal.jsx';
 import EnableTotpModal from '../../ui/modals/EnableTotpModal.jsx';
-import { useTranslation } from 'react-i18next';
 
 export default function TwoFactorSettings() {
     const { t } = useTranslation('account');
@@ -97,13 +97,13 @@ export default function TwoFactorSettings() {
                             {isEnabled && (
                                 <span className="flex items-center gap-1.5 text-xs font-medium text-green-400">
                                     <BadgeCheck className="h-4 w-4" />
-                                    Enabled
+                                    {t('2FAEnabled')}
                                 </span>
                             )}
                         </div>
 
                         <p className="mt-1 text-sm text-marquee-muted">
-                            {t('2faDescription')}
+                            {t('2faDesc')}
                         </p>
                     </div>
                 </div>
@@ -118,20 +118,20 @@ export default function TwoFactorSettings() {
                                     </div>
                                     <div>
                                         <p className="text-sm font-medium text-marquee-cream">
-                                            Email 2FA
+                                            {t('email2FA')}
                                         </p>
                                         <p className="text-xs text-marquee-muted">
-                                            Verification codes are sent to your email
+                                            {t('email2FADesc')}
                                         </p>
                                     </div>
                                 </div>
                                 <button
                                     type="button"
                                     onClick={() => handleDisableClick('email')}
-                                    className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 px-3 py-1.5 text-xs font-semibold text-red-400 transition hover:bg-red-500/10"
+                                    className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-red-500/30 bg-marquee-bg/40 px-3 py-2 text-xs font-semibold text-red-400 transition-all hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400 disabled:opacity-50"
                                 >
                                     <Trash2 className="h-3.5 w-3.5" />
-                                    Remove
+                                    {t('removeEmail2FA')}
                                 </button>
                             </div>
                         )}
@@ -144,20 +144,20 @@ export default function TwoFactorSettings() {
                                     </div>
                                     <div>
                                         <p className="text-sm font-medium text-marquee-cream">
-                                            Authenticator App
+                                            {t('authApp2FAHeader')}
                                         </p>
                                         <p className="text-xs text-marquee-muted">
-                                            Use an authenticator app to generate verification codes
+                                            {t('authApp2FADesc')}
                                         </p>
                                     </div>
                                 </div>
                                 <button
                                     type="button"
                                     onClick={() => handleDisableClick('totp')}
-                                    className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 px-3 py-1.5 text-xs font-semibold text-red-400 transition hover:bg-red-500/10"
+                                    className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-red-500/30 bg-marquee-bg/40 px-3 py-2 text-xs font-semibold text-red-400 transition-all hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400 disabled:opacity-50"
                                 >
                                     <Trash2 className="h-3.5 w-3.5" />
-                                    Remove
+                                    {t('removeAuthApp2FA')}
                                 </button>
                             </div>
                         )}
@@ -170,63 +170,69 @@ export default function TwoFactorSettings() {
                                     </div>
                                     <div>
                                         <p className="text-sm font-medium text-marquee-cream">
-                                            SMS 2FA
+                                            {t('sms2FAHeader')}
                                         </p>
                                         <p className="text-xs text-marquee-muted">
-                                            Verification codes are sent to your phone
+                                            {t('sms2FADesc')}
                                         </p>
                                     </div>
                                 </div>
                                 <button
                                     type="button"
                                     onClick={() => handleDisableClick('sms')}
-                                    className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 px-3 py-1.5 text-xs font-semibold text-red-400 transition hover:bg-red-500/10"
+                                    className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-red-500/30 bg-marquee-bg/40 px-3 py-2 text-xs font-semibold text-red-400 transition-all hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400 disabled:opacity-50"
                                 >
                                     <Trash2 className="h-3.5 w-3.5" />
-                                    Remove
+                                    {t('removeSMS2FA')}
                                 </button>
                             </div>
                         )}
                     </div>
                 )}
 
-                <div className="mt-5 flex flex-wrap gap-3">
-                    {!twoFactor.methods.includes('email') && (
-                        <button
-                            type="button"
-                            onClick={enableEmail2FA}
-                            disabled={loading}
-                            className="inline-flex items-center gap-2 rounded-full border border-marquee-gold px-5 py-2 text-sm font-semibold text-marquee-gold transition hover:bg-marquee-gold hover:text-zinc-950 disabled:opacity-50"
-                        >
-                            <Mail className="h-4 w-4" />
-                            Enable Email 2FA
-                        </button>
-                    )}
+                {!['email', 'totp', 'sms'].every((method) =>
+                    twoFactor.methods.includes(method)
+                ) && (
+                        <div className="flex items-center justify-between rounded-2xl border border-marquee-line/60 bg-marquee-line/30 p-3 sm:p-4 mt-5">
+                            <div className="flex w-full flex-wrap items-center gap-2 sm:gap-3">
+                                {!twoFactor.methods.includes('email') && (
+                                    <button
+                                        type="button"
+                                        onClick={enableEmail2FA}
+                                        disabled={loading}
+                                        className="inline-flex items-center gap-2 rounded-xl border border-marquee-line/70 bg-marquee-bg/40 px-4 py-2.5 text-sm font-semibold text-marquee-cream transition-all hover:border-marquee-gold/50 hover:bg-marquee-gold/10 hover:text-marquee-gold disabled:opacity-50"
+                                    >
+                                        <Mail className="h-4 w-4 text-marquee-gold" />
+                                        {t('enableEmail2FA')}
+                                    </button>
+                                )}
 
-                    {!twoFactor.methods.includes('totp') && (
-                        <button
-                            type="button"
-                            onClick={() => setShowTotpSetup(true)}
-                            disabled={loading}
-                            className="inline-flex items-center gap-2 rounded-full border border-marquee-gold px-5 py-2 text-sm font-semibold text-marquee-gold transition hover:bg-marquee-gold hover:text-zinc-950 disabled:opacity-50"
-                        >
-                            <Smartphone className="h-4 w-4" />
-                            Authenticator App
-                        </button>
-                    )}
+                                {!twoFactor.methods.includes('totp') && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowTotpSetup(true)}
+                                        disabled={loading}
+                                        className="inline-flex items-center gap-2 rounded-xl border border-marquee-line/70 bg-marquee-bg/40 px-4 py-2.5 text-sm font-semibold text-marquee-cream transition-all hover:border-marquee-gold/50 hover:bg-marquee-gold/10 hover:text-marquee-gold disabled:opacity-50"
+                                    >
+                                        <Smartphone className="h-4 w-4 text-marquee-gold" />
+                                        {t('enableAuthApp2FA')}
+                                    </button>
+                                )}
 
-                    {!twoFactor.methods.includes('sms') && (
-                        <button
-                            type="button"
-                            onClick={() => setShowSmsSetup(true)}
-                            disabled={loading}
-                            className="inline-flex items-center gap-2 rounded-full border border-marquee-gold px-5 py-2 text-sm font-semibold text-marquee-gold transition hover:bg-marquee-gold hover:text-zinc-950 disabled:opacity-50"
-                        >
-                            <MessageSquare className="h-4 w-4" />
-                            SMS 2FA
-                        </button>
+                                {!twoFactor.methods.includes('sms') && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowSmsSetup(true)}
+                                        disabled={loading}
+                                        className="inline-flex items-center gap-2 rounded-xl border border-marquee-line/70 bg-marquee-bg/40 px-4 py-2.5 text-sm font-semibold text-marquee-cream transition-all hover:border-marquee-gold/50 hover:bg-marquee-gold/10 hover:text-marquee-gold disabled:opacity-50"
+                                    >
+                                        <MessageSquare className="h-4 w-4 text-marquee-gold" />
+                                        {t('enableSMS2FA')}
+                                    </button>
+                                )}
+                            </div>
+                        </div>
                     )}
-                </div>
             </div>
 
             {showEmailVerify && (

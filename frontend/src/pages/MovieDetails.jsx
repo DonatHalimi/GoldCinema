@@ -1,3 +1,5 @@
+import { AnimatePresence, motion } from 'framer-motion';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api/client';
@@ -10,6 +12,8 @@ import WriteReviewModal from '../components/reviews/WriteReviewModal';
 import { useAuth } from '../context/AuthContext';
 import useEscapeKey from '../hooks/useEscKey';
 
+const INITIAL_DATES = 4;
+
 export default function MovieDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -20,6 +24,7 @@ export default function MovieDetail() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showAllDates, setShowAllDates] = useState(false);
 
   const [reviews, setReviews] = useState([]);
   const [reviewsPage, setReviewsPage] = useState(1);
@@ -122,6 +127,9 @@ export default function MovieDetail() {
     [showtimes]
   );
 
+  const visibleDates = showAllDates ? dates : dates.slice(0, INITIAL_DATES);
+  const hiddenDateCount = Math.max(0, dates.length - INITIAL_DATES);
+
   const showtimesForDate = showtimes.filter((s) => s.date === selectedDate);
 
   if (loading) {
@@ -141,11 +149,9 @@ export default function MovieDetail() {
             className="aspect-[2/3] w-full rounded-lg border border-marquee-line object-cover shadow-glow"
           />
 
-          <FavouriteButton
-            itemType="movie"
-            itemId={movie._id}
-            className="absolute right-3 top-3 z-10"
-          />
+          <div className="absolute right-3 top-3 z-10">
+            <FavouriteButton itemType="movie" itemId={movie._id} />
+          </div>
         </div>
 
         <div>
@@ -166,20 +172,50 @@ export default function MovieDetail() {
             <h2 className="mb-3 font-body text-sm uppercase tracking-widest text-marquee-muted">
               Select a date
             </h2>
-            <div className="flex flex-wrap gap-2">
-              {dates.map((date) => (
+
+            <motion.div layout className="space-y-3">
+              <div className="flex flex-wrap gap-2">
+                <AnimatePresence initial={false} mode="popLayout">
+                  {visibleDates.map((date) => (
+                    <motion.button
+                      key={date}
+                      layout
+                      initial={{ opacity: 0, y: -12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 12, scale: 0.95 }}
+                      transition={{ duration: 0.2, ease: 'easeInOut' }}
+                      onClick={() => setSelectedDate(date)}
+                      className={`rounded-full border px-4 py-2 text-sm transition ${selectedDate === date
+                        ? 'border-marquee-gold bg-marquee-gold text-marquee-bg'
+                        : 'border-marquee-line text-marquee-muted hover:border-marquee-gold hover:text-marquee-gold'
+                        }`}
+                    >
+                      {formatDate(date)}
+                    </motion.button>
+                  ))}
+                </AnimatePresence>
+              </div>
+
+              {dates.length > INITIAL_DATES && (
                 <button
-                  key={date}
-                  onClick={() => setSelectedDate(date)}
-                  className={`rounded-full border px-4 py-2 text-sm transition ${selectedDate === date
-                    ? 'border-marquee-gold bg-marquee-gold text-marquee-bg'
-                    : 'border-marquee-line text-marquee-muted hover:border-marquee-gold hover:text-marquee-gold'
-                    }`}
+                  type="button"
+                  onClick={() => setShowAllDates((prev) => !prev)}
+                  className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-marquee-line bg-marquee-panel2 py-2 text-xs font-medium text-marquee-gold transition hover:bg-marquee-line/20"
                 >
-                  {formatDate(date)}
+                  {showAllDates ? (
+                    <>
+                      <span>See less</span>
+                      <ChevronUp className="h-4 w-4" />
+                    </>
+                  ) : (
+                    <>
+                      <span>See more ({hiddenDateCount} more)</span>
+                      <ChevronDown className="h-4 w-4" />
+                    </>
+                  )}
                 </button>
-              ))}
-            </div>
+              )}
+            </motion.div>
 
             <h2 className="mb-3 mt-8 font-body text-sm uppercase tracking-widest text-marquee-muted">
               Select a showtime

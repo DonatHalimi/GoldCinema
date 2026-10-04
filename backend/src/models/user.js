@@ -105,6 +105,17 @@ const twoFactorSchema = new Schema(
     { _id: false }
 );
 
+const oauthIdentitySchema = new Schema(
+    {
+        provider: { type: String, enum: ['github'], required: true },
+        providerUserId: { type: String, required: true },
+        login: { type: String, default: null },
+        email: { type: String, default: null },
+        linkedAt: { type: Date, default: Date.now },
+    },
+    { _id: false }
+);
+
 const userSchema = new Schema(
     {
         name: { type: String, required: true, trim: true },
@@ -116,7 +127,15 @@ const userSchema = new Schema(
             trim: true,
             index: true,
         },
-        passwordHash: { type: String, required: true },
+        passwordHash: { type: String, default: null },
+        authProviders: {
+            type: [{
+                type: String,
+                enum: ['password', 'google', 'facebook'],
+            }],
+            default: [],
+        },
+        oauthIdentities: { type: [oauthIdentitySchema], default: [] },
         role: { type: Schema.Types.ObjectId, ref: 'Role' },
         avatar: { type: String, default: null },
 
@@ -157,6 +176,11 @@ const userSchema = new Schema(
         stripeCustomerId: { type: String, default: null },
     },
     { timestamps: true }
+);
+
+userSchema.index(
+    { 'oauthIdentities.provider': 1, 'oauthIdentities.providerUserId': 1 },
+    { unique: true, partialFilterExpression: { 'oauthIdentities.providerUserId': { $exists: true } } }
 );
 
 userSchema.methods.toPublicJSON = function toPublicJSON() {

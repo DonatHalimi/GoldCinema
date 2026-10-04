@@ -28,86 +28,48 @@ export default function AccountSidebar() {
             title: t('accountMenu'),
             icon: Settings,
             items: [
-                {
-                    id: 'profile',
-                    label: t('profileItem'),
-                    icon: User,
-                },
-                {
-                    id: 'tickets',
-                    label: t('ticketsItem'),
-                    icon: Ticket,
-                },
-                {
-                    id: 'favourites',
-                    label: t('favouritesItem'),
-                    icon: Heart,
-                },
+                { id: 'profile', label: t('profileItem'), icon: User },
+                { id: 'tickets', label: t('ticketsItem'), icon: Ticket },
+                { id: 'favourites', label: t('favouritesItem'), icon: Heart },
             ],
         },
         {
             title: t('paymentMenu'),
             icon: CircleDollarSign,
             items: [
-                {
-                    id: 'payments',
-                    label: t('paymentItem'),
-                    icon: CreditCard,
-                },
+                { id: 'payments', label: t('paymentItem'), icon: CreditCard },
             ],
         },
         {
             title: t('securityMenu'),
             icon: LockKeyhole,
             items: [
-                {
-                    id: 'security',
-                    label: t('securityItem'),
-                    icon: Shield,
-                },
-                {
-                    id: 'sessions',
-                    label: t('sessionItem'),
-                    icon: Monitor,
-                },
+                { id: 'security', label: t('securityItem'), icon: Shield },
+                { id: 'sessions', label: t('sessionItem'), icon: Monitor },
             ],
         },
         {
             title: t('communicationMenu'),
             icon: MessagesSquare,
             items: [
-                {
-                    id: 'notifications',
-                    label: t('notificationItem'),
-                    icon: Bell,
-                },
-                {
-                    id: 'reviews',
-                    label: t('reviewsItem'),
-                    icon: MessageSquare,
-                },
+                { id: 'notifications', label: t('notificationItem'), icon: Bell },
+                { id: 'reviews', label: t('reviewsItem'), icon: MessageSquare },
             ],
         },
         {
             title: t('dangerZoneMenu'),
             icon: TriangleAlert,
             items: [
-                {
-                    id: 'danger',
-                    label: t('dangerZoneItem'),
-                    icon: Trash2,
-                },
+                { id: 'danger', label: t('dangerZoneItem'), icon: Trash2 },
             ],
         },
     ];
 
     const [openSections, setOpenSections] = useState(() => {
         const initialOpen = {};
-
         ACCOUNT_SECTIONS.forEach((section) => {
             initialOpen[section.title] = true;
         });
-
         return initialOpen;
     });
 
@@ -119,7 +81,7 @@ export default function AccountSidebar() {
     };
 
     return (
-        <aside className="sticky top-24 w-64 rounded-xl border border-marquee-line bg-marquee-panel p-4">
+        <aside className="sticky top-24 self-start w-64 shrink-0 rounded-xl border border-marquee-line bg-marquee-panel p-4">
             <div className="mb-6 px-3">
                 <h2 className="font-display text-3xl font-semibold tracking-wide text-marquee-goldBright">
                     {t('header')}
@@ -142,7 +104,7 @@ export default function AccountSidebar() {
                                 onClick={() => toggleSection(section.title)}
                                 className="flex w-full items-center justify-between px-3 py-2 text-xs font-semibold uppercase tracking-wider text-marquee-muted transition-colors duration-200 hover:text-marquee-gold"
                             >
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 whitespace-nowrap">
                                     {SectionIcon && <SectionIcon size={14} />}
                                     <span>{section.title}</span>
                                 </div>
@@ -158,22 +120,10 @@ export default function AccountSidebar() {
                             <AnimatePresence initial={false}>
                                 {isOpen && (
                                     <motion.div
-                                        initial={{
-                                            opacity: 0,
-                                            height: 0,
-                                        }}
-                                        animate={{
-                                            opacity: 1,
-                                            height: 'auto',
-                                        }}
-                                        exit={{
-                                            opacity: 0,
-                                            height: 0,
-                                        }}
-                                        transition={{
-                                            duration: 0.25,
-                                            ease: 'easeInOut',
-                                        }}
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: 'auto' }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        transition={{ duration: 0.25, ease: 'easeInOut' }}
                                         className="space-y-1 overflow-hidden pl-2"
                                     >
                                         {section.items.map((item) => {
@@ -184,36 +134,34 @@ export default function AccountSidebar() {
                                                     key={item.id}
                                                     to={`/account/${item.id}`}
                                                     className={({ isActive }) => `
-                                                        relative group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-200 delay-100
+                                                        relative group flex w-full items-center gap-3
+                                                        rounded-xl px-3 py-2.5 text-sm font-medium
+                                                        border transition-all duration-300 z-10
                                                         ${isActive
-                                                            ? 'z-10 text-marquee-bg'
-                                                            : 'z-10 text-marquee-muted hover:bg-marquee-panel2 hover:text-marquee-gold'
-                                                        }`}
+                                                            ? 'text-marquee-goldBright font-bold border-transparent'
+                                                            : 'text-marquee-muted border-transparent hover:text-marquee-goldBright hover:bg-marquee-gold/5 hover:border-marquee-gold/15 hover:shadow-[0_0_12px_-4px_rgba(230,199,115,0.25)]'
+                                                        }
+                                                    `}
                                                 >
                                                     {({ isActive }) => (
                                                         <>
                                                             {isActive && (
                                                                 <motion.div
-                                                                    layoutId="activeAccountNav"
-                                                                    className="absolute inset-0 -z-10 rounded-lg bg-marquee-gold shadow-[0_0_20px_rgba(212,175,55,0.25)]"
-                                                                    transition={{
-                                                                        type: 'spring',
-                                                                        stiffness: 380,
-                                                                        damping: 30,
-                                                                    }}
+                                                                    layoutId="activeAccountNavBg"
+                                                                    transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+                                                                    className="absolute inset-0 rounded-xl bg-marquee-gold/10 border border-marquee-gold/20 -z-10"
                                                                 />
                                                             )}
 
                                                             <Icon
                                                                 size={16}
-                                                                className={
-                                                                    isActive
-                                                                        ? 'text-marquee-bg'
-                                                                        : 'text-marquee-muted group-hover:text-marquee-gold'
-                                                                }
+                                                                className={`transition-colors duration-300 ${isActive
+                                                                    ? 'text-marquee-gold'
+                                                                    : 'text-marquee-muted/70 group-hover:text-marquee-gold'
+                                                                    }`}
                                                             />
 
-                                                            <span>{item.label}</span>
+                                                            <span className="tracking-wide">{item.label}</span>
                                                         </>
                                                     )}
                                                 </NavLink>

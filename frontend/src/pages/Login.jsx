@@ -10,13 +10,14 @@ import RememberMeCheckbox from '../components/auth/RememberMeCheckbox';
 import SocialLoginButtons from '../components/auth/SocialLoginButtons';
 import { Field, PasswordField } from '../components/ui/FormUI';
 import { useAuth } from '../context/AuthContext';
+import { OAUTH_ERROR_MESSAGES } from '../utils/oAuthErrors.JS';
 import { loginSchema, validateForm } from '../validations';
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const facebookAppId = import.meta.env.VITE_FACEBOOK_APP_ID;
 
 export default function Login() {
-  const { login, loginWithGoogle, loginWithFacebook } = useAuth();
+  const { login, loginWithGoogle, loginWithFacebook, loginWithGithub } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || '/';
@@ -166,6 +167,24 @@ export default function Login() {
     }
   }
 
+  useEffect(() => {
+    const errorCode = new URLSearchParams(location.search).get('error');
+    const fragment = new URLSearchParams(location.hash.slice(1));
+    const mfaToken = fragment.get('mfaToken');
+
+    if (mfaToken) {
+      setMfaState({
+        mfaToken,
+        methods: (fragment.get('methods') || '').split(',').filter(Boolean),
+        rememberMe: false,
+      });
+    }
+
+    if (errorCode) toast.error(OAUTH_ERROR_MESSAGES[errorCode] || OAUTH_ERROR_MESSAGES.github_failed);
+
+    if (errorCode || mfaToken) navigate(location.pathname, { replace: true });
+  }, []);
+
   async function handleSubmit(e) {
     e.preventDefault();
     setSubmitting(true);
@@ -275,7 +294,7 @@ export default function Login() {
                 className="flex w-full items-center justify-center gap-2 rounded-full border border-marquee-line bg-marquee-panel px-6 py-3 font-semibold text-marquee-cream transition hover:border-marquee-gold disabled:opacity-40"
               >
                 <KeyRound className="h-5 w-5 text-marquee-gold" />
-                Sign in with Passkey
+                Login with Passkey
               </button>
 
               <div className="relative flex py-2 items-center">
@@ -285,10 +304,10 @@ export default function Login() {
               </div>
 
               <SocialLoginButtons
-                submitting={submitting}
                 googleBtnRef={googleBtnRef}
-                onGoogle={handleGoogleLogin}
-                onFacebook={handleFacebookLogin}
+                onFacebookLogin={handleFacebookLogin}
+                handleGithub={loginWithGithub}
+                disabled={submitting}
               />
             </form>
 

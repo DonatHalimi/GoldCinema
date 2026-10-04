@@ -9,10 +9,12 @@ import GiftCardBox from '../components/checkout/GiftCardBox';
 import GiftCardFullCoverage from '../components/checkout/GiftCardFullCoverage';
 import PaymentSection from '../components/checkout/PaymentSelection';
 import SeatHoldTimer from '../components/checkout/SeatHoldTimer';
+import { useNotifications } from '../context/NotificationContext';
 
 export default function Checkout() {
   const { orderId } = useParams();
   const navigate = useNavigate();
+  const { fetchNotifications } = useNotifications();
 
   const [order, setOrder] = useState(null);
   const [movie, setMovie] = useState(null);
@@ -118,7 +120,7 @@ export default function Checkout() {
     }
   }
 
-  function handleSuccess(response) {
+  async function handleSuccess(response) {
     const paidOrder = response.order ?? response;
 
     if (!paidOrder?._id) {
@@ -127,6 +129,8 @@ export default function Checkout() {
     }
 
     sessionStorage.removeItem(`selectedSeats-${order.showtime}`);
+
+    await fetchNotifications();
 
     navigate(`/confirmation/${paidOrder._id}`);
   }
@@ -151,30 +155,52 @@ export default function Checkout() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="mb-8 text-center font-serif text-3xl font-bold text-marquee-cream">
+      <h1 className="mb-2 text-center font-serif text-3xl font-bold text-marquee-cream">
         Complete your purchase
       </h1>
 
-      <CheckoutSummary
-        movie={movie}
-        showtime={showtime}
-        order={order}
-      />
+      <p className="mb-12 text-center text-sm text-marquee-muted">
+        Review your order and complete payment before your seats are released
+      </p>
 
-      <SeatHoldTimer
-        secondsLeft={secondsLeft}
-        expired={expired}
-        extending={extending}
-        onExtend={extendHold}
-      />
+      <section>
+        <h2 className="mb-6 font-body text-sm uppercase tracking-widest text-marquee-muted">
+          Order summary
+        </h2>
+
+        <CheckoutSummary movie={movie} showtime={showtime} order={order} />
+
+        {!expired && order.totalAmount > 0 && (
+          <div className="mt-8">
+            <GiftCardBox order={order} onOrderUpdated={setOrder} />
+          </div>
+        )}
+      </section>
 
       {expired ? (
-        <ExpiredHold onBack={() => navigate(-1)} />
+        <div className="mt-16 border-t border-marquee-line pt-10">
+          <ExpiredHold onBack={() => navigate(-1)} />
+        </div>
       ) : order.totalAmount === 0 ? (
-        <GiftCardFullCoverage order={order} onSuccess={handleSuccess} />
+        <div className="mt-16 border-t border-marquee-line pt-10">
+          <GiftCardFullCoverage order={order} onSuccess={handleSuccess} />
+        </div>
       ) : (
-        <>
-          <GiftCardBox order={order} onOrderUpdated={setOrder} />
+        <section className="mt-16 border-t border-marquee-line pt-8">
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <h2 className="font-body text-sm uppercase tracking-widest text-marquee-muted">
+              Payment
+            </h2>
+
+            <SeatHoldTimer
+              secondsLeft={secondsLeft}
+              expired={expired}
+              extending={extending}
+              onExtend={extendHold}
+              inline
+            />
+          </div>
+
           <PaymentSection
             key={order.totalAmount}
             provider={provider}
@@ -186,7 +212,7 @@ export default function Checkout() {
             paymentMethods={paymentMethods}
             paymentMethodsLoading={paymentMethodsLoading}
           />
-        </>
+        </section>
       )}
     </div>
   );

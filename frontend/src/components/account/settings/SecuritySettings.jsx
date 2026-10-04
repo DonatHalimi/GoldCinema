@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { getProfile } from '../../../api/auth.js';
 import BackupCodesCard from '../../ui/BackupCodesCard.jsx';
@@ -11,7 +12,6 @@ import LoginAlertsSettings from './LoginAlertsSettings.jsx';
 import PasskeySettings from './PasskeySettings.jsx';
 import TrustedDevicesSettings from './TrustedDeviceSettings.jsx';
 import TwoFactorSettings from './TwoFactorSettings';
-import { useTranslation } from 'react-i18next';
 
 export default function SecuritySettings() {
     const { t } = useTranslation('account');

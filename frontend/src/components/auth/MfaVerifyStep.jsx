@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
 import { resendMfaCode } from '../../api/auth';
 import { useAuth } from '../../context/AuthContext';
 import RememberMeCheckbox from './RememberMeCheckbox';
@@ -57,9 +56,7 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
         if (resendCooldown <= 0) return;
 
         const timer = setInterval(() => {
-            setResendCooldown((seconds) =>
-                Math.max(0, seconds - 1)
-            );
+            setResendCooldown((seconds) => Math.max(0, seconds - 1));
         }, 1000);
 
         return () => clearInterval(timer);
@@ -93,7 +90,11 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
 
             navigate(from, { replace: true });
         } catch (err) {
-            setError(err.response?.data?.error || err.message || 'Invalid code. Please try again.');
+            setError(
+                err.response?.data?.error ||
+                err.message ||
+                'Invalid code. Please try again.'
+            );
 
             if (useBackupCode) {
                 setBackupCode('');
@@ -113,16 +114,20 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
         }
 
         const newOtp = [...otp];
-
         newOtp[index] = value.substring(value.length - 1);
 
         setOtp(newOtp);
 
-        if (value && index < 5) otpRefs.current[index + 1]?.focus();
+        if (value && index < 5) {
+            otpRefs.current[index + 1]?.focus();
+        }
 
         const fullCode = newOtp.join('');
 
-        if (fullCode.length === 6 && newOtp.every((digit) => digit !== '')) {
+        if (
+            fullCode.length === 6 &&
+            newOtp.every((digit) => digit !== '')
+        ) {
             submitVerification(fullCode);
         }
     };
@@ -151,23 +156,30 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        const codeToSubmit = useBackupCode ? backupCode : otp.join('');
+        const codeToSubmit = useBackupCode
+            ? backupCode
+            : otp.join('');
 
         submitVerification(codeToSubmit);
     };
 
     async function handleResend() {
-        if (selectedMethod !== 'email' && selectedMethod !== 'sms') return;
+        if (selectedMethod !== 'email' && selectedMethod !== 'sms') {
+            return;
+        }
 
         setResending(true);
         setError('');
 
         try {
             await resendMfaCode(mfaState.mfaToken);
-
             setResendCooldown(RESEND_COOLDOWN_SECONDS);
         } catch (err) {
-            setError(err.response?.data?.error || err.message || 'Could not resend code.');
+            setError(
+                err.response?.data?.error ||
+                err.message ||
+                'Could not resend code.'
+            );
         } finally {
             setResending(false);
         }
@@ -193,7 +205,7 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
             <button
                 type="button"
                 onClick={onBack}
-                className="mb-4 text-sm text-marquee-muted hover:text-marquee-gold"
+                className="mb-4 text-sm text-marquee-muted transition hover:text-marquee-gold"
             >
                 &larr; Back to login
             </button>
@@ -219,10 +231,10 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
                             type="button"
                             onClick={() => switchMethod('totp')}
                             disabled={submitting}
-                            className={`w - full rounded - lg border px - 4 py - 3 text - left transition ${selectedMethod === 'totp'
+                            className={`w-full rounded-lg border px-4 py-3 text-left transition ${selectedMethod === 'totp'
                                 ? 'border-marquee-gold bg-marquee-gold/10 text-marquee-cream'
                                 : 'border-marquee-line bg-marquee-panel2 text-marquee-muted hover:border-marquee-gold/50 hover:text-marquee-cream'
-                                } `}
+                                }`}
                         >
                             <div className="font-medium">
                                 Authenticator App
@@ -239,10 +251,10 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
                             type="button"
                             onClick={() => switchMethod('email')}
                             disabled={submitting}
-                            className={`w - full rounded - lg border px - 4 py - 3 text - left transition ${selectedMethod === 'email'
+                            className={`w-full rounded-lg border px-4 py-3 text-left transition ${selectedMethod === 'email'
                                 ? 'border-marquee-gold bg-marquee-gold/10 text-marquee-cream'
                                 : 'border-marquee-line bg-marquee-panel2 text-marquee-muted hover:border-marquee-gold/50 hover:text-marquee-cream'
-                                } `}
+                                }`}
                         >
                             <div className="font-medium">
                                 Email
@@ -259,10 +271,10 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
                             type="button"
                             onClick={() => switchMethod('sms')}
                             disabled={submitting}
-                            className={`w - full rounded - lg border px - 4 py - 3 text - left transition ${selectedMethod === 'sms'
+                            className={`w-full rounded-lg border px-4 py-3 text-left transition ${selectedMethod === 'sms'
                                 ? 'border-marquee-gold bg-marquee-gold/10 text-marquee-cream'
                                 : 'border-marquee-line bg-marquee-panel2 text-marquee-muted hover:border-marquee-gold/50 hover:text-marquee-cream'
-                                } `}
+                                }`}
                         >
                             <div className="font-medium">
                                 SMS
@@ -282,6 +294,7 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
                         <span className="mb-1 block text-sm text-marquee-muted">
                             Backup code
                         </span>
+
                         <input
                             ref={backupInputRef}
                             type="text"
@@ -299,19 +312,35 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
                             Verification code
                         </span>
 
-                        <div onPaste={handleOtpPaste} className="flex justify-between gap-2">
+                        <div
+                            onPaste={handleOtpPaste}
+                            className="flex justify-between gap-2"
+                        >
                             {otp.map((digit, index) => (
                                 <input
                                     key={index}
-                                    ref={(el) => (otpRefs.current[index] = el)}
+                                    ref={(el) => {
+                                        otpRefs.current[index] = el;
+                                    }}
                                     type="text"
                                     inputMode="numeric"
-                                    autoComplete={index === 0 ? 'one-time-code' : 'off'}
+                                    autoComplete={
+                                        index === 0
+                                            ? 'one-time-code'
+                                            : 'off'
+                                    }
                                     maxLength={1}
                                     value={digit}
                                     disabled={submitting}
-                                    onChange={(e) => handleOtpChange(index, e.target.value)}
-                                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                                    onChange={(e) =>
+                                        handleOtpChange(
+                                            index,
+                                            e.target.value
+                                        )
+                                    }
+                                    onKeyDown={(e) =>
+                                        handleOtpKeyDown(index, e)
+                                    }
                                     className="h-12 w-12 rounded-md border border-marquee-line bg-marquee-panel2 text-center text-lg font-semibold text-marquee-cream outline-none transition focus:border-marquee-gold disabled:opacity-50"
                                 />
                             ))}
@@ -325,7 +354,12 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
                     </p>
                 )}
 
-                <RememberMeCheckbox checked={trustDevice} onChange={() => setTrustDevice((prev) => !prev)} />
+                <RememberMeCheckbox
+                    checked={trustDevice}
+                    onChange={() =>
+                        setTrustDevice((prev) => !prev)
+                    }
+                />
 
                 <button
                     type="submit"
@@ -340,9 +374,7 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
                     }
                     className="w-full rounded-full bg-marquee-gold px-6 py-3 font-semibold text-marquee-bg transition hover:bg-marquee-goldBright disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                    {submitting
-                        ? 'Verifying...'
-                        : 'Verify'}
+                    {submitting ? 'Verifying...' : 'Verify'}
                 </button>
 
                 <div className="flex items-center justify-between text-sm">
@@ -367,7 +399,10 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
                             <button
                                 type="button"
                                 onClick={handleResend}
-                                disabled={resending || resendCooldown > 0}
+                                disabled={
+                                    resending ||
+                                    resendCooldown > 0
+                                }
                                 className="text-marquee-muted hover:text-marquee-gold disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 {resendCooldown > 0

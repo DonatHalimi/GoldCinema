@@ -193,7 +193,7 @@ export default function GiftCardBox({ order, onOrderUpdated }) {
                 {!error && (
                     <div className="mt-3 flex items-center gap-2 px-1 text-[11px] text-marquee-muted">
                         <div className="h-1 w-1 rounded-full bg-marquee-gold/60" />
-                        <span>Gift card balance will be deducted from your total.</span>
+                        <span>Gift card balance will be deducted from your total</span>
                     </div>
                 )}
             </div>

@@ -1,9 +1,8 @@
 import { AnimatePresence } from 'framer-motion';
 import { Globe, LogOut, RefreshCw, Shield } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-
-
 import { getSessions, revokeAllSessions, revokeSession } from '../../../api/auth';
 import SessionCard from './SessionCard';
 import SessionEmptyState from './SessionEmptyState';
@@ -11,6 +10,7 @@ import SessionRevokeAllModal from './SessionRevokeAllModal';
 import SessionSkeleton from './SessionSkeleton';
 
 export default function Sessions() {
+    const { t } = useTranslation('account');
     const [sessions, setSessions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [revoking, setRevoking] = useState(null);
@@ -80,16 +80,15 @@ export default function Sessions() {
     return (
         <div>
             <h2 className="font-display text-2xl font-semibold tracking-wide text-marquee-goldBright">
-                Sessions
+                {t('sessionsHeader')}
             </h2>
 
             <p className="mt-2 text-sm text-marquee-muted">
-                Every device or browser that's currently signed into
-                your account. Revoke any session you don't recognise
+                {t('sessionsDesc')}
             </p>
 
             {!loading && (
-                <div className="mt-6 flex flex-col gap-3 rounded-xl border border-marquee-line bg-marquee-panel p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="mt-6 flex flex-col gap-3 rounded-xl border border-marquee-line bg-marquee-bg p-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-3">
                         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-marquee-line bg-marquee-panel2 text-marquee-gold">
                             <Globe size={18} />
@@ -97,17 +96,17 @@ export default function Sessions() {
 
                         <div>
                             <p className="text-sm font-semibold text-marquee-cream">
-                                {sessions.length} active session
+                                {sessions.length} {t('sessionsActive')}
                                 {sessions.length !== 1 ? 's' : ''}
                             </p>
 
                             <p className="text-xs text-marquee-muted">
                                 {otherSessionsCount > 0
-                                    ? `${otherSessionsCount} other device${otherSessionsCount !== 1
-                                        ? 's'
+                                    ? `${otherSessionsCount} ${t('sessionsOtherDevice')} ${otherSessionsCount !== 1
+                                        ? t('sessionsOtherDevices')
                                         : ''
-                                    } signed in`
-                                    : 'Only this device is signed in'}
+                                    } ${t('sessionsLoggedIn')}`
+                                    : t('sessionsOnlyThisDevice')}
                             </p>
                         </div>
                     </div>
@@ -121,7 +120,7 @@ export default function Sessions() {
                             className="inline-flex items-center gap-1.5 rounded-lg border border-marquee-line px-3 py-2 text-xs font-medium text-marquee-muted transition hover:border-marquee-gold/40 hover:text-marquee-gold disabled:opacity-50"
                         >
                             <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
-                            Refresh
+                            {t('sessionsRefresh')}
                         </button>
 
                         {otherSessionsCount > 0 && (
@@ -133,7 +132,7 @@ export default function Sessions() {
                                 className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/30 px-3 py-2 text-xs font-semibold text-red-400 transition hover:border-red-500/50 hover:bg-red-500/8 hover:text-red-300 disabled:opacity-50"
                             >
                                 <LogOut size={12} />
-                                Sign out everywhere else
+                                {t('sessionsLogOutEverywhereElse')}
                             </button>
                         )}
                     </div>
@@ -169,8 +168,7 @@ export default function Sessions() {
                 <p className="mt-6 flex items-start gap-2 text-xs text-marquee-muted/70">
                     <Shield size={13} className="mt-0.5 shrink-0 text-marquee-goldDim" />
 
-                    If you see a session you don't recognise, revoke it
-                    immediately and consider changing your password.
+                    {t('sessionsWarning')}
                 </p>
             )}
 

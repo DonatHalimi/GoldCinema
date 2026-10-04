@@ -4,6 +4,7 @@ module.exports = {
     Movie: require('./movie'),
     Cinema: require('./cinema'),
     Screen: require('./screen'),
+    Seat: require('./seat'),
     Showtime: require('./showtime'),
     SeatHold: require('./seatHold'),
     Snack: require('./snack'),
@@ -11,5 +12,14 @@ module.exports = {
     LoginAttempt: require('./loginAttempt'),
     Notification: require('./notification'),
     Favourite: require('./favourite'),
-    Review: require('./review')
+    Review: require('./review'),
+    Contact: require('./contact'),
+    GiftCard: require('./giftCard'),
+    Staff: require('./staff'),
+    Shift: require('./shift'),
+    ScreenConfiguration: require('./screenConfiguration'),
+    Equipment: require('./equipment'),
+    MaintenanceLog: require('./maintenanceLog'),
+    MoviePerformance: require('./moviePerformance'),
+    CustomerAnalytics: require('./customerAnalytics'),
 };

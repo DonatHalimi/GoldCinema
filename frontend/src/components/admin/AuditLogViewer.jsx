@@ -1,10 +1,4 @@
-import {
-    Check,
-    ChevronDown,
-    Search,
-    SlidersHorizontal,
-    X,
-} from 'lucide-react';
+import { Check, ChevronDown, Search, SlidersHorizontal, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { getAuditLogs } from '../../api/auditLogs';
@@ -747,19 +741,8 @@ export default function AuditLogViewer() {
                                                                 Event Details
                                                             </div>
 
-                                                            <pre className="max-h-64 max-w-full overflow-y-auto overflow-x-hidden whitespace-pre-wrap break-words text-xs leading-relaxed text-marquee-muted [overflow-wrap:anywhere]">
-                                                                {JSON.stringify(
-                                                                    {
-                                                                        resource:
-                                                                            log.resource,
-                                                                        changes:
-                                                                            log.changes,
-                                                                        metadata:
-                                                                            log.metadata,
-                                                                    },
-                                                                    null,
-                                                                    2
-                                                                )}
+                                                            <pre className="max-h-64 max-w-full overflow-y-auto overflow-x-hidden whitespace-pre-wrap break-words text-xs leading-relaxed text-marquee-muted">
+                                                                {JSON.stringify({ resource: log.resource, changes: log.changes, metadata: log.metadata }, null, 2)}
                                                             </pre>
                                                         </div>
                                                     </td>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import NotificationFilters from './NotificationFilters';
 
 export default function NotificationHeader({
@@ -5,17 +6,19 @@ export default function NotificationHeader({
     unreadCount,
     onFilterChange,
 }) {
+    const { t } = useTranslation('account');
+
     const title =
         filter === 'all'
-            ? 'All Notifications'
+            ? t('allNotifications')
             : filter === 'unread'
-                ? 'Unread Notifications'
-                : 'Archived Notifications';
+                ? t('unreadNotifications')
+                : t('archivedNotifications');
 
     const description =
         filter === 'archived'
-            ? 'Archived notifications will be automatically deleted after 30 days'
-            : 'Manage your notifications and preferences';
+            ? t('archivedDesc')
+            : t('notificationDesc');
 
     return (
         <div className="flex flex-col gap-4 border-b border-marquee-line pb-6 md:flex-row md:items-center md:justify-between">
@@ -23,7 +26,6 @@ export default function NotificationHeader({
                 <h2 className="font-display text-2xl font-semibold tracking-wide text-marquee-goldBright">
                     {title}
                 </h2>
-
                 <p className="mt-1 text-sm text-marquee-muted">
                     {description}
                 </p>

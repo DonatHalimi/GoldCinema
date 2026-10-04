@@ -13,6 +13,7 @@ import {
     ShieldCheck,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { createSetupIntent } from '../../api/payments';
 import Modal from '../ui/modals/Modal';
@@ -41,6 +42,7 @@ const CARD_ELEMENT_OPTIONS = {
 };
 
 function AddCardForm({ onSuccess, onClose }) {
+    const { t } = useTranslation('account');
     const stripe = useStripe();
     const elements = useElements();
 
@@ -155,12 +157,12 @@ function AddCardForm({ onSuccess, onClose }) {
                 <div>
                     <div className="mb-2.5 flex items-center justify-between">
                         <label className="text-sm font-semibold text-marquee-cream">
-                            Card information
+                            {t('cardInfo')}
                         </label>
 
                         <span className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-marquee-muted">
                             <LockKeyhole className="h-3 w-3" />
-                            Secure
+                            {t('secure')}
                         </span>
                     </div>
 
@@ -246,9 +248,7 @@ function AddCardForm({ onSuccess, onClose }) {
                     <LockKeyhole className="mt-0.5 h-3.5 w-3.5 shrink-0 text-marquee-muted" />
 
                     <p className="text-[11px] leading-4 text-marquee-muted">
-                        GoldCinema never stores your full card number or
-                        security code. Stripe securely handles sensitive
-                        payment information.
+                        {t('paymentPolicy')}
                     </p>
                 </div>
 
@@ -257,25 +257,24 @@ function AddCardForm({ onSuccess, onClose }) {
                         type="button"
                         onClick={onClose}
                         disabled={submitting}
-                        className="rounded-full border border-marquee-line px-5 py-2.5 text-sm font-medium text-marquee-muted transition-all hover:border-marquee-gold/50 hover:bg-marquee-panel2 hover:text-marquee-cream disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-marquee-line px-3 py-2 text-xs font-medium text-marquee-muted transition hover:border-marquee-gold/40 hover:text-marquee-gold disabled:opacity-50"
                     >
-                        Cancel
+                        {t('cancelAddPayment')}
                     </button>
 
                     <button
                         type="submit"
                         disabled={!stripe || !cardComplete || submitting}
-                        className="inline-flex min-w-[130px] items-center justify-center gap-2 rounded-full bg-marquee-gold px-5 py-2.5 text-sm font-semibold text-marquee-bg shadow-lg shadow-marquee-gold/10 transition-all hover:bg-marquee-goldBright hover:shadow-marquee-gold/20 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
-                    >
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-marquee-gold bg-marquee-gold px-4 py-2 text-xs font-semibold text-marquee-bg shadow-md shadow-marquee-gold/10 transition-all hover:bg-marquee-goldBright disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"                    >
                         {submitting ? (
                             <>
-                                <span className="h-4 w-4 animate-spin rounded-full border-2 border-marquee-bg/30 border-t-marquee-bg" />
-                                Saving...
+                                <span className="h-3.5 w-3.5 shrink-0 animate-spin rounded-full border-2 border-marquee-bg/30 border-t-marquee-bg" />
+                                {t('savingCard')}
                             </>
                         ) : (
                             <>
-                                <LockKeyhole className="h-3.5 w-3.5" />
-                                Save card
+                                <LockKeyhole className="h-3.5 w-3.5 shrink-0" />
+                                {t('saveCard')}
                             </>
                         )}
                     </button>
@@ -290,6 +289,7 @@ export default function AddPaymentMethodModal({
     onClose,
     onAdded,
 }) {
+    const { t } = useTranslation('account');
     function handleSuccess() {
         toast.success('Payment method added successfully.');
         onAdded();
@@ -298,8 +298,7 @@ export default function AddPaymentMethodModal({
     return (
         <Modal
             isOpen={isOpen}
-            onClose={onClose}
-            title="Add Payment Method"
+            onClose={onClose} t title={t('addPayments')}
             closeDisabled={false}
         >
             {!stripePromise ? (
@@ -311,16 +310,15 @@ export default function AddPaymentMethodModal({
 
                         <div>
                             <p className="text-sm font-semibold text-marquee-cream">
-                                Stripe isn't configured
+                                {t('stripeNotConfigured')}
                             </p>
 
                             <p className="mt-1 text-xs leading-5 text-marquee-muted">
-                                Set{' '}
+                                {t('stripeNotConfiguredDesc')}{' '}
                                 <code className="rounded-md bg-marquee-bg px-1.5 py-0.5 font-mono text-[10px] text-marquee-gold">
-                                    VITE_STRIPE_PUBLISHABLE_KEY
+                                    {t('stripeNotConfiguredEnv')}
                                 </code>{' '}
-                                in your frontend environment to enable
-                                saved payment methods.
+                                {t('stripeNotConfiguredDesc2')}
                             </p>
                         </div>
                     </div>

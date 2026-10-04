@@ -63,6 +63,7 @@ const {
   smsPhoneSchema,
   verifySms2faSchema,
 } = require('../validations/auth');
+const { githubStart, githubCallback } = require('../controllers/githubAuth');
 
 const router = express.Router();
 
@@ -71,6 +72,8 @@ router.post('/register', validateBody(registerSchema), register);
 router.post('/login', validateBody(loginSchema), login);
 router.post('/google', validateBody(googleLoginSchema), googleLogin);
 router.post('/facebook', validateBody(facebookLoginSchema), facebookLogin);
+router.get('/github', githubStart);
+router.get('/github/callback', githubCallback);
 
 // Password
 router.post('/forgot-password', validateBody(forgotPasswordSchema), forgotPassword);

@@ -138,11 +138,18 @@ export default function CrudModal({
                     required={field.required}
                     className={commonClassName}
                 >
-                    {field.options?.map((option) => (
-                        <option key={option} value={option}>
-                            {option}
-                        </option>
-                    ))}
+                    {field.options?.map((option) => {
+                        const isObject = typeof option === 'object' && option !== null;
+
+                        const value = isObject ? option.value : option;
+                        const label = isObject ? option.label : option;
+
+                        return (
+                            <option key={value} value={value}>
+                                {label}
+                            </option>
+                        );
+                    })}
                 </select>
             );
         }
@@ -231,10 +238,7 @@ export default function CrudModal({
                         Cancel
                     </button>
 
-                    <button
-                        type="submit"
-                        className="rounded-md bg-marquee-gold px-5 py-2 text-sm font-semibold text-zinc-950 shadow-md shadow-marquee-gold/50 transition-all hover:bg-marquee-goldBright"
-                    >
+                    <button type="submit" className="rounded-md bg-marquee-gold px-5 py-2 text-sm font-semibold text-zinc-950 shadow-md shadow-marquee-gold/50 transition-all hover:bg-marquee-goldBright">
                         Save Changes
                     </button>
                 </div>

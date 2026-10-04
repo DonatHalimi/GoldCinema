@@ -22,6 +22,13 @@ const Order = require('../models/order');
 const Contact = require('../models/contact');
 const Review = require('../models');
 const TranslationKey = require('../models/translationKey');
+const Staff = require('../models/staff');
+const Shift = require('../models/shift');
+const ScreenConfiguration = require('../models/screenConfiguration');
+const Equipment = require('../models/equipment');
+const MaintenanceLog = require('../models/maintenanceLog');
+const MoviePerformance = require('../models/moviePerformance');
+const CustomerAnalytics = require('../models/customerAnalytics');
 
 const registerAdminResource = (path, Model, populateOpts = '') => {
     router.get(`/${path}`, getAll(Model, populateOpts));
@@ -53,5 +60,12 @@ registerAdminResource('orders', Order, [
 registerAdminResource('contacts', Contact, 'user');
 registerAdminResource('reviews', Review, 'user movie');
 registerAdminResource('translations', TranslationKey);
+registerAdminResource('staff', Staff, 'user cinema');
+registerAdminResource('shifts', Shift, 'staff cinema');
+registerAdminResource('screen-configurations', ScreenConfiguration, 'screen');
+registerAdminResource('equipment', Equipment, 'cinema');
+registerAdminResource('maintenance-logs', MaintenanceLog, 'equipment');
+registerAdminResource('movie-performance', MoviePerformance, 'movie');
+registerAdminResource('customer-analytics', CustomerAnalytics, 'user');
 
 module.exports = router;

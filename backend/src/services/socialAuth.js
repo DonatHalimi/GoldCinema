@@ -11,18 +11,76 @@ async function findOrCreateSocialUser(email, name) {
     let user = await User.findOne({ email }).populate('role');
 
     if (!user) {
-        const roleId = await getCustomerRoleId();
-        const passwordHash = await bcrypt.hash(
-            `${Date.now()}-social-${Math.random().toString(36).slice(2)}`,
-            10
-        );
-        user = await User.create({ name, email, passwordHash, role: roleId, emailVerified: true });
+        const user = await User.create({
+            name,
+            email,
+            passwordHash: null,
+            authProviders: [provider],
+            emailVerified: true,
+            role: defaultRole?._id,
+        });
+
+        if (!user.authProviders.includes(provider)) {
+            user.authProviders.push(provider);
+            await user.save();
+        }
         user = await User.findById(user._id).populate('role');
     }
 
     user.name = user.name || name;
     user.emailVerified = true;
     return user;
+}
+
+const randomPasswordHash = () => bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10);
+
+function assertActive(user) {
+    if (user.isActive === false) throw oauthError('account_deactivated');
+    return user;
+}
+
+async function neutralizeUnverifiedAccount(user) {
+    user.passwordHash = await randomPasswordHash();
+    user.refreshTokens = [];
+    user.trustedDevices = [];
+    user.passkeys = [];
+    user.phoneNumber = null;
+    user.phoneVerified = false;
+    user.twoFactor = { enabled: false, methods: [], backupCodes: [] };
+}
+
+async function findOrCreateOAuthUser({ provider, providerUserId, login, email, name, avatar }) {
+    const identity = { provider, providerUserId, login, email };
+
+    let user = await User.findOne({ oauthIdentities: { $elemMatch: { provider, providerUserId } } }).populate('role');
+    if (user) return assertActive(user);
+
+    user = await User.findOne({ email }).populate('role');
+    if (user) {
+        assertActive(user);
+        if (!user.emailVerified) await neutralizeUnverifiedAccount(user);
+
+        user.oauthIdentities.push(identity);
+        user.emailVerified = true;
+        user.avatar = user.avatar || avatar;
+        return user;
+    }
+
+    try {
+        const created = await User.create({
+            name,
+            email,
+            passwordHash: await randomPasswordHash(),
+            role: await getCustomerRoleId(),
+            emailVerified: true,
+            avatar,
+            oauthIdentities: [identity],
+        });
+        return await User.findById(created._id).populate('role');
+    } catch (err) {
+        if (err.code !== 11000) throw err;
+        return User.findOne({ email }).populate('role');
+    }
 }
 
 async function completeSocialLogin({ req, res, user, provider }) {
@@ -51,6 +109,7 @@ async function completeSocialLogin({ req, res, user, provider }) {
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         createdAt: new Date(),
         rememberMe: false,
+        ...buildSessionMeta(req, provider.toLowerCase()),
     });
 
     if (!trustedEntry) {
@@ -86,4 +145,4 @@ async function completeSocialLogin({ req, res, user, provider }) {
     return { user };
 }
 
-module.exports = { findOrCreateSocialUser, completeSocialLogin };
+module.exports = { findOrCreateSocialUser, completeSocialLogin, findOrCreateOAuthUser };

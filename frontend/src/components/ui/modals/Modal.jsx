@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import useEscapeKey from '../../../hooks/useEscKey';
 
 export default function Modal({
@@ -15,9 +16,7 @@ export default function Modal({
 }) {
     useEscapeKey(
         () => {
-            if (!closeDisabled) {
-                onClose();
-            }
+            if (!closeDisabled) onClose();
         },
         isOpen && !closeDisabled
     );
@@ -38,7 +37,7 @@ export default function Modal({
         return null;
     }
 
-    return (
+    return createPortal(
         <AnimatePresence>
             <motion.div
                 initial={{ opacity: 0 }}
@@ -50,7 +49,7 @@ export default function Modal({
                         onClose();
                     }
                 }}
-                className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+                className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
             >
                 <motion.div
                     initial={{
@@ -100,6 +99,7 @@ export default function Modal({
                     {children}
                 </motion.div>
             </motion.div>
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     );
 }

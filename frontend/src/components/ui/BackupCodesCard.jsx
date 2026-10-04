@@ -1,9 +1,11 @@
 import { Download, Eye, EyeOff, KeyRound, RefreshCw, ShieldAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { generateBackupCodes } from '../../api/auth';
 
 export default function BackupCodesCard({ twoFactor }) {
+    const { t } = useTranslation('account');
     const [codes, setCodes] = useState([]);
     const [loading, setLoading] = useState(false);
     const [showCodes, setShowCodes] = useState(true);
@@ -80,19 +82,18 @@ export default function BackupCodesCard({ twoFactor }) {
 
     return (
         <div className="rounded-xl border border-marquee-line bg-marquee-bg p-5">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
+            <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-marquee-line/30 text-marquee-gold">
                         <KeyRound className="h-5 w-5" />
                     </div>
 
                     <div>
                         <h3 className="font-semibold text-marquee-cream">
-                            Backup Recovery Codes
+                            {t('backupHeader')}
                         </h3>
-
                         <p className="text-sm text-marquee-muted">
-                            Use backup codes to access your account if you lose your device or authenticator app.
+                            {t('backupDesc')}
                         </p>
                     </div>
                 </div>
@@ -101,11 +102,10 @@ export default function BackupCodesCard({ twoFactor }) {
                     type="button"
                     onClick={handleGenerateCodes}
                     disabled={loading || !isTotpEnabled}
-                    className="inline-flex items-center gap-2 rounded-full bg-marquee-gold px-4 py-2 text-xs font-semibold text-marquee-bg transition hover:bg-marquee-goldBright disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-marquee-gold bg-marquee-panel2 px-3 py-2 text-xs font-semibold text-marquee-gold transition-all hover:border-marquee-gold/40 hover:bg-marquee-gold/10 hover:text-marquee-gold disabled:opacity-50"
                 >
-                    <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
-
-                    {codes.length > 0 ? 'Regenerate Codes' : 'Generate Codes'}
+                    <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
+                    {codes.length > 0 ? t('regenCodes') : t('genCodes')}
                 </button>
             </div>
 
@@ -114,7 +114,7 @@ export default function BackupCodesCard({ twoFactor }) {
                     <ShieldAlert className="h-4 w-4 shrink-0" />
 
                     <span className="text-sm text-marquee-muted">
-                        Authenticator App 2FA must be enabled to generate backup recovery codes.
+                        {t('authReqDesc')}
                     </span>
                 </div>
             )}
@@ -123,8 +123,7 @@ export default function BackupCodesCard({ twoFactor }) {
                 <div className="mt-4 rounded-lg border border-marquee-line bg-marquee-panel2 p-4">
                     <div className="mb-3 flex items-center justify-between">
                         <p className="text-xs text-marquee-muted">
-                            Store these codes safely. Each code can only be used once.
-                            Regenerating your codes invalidates the previous set.
+                            {t('storeCodesDesc')}
                         </p>
 
                         <button
@@ -135,12 +134,12 @@ export default function BackupCodesCard({ twoFactor }) {
                             {showCodes ? (
                                 <>
                                     <EyeOff className="h-4 w-4" />
-                                    Hide
+                                    {t('hideCodes')}
                                 </>
                             ) : (
                                 <>
                                     <Eye className="h-4 w-4" />
-                                    Show
+                                    {t('showCodes')}
                                 </>
                             )}
                         </button>
@@ -160,7 +159,7 @@ export default function BackupCodesCard({ twoFactor }) {
                         className="inline-flex items-center gap-1.5 text-xs font-semibold text-marquee-gold hover:text-marquee-goldBright"
                     >
                         <Download className="h-4 w-4" />
-                        Download Codes File
+                        {t('downloadCodesFile')}
                     </button>
                 </div>
             )}

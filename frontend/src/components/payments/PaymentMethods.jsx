@@ -1,12 +1,12 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { CreditCard, Plus, Star, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { deletePaymentMethod, getPaymentMethods, setDefaultPaymentMethod } from '../../api/payments';
 import CreditCard3D from '../CreditCard3D';
 import AddPaymentMethodModal from '../payments/AddPaymentMethodModal';
 import RemovePaymentMethodModal from '../payments/RemovePaymentMethodModal';
-import { useTranslation } from 'react-i18next';
 
 const BRAND_LABELS = {
     visa: 'Visa',
@@ -107,8 +107,7 @@ export default function PaymentMethods() {
                     {!loading && methods.length > 0 && (
                         <button
                             onClick={() => setIsAddOpen(true)}
-                            className="flex items-center gap-2 rounded-full bg-marquee-gold px-5 py-2.5 text-sm font-semibold text-marquee-bg transition hover:bg-marquee-goldBright"
-                        >
+                            className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border border-marquee-gold bg-marquee-panel2 px-6 py-3 text-sm font-semibold text-marquee-gold transition-all hover:border-marquee-gold/40 hover:bg-marquee-gold/10 hover:text-marquee-gold disabled:opacity-50"                        >
                             <Plus className="h-4 w-4" /> {t('addPaymentMethod')}
                         </button>
                     )}
@@ -130,15 +129,14 @@ export default function PaymentMethods() {
                 {!loading && !error && methods.length === 0 && (
                     <div className="rounded-xl border border-dashed border-marquee-line bg-marquee-bg p-10 text-center">
                         <CreditCard className="mx-auto mb-3 h-8 w-8 text-marquee-goldDim" />
-                        <p className="font-serif text-lg text-marquee-cream">No saved payment methods</p>
+                        <p className="font-serif text-lg text-marquee-cream">{t('noPayments')}</p>
                         <p className="mx-auto mt-1 max-w-sm text-sm text-marquee-muted">
-                            Add a card to make your future GoldCinema checkout experience faster.
+                            {t('addPaymentsMsg')}
                         </p>
                         <button
                             onClick={() => setIsAddOpen(true)}
-                            className="mt-5 inline-flex items-center gap-2 rounded-full bg-marquee-gold px-6 py-2.5 text-sm font-semibold text-marquee-bg transition hover:bg-marquee-goldBright"
-                        >
-                            <Plus className="h-4 w-4" /> Add payment method
+                            className="mt-5 inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border border-marquee-gold bg-marquee-panel2 px-6 py-3 text-sm font-semibold text-marquee-gold transition-all hover:border-marquee-gold/40 hover:bg-marquee-gold/10 hover:text-marquee-gold disabled:opacity-50"                        >
+                            <Plus className="h-4 w-4" /> {t('addPayments')}
                         </button>
                     </div>
                 )}
@@ -166,7 +164,7 @@ export default function PaymentMethods() {
                                         {method.isDefault && (
                                             <span className="absolute -right-2 -top-2 z-10 flex items-center gap-1 rounded-full border border-marquee-gold/40 bg-marquee-panel px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-marquee-gold shadow-md">
                                                 <Star className="h-3 w-3 fill-current" />
-                                                {t('default')}
+                                                {t('defaultCard')}
                                             </span>
                                         )}
                                     </div>
@@ -180,12 +178,12 @@ export default function PaymentMethods() {
                                                 disabled={busyId === method.id}
                                                 className="text-xs font-semibold text-marquee-gold hover:text-marquee-goldBright transition disabled:opacity-50"
                                             >
-                                                {busyId === method.id ? 'Updating...' : 'Make default'}
+                                                {busyId === method.id ? t('updatingDefault') : t('makeDefault')}
                                             </button>
                                         )}
 
-                                        <button onClick={() => setRemoveTarget(method)} className="flex items-center gap-1 text-xs font-medium text-marquee-marquee/90 hover:text-marquee-marquee transition">
-                                            <Trash2 className="h-3.5 w-3.5" /> {t('remove')}
+                                        <button onClick={() => setRemoveTarget(method)} className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-red-500/30 bg-marquee-bg/40 px-3 py-2 text-xs font-semibold text-red-400 transition-all hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400 disabled:opacity-50">
+                                            <Trash2 className="h-3.5 w-3.5" /> {t('removeCard')}
                                         </button>
                                     </div>
                                 </motion.div>
@@ -205,15 +203,15 @@ export default function PaymentMethods() {
 
                 <RemovePaymentMethodModal
                     isOpen={Boolean(removeTarget)}
-                    title="Remove payment method?"
+                    title={t('removeCardModal')}
                     description={
                         removeTarget
-                            ? `Are you sure you want to remove ${formatBrand(removeTarget.brand)} •••• ${removeTarget.last4}? This card will no longer be available for checkout.`
+                            ? `${t('removeCardDesc')} ${formatBrand(removeTarget.brand)} •••• ${removeTarget.last4}? ${t('removeCardDesc2')}`
                             : ''
                     }
-                    confirmLabel="Remove"
+                    confirmLabel={t('removeConfirmLabel')}
                     isSubmitting={removing}
-                    confirmationText="REMOVE"
+                    confirmationText={t('removeConfirmText')}
                     onConfirm={confirmRemove}
                     onClose={() => !removing && setRemoveTarget(null)}
                 />

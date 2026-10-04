@@ -286,6 +286,11 @@ export async function loginUserWithGoogle(credential) {
     return data;
 };
 
+export async function getGithubLoginUrl(returnTo = '/') {
+    const { data } = await api.get('/auth/github', { params: { returnTo } });
+    return data.redirect;
+}
+
 export async function loginUserWithFacebook(accessToken) {
     const { data } = await api.post('/auth/facebook', {
         accessToken,

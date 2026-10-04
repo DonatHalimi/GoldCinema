@@ -1,4 +1,5 @@
 import { Calendar, Edit, Star, Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 export default function ReviewCard({
@@ -6,6 +7,7 @@ export default function ReviewCard({
     onEdit,
     onDelete,
 }) {
+    const { t } = useTranslation('account');
     const movie = review?.movie;
 
     return (
@@ -17,7 +19,7 @@ export default function ReviewCard({
                 >
                     <img
                         src={movie?.posterUrl}
-                        alt={movie?.title || 'Movie poster'}
+                        alt={movie?.title || t('reviewMoviePoster')}
                         className="h-36 w-24 object-cover transition-transform duration-300 group-hover:scale-105"
                     />
 
@@ -31,7 +33,7 @@ export default function ReviewCard({
                                 to={`/movies/${movie?._id}`}
                                 className="block truncate font-display text-xl font-semibold tracking-wide text-marquee-cream transition-colors hover:text-marquee-goldBright"
                             >
-                                {movie?.title || 'Unknown movie'}
+                                {movie?.title || t('reviewUnknownMovie')}
                             </Link>
 
                             <div className="mt-2 flex items-center gap-1">
@@ -57,23 +59,23 @@ export default function ReviewCard({
                             <button
                                 type="button"
                                 onClick={() => onEdit(review)}
-                                aria-label="Edit review"
-                                className="group/action relative flex h-9 w-9 items-center justify-center rounded-full border border-marquee-line bg-marquee-panel2 text-marquee-muted transition-all duration-200 hover:border-marquee-gold/60 hover:bg-marquee-gold/10 hover:text-marquee-gold"
+                                aria-label={t('editDelReview')}
+                                className="group/action relative flex h-9 w-9 items-center justify-center rounded-full border border-marquee-gold/20 bg-marquee-gold/5 text-marquee-gold transition-all duration-200 hover:border-marquee-gold/50 hover:bg-marquee-gold/10 hover:text-marquee-goldBright"
                             >
                                 <Edit
                                     size={16}
                                     className="transition-transform duration-200 group-hover/action:scale-110"
                                 />
 
-                                <span className="pointer-events-none absolute right-0 top-full z-20 mt-2 whitespace-nowrap rounded-md border border-marquee-line bg-marquee-panel2 px-2.5 py-1.5 text-xs text-marquee-cream opacity-0 shadow-xl transition-opacity group-hover/action:opacity-100">
-                                    Edit review
+                                <span className="pointer-events-none absolute right-0 top-full z-20 mt-2 whitespace-nowrap rounded-md border border-marquee-gold/20 bg-marquee-panel2 px-2.5 py-1.5 text-xs text-marquee-gold opacity-0 shadow-xl transition-opacity group-hover/action:opacity-100">
+                                    {t('editReview')}
                                 </span>
                             </button>
 
                             <button
                                 type="button"
                                 onClick={() => onDelete(review)}
-                                aria-label="Delete review"
+                                aria-label={t('deleteReview')}
                                 className="group/action relative flex h-9 w-9 items-center justify-center rounded-full border border-red-500/20 bg-red-500/5 text-red-400 transition-all duration-200 hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-300"
                             >
                                 <Trash2
@@ -82,7 +84,7 @@ export default function ReviewCard({
                                 />
 
                                 <span className="pointer-events-none absolute right-0 top-full z-20 mt-2 whitespace-nowrap rounded-md border border-red-500/20 bg-marquee-panel2 px-2.5 py-1.5 text-xs text-red-300 opacity-0 shadow-xl transition-opacity group-hover/action:opacity-100">
-                                    Delete review
+                                    {t('deleteReview')}
                                 </span>
                             </button>
                         </div>
@@ -113,7 +115,7 @@ export default function ReviewCard({
                                         •
                                     </span>
 
-                                    <span>Edited</span>
+                                    <span>{t('reviewEdited')}</span>
                                 </>
                             )}
                     </div>

@@ -1,20 +1,20 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { CheckCircle2, TriangleAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import Modal from '../ui/modals/Modal';
 
 export default function RemovePaymentMethodModal({
     isOpen,
     title,
     description,
-    confirmLabel = 'Confirm',
-    cancelLabel = 'Cancel',
     isDestructive = true,
     isSubmitting = false,
     onConfirm,
     onClose,
     confirmationText = '',
 }) {
+    const { t } = useTranslation('account');
     const [confirmation, setConfirmation] = useState('');
 
     useEffect(() => {
@@ -76,7 +76,7 @@ export default function RemovePaymentMethodModal({
                                     htmlFor="confirm-dialog-input"
                                     className="block text-sm font-medium text-marquee-cream"
                                 >
-                                    Type{' '}
+                                    {t('typePaymentMethodModal')}{' '}
                                     <span
                                         className={
                                             isDestructive
@@ -86,7 +86,7 @@ export default function RemovePaymentMethodModal({
                                     >
                                         {confirmationText}
                                     </span>{' '}
-                                    to confirm
+                                    {t('typePaymentMethodModal2')}
                                 </label>
 
                                 <div className="relative">
@@ -151,8 +151,7 @@ export default function RemovePaymentMethodModal({
                                             }}
                                             className="text-xs text-red-400"
                                         >
-                                            Please type {confirmationText}{' '}
-                                            exactly as shown.
+                                            {t('removePaymentMethodModal')} {confirmationText}{' '} {t('removePaymentMethodModal2')}
                                         </motion.p>
                                     )}
 
@@ -173,7 +172,7 @@ export default function RemovePaymentMethodModal({
                                             }}
                                             className="text-xs text-green-400"
                                         >
-                                            Confirmation accepted.
+                                            {t('confirmationAccepted')}
                                         </motion.p>
                                     )}
                                 </AnimatePresence>
@@ -189,26 +188,21 @@ export default function RemovePaymentMethodModal({
                         disabled={isSubmitting}
                         className="rounded-xl border border-marquee-line px-5 py-2.5 text-sm font-medium text-marquee-cream transition-all hover:border-marquee-gold/40 hover:bg-marquee-panel2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                        {cancelLabel}
+                        {t('cancelPaymentModal')}
                     </button>
 
                     <button
                         type="button"
                         onClick={onConfirm}
                         disabled={!canConfirm}
-                        className={
-                            isDestructive
-                                ? 'rounded-xl bg-marquee-marquee px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-black/10 transition-all hover:bg-marquee-marquee/90 hover:shadow-red-500/10 disabled:cursor-not-allowed disabled:opacity-40'
-                                : 'rounded-xl bg-marquee-gold px-5 py-2.5 text-sm font-semibold text-marquee-bg shadow-lg shadow-marquee-gold/10 transition-all hover:bg-marquee-goldBright disabled:cursor-not-allowed disabled:opacity-40'
-                        }
-                    >
+                        className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl border border-red-500/30 bg-marquee-bg/40 px-5 py-2.5 text-sm font-semibold text-red-400 shadow-lg shadow-black/10 transition-all hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-40"                    >
                         {isSubmitting ? (
                             <span className="flex items-center gap-2">
                                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                                 Please wait...
                             </span>
                         ) : (
-                            confirmLabel
+                            t('confirmPaymentModal')
                         )}
                     </button>
                 </div>
