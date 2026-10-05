@@ -30,8 +30,7 @@ export async function deleteItem(resource, id) {
 };
 
 export async function bulkDeleteItems(resource, ids) {
-    const { data } = await api.delete(`/admin/${resource}/bulk-delete`, { data: { ids }, }
-    );
+    const { data } = await api.delete(`/admin/${resource}/bulk-delete`, { data: { ids }, });
 
     return data;
 };

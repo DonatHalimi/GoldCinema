@@ -1,20 +1,16 @@
 const express = require('express');
+const router = express.Router();
 const {
     getRoles,
     createRole,
     updateRole,
     deleteRole,
-    bulkDeleteRoles,
 } = require('../controllers/role');
 const {
     validateBody,
     validateParams,
     role: { roleCreateSchema, roleUpdateSchema, roleIdSchema },
 } = require('../validations');
-
-const router = express.Router();
-
-router.delete('/bulk-delete', bulkDeleteRoles);
 
 router.get('/', getRoles);
 router.post('/', validateBody(roleCreateSchema), createRole);

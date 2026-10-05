@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Modal from './Modal';
+import { Save } from 'lucide-react';
 
 const getNestedValue = (obj, path) => {
     return path.split('.').reduce((value, key) => value?.[key], obj);
@@ -195,22 +196,13 @@ export default function CrudModal({
             title={title}
             width={width}
         >
-            <form
-                onSubmit={handleSubmit}
-                className="mt-5 max-h-[75vh] overflow-y-auto pr-2"
-            >
+            <form onSubmit={handleSubmit} className="mt-5 max-h-[75vh] overflow-y-auto pr-2">
                 <div className="grid grid-cols-2 gap-x-4 gap-y-4">
                     {fields.map((field) => {
-                        const span =
-                            field.span === 1
-                                ? 'col-span-1'
-                                : 'col-span-2';
+                        const span = field.span === 1 ? 'col-span-1' : 'col-span-2';
 
                         return (
-                            <div
-                                key={field.name}
-                                className={span}
-                            >
+                            <div key={field.name} className={span}>
                                 <div className="mb-1.5">
                                     <label className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
                                         {field.label}
@@ -233,12 +225,16 @@ export default function CrudModal({
                     <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-full border border-marquee-line px-4 py-2 text-sm text-marquee-muted transition hover:border-marquee-gold"
+                        className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-marquee-line px-3 py-2 text-xs font-medium text-marquee-muted transition hover:border-marquee-gold/40 hover:text-marquee-gold disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         Cancel
                     </button>
 
-                    <button type="submit" className="rounded-md bg-marquee-gold px-5 py-2 text-sm font-semibold text-zinc-950 shadow-md shadow-marquee-gold/50 transition-all hover:bg-marquee-goldBright">
+                    <button
+                        type="submit"
+                        className="inline-flex min-w-[118px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-marquee-gold/30 bg-marquee-panel2 px-5 py-2 text-xs font-semibold text-marquee-gold transition-all hover:border-marquee-gold/50 hover:bg-marquee-gold/10 hover:text-marquee-gold disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                        <Save size={16} />
                         Save Changes
                     </button>
                 </div>

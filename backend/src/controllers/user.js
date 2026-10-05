@@ -89,27 +89,9 @@ async function deleteUser(req, res, next) {
     }
 }
 
-async function bulkDeleteUsers(req, res, next) {
-    try {
-        const { ids } = req.body;
-
-        if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: 'Please provide an array of user IDs' });
-
-        const result = await User.deleteMany({ _id: { $in: ids } });
-
-        res.status(200).json({
-            message: `Successfully deleted ${result.deletedCount} user(s)`,
-            deletedCount: result.deletedCount,
-        });
-    } catch (err) {
-        next(err);
-    }
-}
-
 module.exports = {
     getUsers,
     createUser,
     updateUserStatus,
     deleteUser,
-    bulkDeleteUsers,
 };

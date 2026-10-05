@@ -1,4 +1,5 @@
 const AuditLog = require('../models/auditLog');
+const mongoose = require('mongoose');
 const { redact } = require('../utils/redact');
 
 function getAll(Model, populateOpts = '') {

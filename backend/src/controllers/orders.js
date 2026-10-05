@@ -218,6 +218,23 @@ async function finalizeWithGiftCard(req, res, next) {
     }
 }
 
+async function bulkDeleteOrders(req, res, next) {
+    try {
+        const { ids } = req.body;
+
+        if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: 'Please provide an array of order IDs' });
+
+        const result = await Order.deleteMany({ _id: { $in: ids } });
+
+        res.status(200).json({
+            message: `Successfully deleted ${result.deletedCount} order(s)`,
+            deletedCount: result.deletedCount,
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
 module.exports = {
     getMyOrders,
     getOrderById,
@@ -225,4 +242,5 @@ module.exports = {
     applyGiftCard,
     removeGiftCard,
     finalizeWithGiftCard,
+    bulkDeleteOrders,
 };

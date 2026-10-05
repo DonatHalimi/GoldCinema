@@ -1,4 +1,4 @@
-import { Loader2, TriangleAlert } from 'lucide-react';
+import { Loader2, Trash2, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -42,15 +42,11 @@ export default function DeleteAccountModal({ onClose }) {
             const { data } = await deleteAccount(password);
 
             toast.success(data.message);
-
             await logout();
 
             navigate('/');
         } catch (err) {
-            toast.error(
-                err.response?.data?.error ||
-                t('deleteAccountError')
-            );
+            toast.error(err.response?.data?.error || t('deleteAccountError'));
         } finally {
             setLoading(false);
         }
@@ -146,6 +142,7 @@ export default function DeleteAccountModal({ onClose }) {
                 >
                     {loading && <Loader2 className="h-4 w-4 animate-spin" />}
 
+                    <Trash2 size={16} />
                     {loading ? t('deleting') : t('deleteAccount')}
                 </button>
             </div>

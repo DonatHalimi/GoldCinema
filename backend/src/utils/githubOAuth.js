@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const { oauthError } = require('./oauthHelpers');
+const { oauthError } = require('./oAuthHelpers');
 const AUTHORIZE_URL = 'https://github.com/login/oauth/authorize';
 const TOKEN_URL = 'https://github.com/login/oauth/access_token';
 const API_BASE = 'https://api.github.com';

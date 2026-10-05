@@ -1,4 +1,4 @@
-import { KeyRound, Loader2, Sparkles } from 'lucide-react';
+import { KeyRound, Loader2, Save, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { renamePasskey } from '../../../api/auth';
@@ -25,10 +25,7 @@ export default function RenamePasskeyModal({ passkey, onClose, onSuccess }) {
 
         const deviceType = passkey?.deviceType?.toLowerCase() || '';
 
-        if (deviceType.includes('single') || deviceType.includes('cross')) {
-            suggestions.unshift('Security Key', 'YubiKey'
-            );
-        }
+        if (deviceType.includes('single') || deviceType.includes('cross')) suggestions.unshift('Security Key', 'YubiKey');
 
         return suggestions;
     };
@@ -81,10 +78,7 @@ export default function RenamePasskeyModal({ passkey, onClose, onSuccess }) {
                 a quick suggestion below
             </p>
 
-            <form
-                onSubmit={handleRename}
-                className="mt-5 space-y-4"
-            >
+            <form onSubmit={handleRename} className="mt-5 space-y-4">
                 <div>
                     <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-marquee-muted">
                         Passkey Name
@@ -116,9 +110,7 @@ export default function RenamePasskeyModal({ passkey, onClose, onSuccess }) {
                             <button
                                 key={suggestion}
                                 type="button"
-                                onClick={() =>
-                                    setName(suggestion)
-                                }
+                                onClick={() => setName(suggestion)}
                                 disabled={loading}
                                 className="rounded-full border border-marquee-line/70 bg-marquee-panel2 px-2.5 py-1 text-xs font-medium text-marquee-cream transition hover:border-marquee-gold hover:bg-marquee-gold/10 disabled:opacity-50"
                             >
@@ -135,7 +127,7 @@ export default function RenamePasskeyModal({ passkey, onClose, onSuccess }) {
                         type="button"
                         onClick={onClose}
                         disabled={loading}
-                        className="rounded-full border border-marquee-line px-4 py-2 text-sm text-marquee-muted transition hover:border-marquee-gold hover:text-marquee-cream disabled:opacity-50"
+                        className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-marquee-line px-3 py-2 text-xs font-medium text-marquee-muted transition hover:border-marquee-gold/40 hover:text-marquee-gold disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         Cancel
                     </button>
@@ -143,10 +135,11 @@ export default function RenamePasskeyModal({ passkey, onClose, onSuccess }) {
                     <button
                         type="submit"
                         disabled={loading || !name.trim()}
-                        className="inline-flex items-center gap-2 rounded-full border border-marquee-gold bg-marquee-gold px-5 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-marquee-goldBright disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-2 text-xs font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-40 border-red-500/30 bg-marquee-bg/40 text-red-400 hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400"
                     >
                         {loading && <Loader2 className="h-4 w-4 animate-spin" />}
 
+                        <Save size={16} />
                         {loading ? 'Saving...' : 'Save Name'}
                     </button>
                 </div>

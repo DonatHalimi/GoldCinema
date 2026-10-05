@@ -1,11 +1,11 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, Layout } from 'lucide-react';
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
-import AuditLogViewer from '../components/admin/AuditLogViewer';
 import ModuleDataGrid from '../components/auth/ModuleDataGrid';
-import { getAllModules, getModuleSections, renderAdminItems, } from '../config/adminModules';
+import AuditLogViewer from '../components/admin/AuditLogViewer';
+import { getAllModules, getModuleSections, renderAdminItems } from '../config/adminModules';
+import { useTranslation } from 'react-i18next';
 
 export default function AdminDashboard() {
     const { t } = useTranslation('dashboard');

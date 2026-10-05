@@ -107,7 +107,8 @@ export default function PaymentMethods() {
                     {!loading && methods.length > 0 && (
                         <button
                             onClick={() => setIsAddOpen(true)}
-                            className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border border-marquee-gold bg-marquee-panel2 px-6 py-3 text-sm font-semibold text-marquee-gold transition-all hover:border-marquee-gold/40 hover:bg-marquee-gold/10 hover:text-marquee-gold disabled:opacity-50"                        >
+                            className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border border-marquee-gold bg-marquee-panel2 px-6 py-3 text-sm font-semibold text-marquee-gold transition-all hover:border-marquee-gold/40 hover:bg-marquee-gold/10 hover:text-marquee-gold disabled:opacity-50"
+                        >
                             <Plus className="h-4 w-4" /> {t('addPaymentMethod')}
                         </button>
                     )}

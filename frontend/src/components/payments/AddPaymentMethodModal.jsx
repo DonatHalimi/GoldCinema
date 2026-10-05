@@ -9,6 +9,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import {
     CheckCircle2,
     CreditCard,
+    Loader2,
     LockKeyhole,
     ShieldCheck,
 } from 'lucide-react';
@@ -257,7 +258,7 @@ function AddCardForm({ onSuccess, onClose }) {
                         type="button"
                         onClick={onClose}
                         disabled={submitting}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-marquee-line px-3 py-2 text-xs font-medium text-marquee-muted transition hover:border-marquee-gold/40 hover:text-marquee-gold disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-marquee-line px-3 py-2 text-xs font-medium text-marquee-muted transition hover:border-marquee-gold/40 hover:text-marquee-gold disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         {t('cancelAddPayment')}
                     </button>
@@ -265,15 +266,16 @@ function AddCardForm({ onSuccess, onClose }) {
                     <button
                         type="submit"
                         disabled={!stripe || !cardComplete || submitting}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-marquee-gold bg-marquee-gold px-4 py-2 text-xs font-semibold text-marquee-bg shadow-md shadow-marquee-gold/10 transition-all hover:bg-marquee-goldBright disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"                    >
+                        className="inline-flex min-w-[118px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-marquee-gold/30 bg-marquee-panel2 px-5 py-2 text-xs font-semibold text-marquee-gold transition-all hover:border-marquee-gold/50 hover:bg-marquee-gold/10 hover:text-marquee-gold disabled:cursor-not-allowed disabled:opacity-40"
+                    >
                         {submitting ? (
                             <>
-                                <span className="h-3.5 w-3.5 shrink-0 animate-spin rounded-full border-2 border-marquee-bg/30 border-t-marquee-bg" />
+                                <Loader2 className="h-4 w-4 animate-spin" />
                                 {t('savingCard')}
                             </>
                         ) : (
                             <>
-                                <LockKeyhole className="h-3.5 w-3.5 shrink-0" />
+                                <LockKeyhole size={16} />
                                 {t('saveCard')}
                             </>
                         )}

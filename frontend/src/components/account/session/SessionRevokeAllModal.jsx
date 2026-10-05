@@ -1,4 +1,4 @@
-import { AlertTriangle, Loader2 } from 'lucide-react';
+import { AlertTriangle, Loader2, LogOut } from 'lucide-react';
 import Modal from '../../ui/modals/Modal';
 
 export default function SessionRevokeAllModal({
@@ -42,7 +42,7 @@ export default function SessionRevokeAllModal({
                     type="button"
                     onClick={onCancel}
                     disabled={loading}
-                    className="rounded-full border border-marquee-line px-4 py-2 text-sm text-marquee-muted transition-colors hover:border-marquee-gold hover:text-marquee-cream disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-marquee-line px-3 py-2 text-xs font-medium text-marquee-muted transition hover:border-marquee-gold/40 hover:text-marquee-gold disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     Cancel
                 </button>
@@ -52,12 +52,13 @@ export default function SessionRevokeAllModal({
                     type="button"
                     onClick={onConfirm}
                     disabled={loading}
-                    className="inline-flex items-center gap-2 rounded-full bg-red-500/90 px-5 py-2 text-sm font-semibold text-white transition-all hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-2 text-xs font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-40 border-red-500/30 bg-marquee-bg/40 text-red-400 hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400"
                 >
                     {loading && (
                         <Loader2 className="h-4 w-4 animate-spin" />
                     )}
 
+                    <LogOut size={16} />
                     {loading ? 'Logging out...' : 'Log out all others'}
                 </button>
             </div>

@@ -10,7 +10,7 @@ import RememberMeCheckbox from '../components/auth/RememberMeCheckbox';
 import SocialLoginButtons from '../components/auth/SocialLoginButtons';
 import { Field, PasswordField } from '../components/ui/FormUI';
 import { useAuth } from '../context/AuthContext';
-import { OAUTH_ERROR_MESSAGES } from '../utils/oAuthErrors.JS';
+import { OAUTH_ERROR_MESSAGES } from '../utils/oAuthErrors';
 import { loginSchema, validateForm } from '../validations';
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;

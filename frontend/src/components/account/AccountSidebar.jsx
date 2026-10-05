@@ -2,10 +2,12 @@ import { AnimatePresence, motion } from 'framer-motion';
 import {
     Bell,
     ChevronDown,
+    ChevronsLeft,
     CircleDollarSign,
     CreditCard,
     Heart,
     LockKeyhole,
+    LogOut,
     MessageSquare,
     MessagesSquare,
     Monitor,
@@ -18,10 +20,18 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+
+const EXPANDED_WIDTH = 256; // matches the previous w-64
+const COLLAPSED_WIDTH = 64;
 
 export default function AccountSidebar() {
     const { t } = useTranslation('accountSidebar');
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
+
+    const [expanded, setExpanded] = useState(true);
 
     const ACCOUNT_SECTIONS = [
         {
@@ -80,51 +90,137 @@ export default function AccountSidebar() {
         }));
     };
 
+    const handleLogout = () => {
+        logout();
+        navigate('/');
+    };
+
+    const displayName = user?.name
+        ? user.name.split(' ')[0]
+        : user?.email?.split('@')[0] || t('header');
+
     return (
-        <aside className="sticky top-24 self-start w-64 shrink-0 rounded-xl border border-marquee-line bg-marquee-panel p-4">
-            <div className="mb-6 px-3">
-                <h2 className="font-display text-3xl font-semibold tracking-wide text-marquee-goldBright">
-                    {t('header')}
-                </h2>
+        <motion.aside
+            initial={false}
+            animate={{ width: expanded ? EXPANDED_WIDTH : COLLAPSED_WIDTH }}
+            transition={{ type: 'spring', stiffness: 260, damping: 30 }}
+            className="sticky top-24 z-30 flex shrink-0 flex-col self-start overflow-hidden rounded-xl border border-marquee-line bg-marquee-panel"
+        >
+            {/* Header */}
+            <AnimatePresence initial={false}>
+                {expanded && (
+                    <motion.div
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -8 }}
+                        transition={{ duration: 0.15 }}
+                        className="border-b border-marquee-line/60 px-3 pb-4 pt-4"
+                    >
+                        <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                                <h2 className="font-display text-3xl font-semibold tracking-wide text-marquee-goldBright">
+                                    {t('header')}
+                                </h2>
 
-                <p className="mt-1 text-xs text-marquee-muted">
-                    {t('subheader')}
-                </p>
-            </div>
+                                <p className="mt-1 text-xs text-marquee-muted">
+                                    {t('subheader')}
+                                </p>
+                            </div>
 
-            <nav className="relative space-y-4">
+                            <motion.button
+                                type="button"
+                                onClick={() => setExpanded((v) => !v)}
+                                whileTap={{ scale: 0.92 }}
+                                whileHover={{ backgroundColor: 'rgba(230,199,115,0.12)' }}
+                                className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-marquee-muted transition-colors hover:text-marquee-gold"
+                                aria-label="Collapse sidebar"
+                            >
+                                <motion.span
+                                    animate={{ rotate: 0 }}
+                                    transition={{ type: 'spring', stiffness: 320, damping: 24 }}
+                                    className="inline-flex"
+                                >
+                                    <ChevronsLeft className="h-4 w-4" />
+                                </motion.span>
+                            </motion.button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Collapsed toggle — centered */}
+            <AnimatePresence initial={false}>
+                {!expanded && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                        className="flex justify-center py-4"
+                    >
+                        <motion.button
+                            type="button"
+                            onClick={() => setExpanded((v) => !v)}
+                            whileTap={{ scale: 0.92 }}
+                            whileHover={{ backgroundColor: 'rgba(230,199,115,0.12)' }}
+                            className="grid h-9 w-9 place-items-center rounded-lg text-marquee-muted transition-colors hover:text-marquee-gold"
+                            aria-label="Expand sidebar"
+                        >
+                            <motion.span
+                                initial={false}
+                                animate={{ rotate: 180 }}
+                                transition={{ type: 'spring', stiffness: 320, damping: 24 }}
+                                className="inline-flex"
+                            >
+                                <ChevronsLeft className="h-4 w-4" />
+                            </motion.span>
+                        </motion.button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Sections */}
+            <nav className="relative flex-1 space-y-4 overflow-y-auto px-2 py-4">
                 {ACCOUNT_SECTIONS.map((section) => {
                     const SectionIcon = section.icon;
                     const isOpen = openSections[section.title];
 
                     return (
                         <div key={section.title} className="space-y-1">
-                            <button
-                                type="button"
-                                onClick={() => toggleSection(section.title)}
-                                className="flex w-full items-center justify-between px-3 py-2 text-xs font-semibold uppercase tracking-wider text-marquee-muted transition-colors duration-200 hover:text-marquee-gold"
-                            >
-                                <div className="flex items-center gap-2 whitespace-nowrap">
-                                    {SectionIcon && <SectionIcon size={14} />}
-                                    <span>{section.title}</span>
-                                </div>
+                            <AnimatePresence initial={false}>
+                                {expanded && (
+                                    <motion.button
+                                        type="button"
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: 'auto' }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        transition={{ duration: 0.15 }}
+                                        onClick={() => toggleSection(section.title)}
+                                        className="flex w-full items-center justify-between px-3 py-2 text-xs font-semibold uppercase tracking-wider text-marquee-muted transition-colors duration-200 hover:text-marquee-gold"
+                                    >
+                                        <div className="flex items-center gap-2 whitespace-nowrap">
+                                            {SectionIcon && <SectionIcon size={14} />}
+                                            <span>{section.title}</span>
+                                        </div>
 
-                                <motion.div
-                                    animate={{ rotate: isOpen ? 180 : 0 }}
-                                    transition={{ duration: 0.2 }}
-                                >
-                                    <ChevronDown size={14} />
-                                </motion.div>
-                            </button>
+                                        <motion.div
+                                            animate={{ rotate: isOpen ? 180 : 0 }}
+                                            transition={{ duration: 0.2 }}
+                                        >
+                                            <ChevronDown size={14} />
+                                        </motion.div>
+                                    </motion.button>
+                                )}
+                            </AnimatePresence>
 
                             <AnimatePresence initial={false}>
-                                {isOpen && (
+                                {(!expanded || isOpen) && (
                                     <motion.div
                                         initial={{ opacity: 0, height: 0 }}
                                         animate={{ opacity: 1, height: 'auto' }}
                                         exit={{ opacity: 0, height: 0 }}
                                         transition={{ duration: 0.25, ease: 'easeInOut' }}
-                                        className="space-y-1 overflow-hidden pl-2"
+                                        className="space-y-1 overflow-hidden"
                                     >
                                         {section.items.map((item) => {
                                             const Icon = item.icon;
@@ -155,13 +251,25 @@ export default function AccountSidebar() {
 
                                                             <Icon
                                                                 size={16}
-                                                                className={`transition-colors duration-300 ${isActive
+                                                                className={`shrink-0 transition-colors duration-300 ${isActive
                                                                     ? 'text-marquee-gold'
                                                                     : 'text-marquee-muted/70 group-hover:text-marquee-gold'
                                                                     }`}
                                                             />
 
-                                                            <span className="tracking-wide">{item.label}</span>
+                                                            <AnimatePresence initial={false}>
+                                                                {expanded && (
+                                                                    <motion.span
+                                                                        initial={{ opacity: 0, x: -6 }}
+                                                                        animate={{ opacity: 1, x: 0 }}
+                                                                        exit={{ opacity: 0, x: -6 }}
+                                                                        transition={{ duration: 0.12 }}
+                                                                        className="relative z-10 whitespace-nowrap tracking-wide"
+                                                                    >
+                                                                        {item.label}
+                                                                    </motion.span>
+                                                                )}
+                                                            </AnimatePresence>
                                                         </>
                                                     )}
                                                 </NavLink>
@@ -174,6 +282,35 @@ export default function AccountSidebar() {
                     );
                 })}
             </nav>
-        </aside>
+
+            {/* Divider + Logout */}
+            <div className="border-t border-marquee-line/60 p-2">
+                <motion.button
+                    type="button"
+                    onClick={handleLogout}
+                    whileHover={{ x: 2 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="relative flex h-10 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium text-marquee-muted transition-colors hover:bg-red-500/10 hover:text-red-300"
+                >
+                    <span className="shrink-0">
+                        <LogOut className="h-5 w-5" />
+                    </span>
+
+                    <AnimatePresence initial={false}>
+                        {expanded && (
+                            <motion.span
+                                initial={{ opacity: 0, x: -6 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -6 }}
+                                transition={{ duration: 0.12 }}
+                                className="whitespace-nowrap"
+                            >
+                                Log out
+                            </motion.span>
+                        )}
+                    </AnimatePresence>
+                </motion.button>
+            </div>
+        </motion.aside>
     );
 }

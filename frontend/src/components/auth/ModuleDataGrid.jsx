@@ -221,7 +221,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
                             )}
                             <button
                                 onClick={handleCreate}
-                                className="flex items-center gap-2 rounded-lg bg-marquee-gold hover:bg-marquee-goldBright px-4 py-2.5 text-sm font-semibold text-marquee-bg transition-all shadow-[0_0_15px_rgba(245,158,11,0.2)]"
+                                className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border border-marquee-gold bg-marquee-panel2 px-6 py-3 text-sm font-semibold text-marquee-gold transition-all hover:border-marquee-gold/40 hover:bg-marquee-gold/10 hover:text-marquee-gold disabled:opacity-50"
                             >
                                 <Plus className="h-4 w-4 stroke-[2.5]" /> {t('addModule', { label: moduleConfig.label })}
                             </button>

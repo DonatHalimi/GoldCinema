@@ -1,4 +1,4 @@
-import { CheckCircle, Loader2, TriangleAlert, XCircle } from 'lucide-react';
+import { CheckCircle, Loader2, Trash, TriangleAlert, XCircle } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
@@ -115,8 +115,10 @@ export default function DeleteReviewModal({
                     type="button"
                     onClick={handleDelete}
                     disabled={loading}
-                    className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border border-red-500/50 bg-red-600 px-6 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:border-red-400 hover:bg-red-500 active:bg-red-700 disabled:opacity-50 disabled:hover:bg-red-600"                >
+                    className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-red-500/30 bg-marquee-bg/40 px-3 py-2 text-xs font-semibold text-red-400 transition-all hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400 disabled:opacity-50"
+                >
                     {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                    <Trash size={16} />
 
                     {loading ? t('deletingReview') : t('deleteReview')}
                 </button>

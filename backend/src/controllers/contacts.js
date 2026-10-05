@@ -85,27 +85,9 @@ async function deleteContact(req, res, next) {
     }
 }
 
-async function bulkDeleteContacts(req, res, next) {
-    try {
-        const { ids } = req.body;
-
-        if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: 'Please provide an array of contact IDs' });
-
-        const result = await Contact.deleteMany({ _id: { $in: ids } });
-
-        res.status(200).json({
-            message: `Successfully deleted ${result.deletedCount} contact message(s)`,
-            deletedCount: result.deletedCount,
-        });
-    } catch (err) {
-        next(err);
-    }
-}
-
 module.exports = {
     getContacts,
     createContact,
     updateContactStatus,
     deleteContact,
-    bulkDeleteContacts,
 };

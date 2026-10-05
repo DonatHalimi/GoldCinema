@@ -1,4 +1,4 @@
-import { CheckCircle, Loader2, XCircle } from 'lucide-react';
+import { CheckCircle, Loader2, Pencil, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
@@ -12,7 +12,6 @@ export default function EditReviewModal({
     onSaved,
 }) {
     const { t } = useTranslation('account');
-
     const [rating, setRating] = useState(review?.rating || 0);
     const [comment, setComment] = useState(review?.comment || '');
     const [error, setError] = useState('');
@@ -174,10 +173,9 @@ export default function EditReviewModal({
                     <button
                         type="submit"
                         disabled={saving}
-                        className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border border-marquee-gold bg-marquee-panel2 px-6 py-3 text-sm font-semibold text-marquee-gold transition-all hover:border-marquee-gold/40 hover:bg-marquee-gold/10 hover:text-marquee-gold disabled:opacity-50"
+                        className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-marquee-gold/30 bg-marquee-panel2 px-3 py-2 text-xs font-semibold text-marquee-gold transition-all hover:border-marquee-gold/50 hover:bg-marquee-gold/10 hover:text-marquee-gold disabled:opacity-50"
                     >
-                        {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-
+                        {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Pencil size={16} />}
                         {saving ? t('savingReview') : t('saveReview')}
                     </button>
                 </div>

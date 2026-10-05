@@ -1,5 +1,5 @@
 const { completeSocialLogin, findOrCreateOAuthUser } = require('../services/socialAuth');
-const { sanitizeReturnTo, safeEqual } = require('../utils/oauthHelpers');
+const { sanitizeReturnTo, safeEqual } = require('../utils/oAuthHelpers');
 const { randomToken, sha256Base64Url, buildAuthorizeUrl, exchangeCodeForToken, fetchGithubIdentity } = require('../utils/githubOAuth');
 const STATE_COOKIE = 'gh_oauth';
 const STATE_COOKIE_PATH = '/api/auth/github';

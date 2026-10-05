@@ -35,8 +35,8 @@ const registerAdminResource = (path, Model, populateOpts = '') => {
     router.get(`/${path}/:id`, getOne(Model, populateOpts));
     router.post(`/${path}`, createOne(Model));
     router.put(`/${path}/:id`, updateOne(Model));
+    router.delete(`/${path}/bulk-delete`, deleteMany(Model));
     router.delete(`/${path}/:id`, deleteOne(Model));
-    router.delete(`/${path}`, deleteMany(Model));
 };
 
 registerAdminResource('users', User, {

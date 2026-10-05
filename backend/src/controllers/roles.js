@@ -90,27 +90,9 @@ async function deleteRole(req, res, next) {
     }
 }
 
-async function bulkDeleteRoles(req, res, next) {
-    try {
-        const { ids } = req.body;
-
-        if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: 'Please provide an array of role IDs' });
-
-        const result = await Role.deleteMany({ _id: { $in: ids } });
-
-        res.status(200).json({
-            message: `Successfully deleted ${result.deletedCount} role(s)`,
-            deletedCount: result.deletedCount,
-        });
-    } catch (err) {
-        next(err);
-    }
-}
-
 module.exports = {
     getRoles,
     createRole,
     updateRole,
     deleteRole,
-    bulkDeleteRoles,
 };

@@ -1,4 +1,4 @@
-import { Loader2 } from 'lucide-react';
+import { Loader2, Trash2 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 
@@ -279,7 +279,7 @@ export default function Disable2faModal({
                         type="button"
                         onClick={onClose}
                         disabled={loading}
-                        className="rounded-full border border-marquee-line px-4 py-2 text-sm text-marquee-muted transition hover:border-marquee-gold hover:text-marquee-cream disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-marquee-line px-3 py-2 text-xs font-medium text-marquee-muted transition hover:border-marquee-gold/40 hover:text-marquee-gold disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         Cancel
                     </button>
@@ -291,19 +291,16 @@ export default function Disable2faModal({
                             !password.trim() ||
                             ((isTotp || codeSent) && code.length !== 6)
                         }
-                        className="inline-flex items-center gap-2 rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-2 text-xs font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-40 border-red-500/30 bg-marquee-bg/40 text-red-400 hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400"
                     >
-                        {loading && (
+                        {loading ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <Trash2 size={16} />
                         )}
-
-                        {loading
-                            ? isTotp || codeSent
-                                ? 'Disabling...'
-                                : 'Sending...'
-                            : isTotp || codeSent
-                                ? 'Disable 2FA'
-                                : 'Send verification code'}
+                        {loading ? isTotp || codeSent ? 'Disabling...'
+                            : 'Sending...' : isTotp || codeSent ? 'Disable 2FA'
+                            : 'Send verification code'}
                     </button>
                 </div>
             </form>

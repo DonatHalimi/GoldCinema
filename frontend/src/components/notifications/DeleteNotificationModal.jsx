@@ -1,4 +1,4 @@
-import { Archive, Loader2, TriangleAlert } from 'lucide-react';
+import { Archive, Loader2, Trash2, TriangleAlert } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import Modal from '../ui/modals/Modal';
@@ -34,9 +34,7 @@ export default function DeleteNotificationModal({
                 </div>
 
                 <p className="mt-2 text-sm leading-relaxed text-marquee-muted">
-                    {isBulkDelete
-                        ? t('confirmDeleteArchivedNotif')
-                        : t('confirmDeleteNotif')}
+                    {isBulkDelete ? t('confirmDeleteArchivedNotif') : t('confirmDeleteNotif')}
                 </p>
             </div>
 
@@ -45,16 +43,12 @@ export default function DeleteNotificationModal({
                     <div className="flex items-center gap-2">
                         <Archive className="h-4 w-4 shrink-0 text-marquee-gold" />
                         <p className="text-xs font-medium uppercase tracking-wide text-marquee-muted">
-                            {isBulkDelete
-                                ? t('archivedNotifs')
-                                : t('notification')}
+                            {isBulkDelete ? t('archivedNotifs') : t('notification')}
                         </p>
                     </div>
 
                     <p className="mt-2 truncate text-sm font-semibold text-marquee-cream">
-                        {isBulkDelete
-                            ? t('allArchivedNotifs')
-                            : title}
+                        {isBulkDelete ? t('allArchivedNotifs') : title}
                     </p>
                 </div>
             )}
@@ -64,7 +58,7 @@ export default function DeleteNotificationModal({
                     type="button"
                     onClick={onCancel}
                     disabled={deleting}
-                    className="rounded-full border border-marquee-line px-4 py-2 text-sm text-marquee-muted transition-colors hover:border-marquee-gold hover:text-marquee-cream disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-marquee-line px-3 py-2 text-xs font-medium text-marquee-muted transition hover:border-marquee-gold/40 hover:text-marquee-gold disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     {t('cancelDeleteNotif')}
                 </button>
@@ -73,15 +67,14 @@ export default function DeleteNotificationModal({
                     type="button"
                     onClick={onConfirm}
                     disabled={deleting}
-                    className="inline-flex items-center gap-2 rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white transition-all hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-2 text-xs font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-40 border-red-500/30 bg-marquee-bg/40 text-red-400 hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400"
                 >
                     {deleting && (
                         <Loader2 className="h-4 w-4 animate-spin" />
                     )}
 
-                    {deleting
-                        ? t('deletingNotif')
-                        : t('deleteNotif')}
+                    <Trash2 size={16} />
+                    {deleting ? t('deletingNotif') : t('deleteNotif')}
                 </button>
             </div>
         </Modal>

@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
     Armchair,
     BarChart3,
@@ -955,74 +955,42 @@ export const getModuleSections = (t) => [
     },
 ];
 
-export const renderAdminItems = (
-    items,
-    navigate,
-    activeModule
-) =>
-    items.map((item) => {
-        if (item.items) {
-            return (
-                <div key={item.title} className="space-y-1">
-                    <div className="pl-4 pt-2 text-[10px] font-bold uppercase tracking-widest text-marquee-muted/50">
-                        {item.title}
-                    </div>
-
-                    {renderAdminItems(
-                        item.items,
-                        navigate,
-                        activeModule
-                    )}
-                </div>
-            );
-        }
-
-        const isActive = activeModule?.key === item.key;
-        const IconComponent = item.icon;
-
+export function renderAdminItems(items, navigate, activeModule, expanded = true) {
+    return items.map((item) => {
+        const Icon = item.icon;
+        const isActive = activeModule.key === item.key;
         return (
             <button
                 key={item.key}
-                type="button"
                 onClick={() => navigate(`/admin/${item.key}`)}
-                className={`
-                    relative group flex w-full items-center gap-3
-                    rounded-xl px-3 py-2.5 text-sm font-medium
-                    border transition-all duration-300 z-10
-                    ${isActive
-                        ? 'text-marquee-goldBright font-bold border-transparent'
-                        : 'text-marquee-muted border-transparent hover:text-marquee-goldBright hover:bg-marquee-gold/5 hover:border-marquee-gold/15 hover:shadow-[0_0_12px_-4px_rgba(230,199,115,0.25)]'
-                    }
-                `}
+                className={`relative flex h-10 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors ${isActive ? 'text-marquee-goldBright' : 'text-marquee-muted hover:text-marquee-goldBright hover:bg-marquee-gold/5'
+                    }`}
             >
                 {isActive && (
                     <motion.div
                         layoutId="activeAdminNavBg"
-                        transition={{
-                            type: 'spring',
-                            stiffness: 350,
-                            damping: 30,
-                        }}
-                        className="absolute inset-0 rounded-xl bg-marquee-gold/10 border border-marquee-gold/20 -z-10"
+                        className="absolute inset-0 -z-10 rounded-lg border border-marquee-gold/20 bg-marquee-gold/10"
+                        transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                     />
                 )}
-
-                {IconComponent && (
-                    <IconComponent
-                        size={18}
-                        className={`transition-colors duration-300 ${isActive
-                            ? 'text-marquee-gold'
-                            : 'text-marquee-muted/70 group-hover:text-marquee-gold'
-                            }`}
-                    />
-                )}
-
-                <span className="tracking-wide">
-                    {item.label}
-                </span>
+                <Icon size={16} className="shrink-0" />
+                <AnimatePresence initial={false}>
+                    {expanded && (
+                        <motion.span
+                            initial={{ opacity: 0, x: -6 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -6 }}
+                            transition={{ duration: 0.12 }}
+                            className="whitespace-nowrap"
+                        >
+                            {item.label}
+                        </motion.span>
+                    )}
+                </AnimatePresence>
             </button>
         );
     });
+}
 
 const flattenModules = (items) =>
     items.flatMap((item) =>

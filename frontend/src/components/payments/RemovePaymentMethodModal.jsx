@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { CheckCircle2, TriangleAlert } from 'lucide-react';
+import { Check, CheckCircle2, Loader2, Trash2, TriangleAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Modal from '../ui/modals/Modal';
@@ -186,7 +186,7 @@ export default function RemovePaymentMethodModal({
                         type="button"
                         onClick={onClose}
                         disabled={isSubmitting}
-                        className="rounded-xl border border-marquee-line px-5 py-2.5 text-sm font-medium text-marquee-cream transition-all hover:border-marquee-gold/40 hover:bg-marquee-panel2 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-marquee-line px-3 py-2 text-xs font-medium text-marquee-muted transition hover:border-marquee-gold/40 hover:text-marquee-gold disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         {t('cancelPaymentModal')}
                     </button>
@@ -195,14 +195,21 @@ export default function RemovePaymentMethodModal({
                         type="button"
                         onClick={onConfirm}
                         disabled={!canConfirm}
-                        className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl border border-red-500/30 bg-marquee-bg/40 px-5 py-2.5 text-sm font-semibold text-red-400 shadow-lg shadow-black/10 transition-all hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-40"                    >
+                        className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-2 text-xs font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-40 ${isDestructive
+                            ? 'border-red-500/30 bg-marquee-bg/40 text-red-400 hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400'
+                            : 'border-marquee-gold/30 bg-marquee-panel2 text-marquee-gold hover:border-marquee-gold/50 hover:bg-marquee-gold/10 hover:text-marquee-gold'
+                            }`}
+                    >
                         {isSubmitting ? (
-                            <span className="flex items-center gap-2">
-                                <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                            <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
                                 Please wait...
-                            </span>
+                            </>
                         ) : (
-                            t('confirmPaymentModal')
+                            <>
+                                {isDestructive ? <Trash2 size={16} /> : <Check size={16} />}
+                                {t('confirmPaymentModal')}
+                            </>
                         )}
                     </button>
                 </div>
