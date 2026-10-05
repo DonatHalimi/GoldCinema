@@ -594,7 +594,7 @@ GoldCinema uses **MongoDB** with **Mongoose** for data persistence. The database
 
 The following [Entity Relationship Diagram (ERD)](https://www.geeksforgeeks.org/dbms/introduction-of-er-model/) provides a visual representation of the main database collections and their relationships:
 
-<img width="3612" height="3960" alt="GoldCinema" src="https://github.com/user-attachments/assets/f238d5fb-cafe-4877-bcd9-2f2854f5823e" />
+<img width="3612" height="3960" alt="GoldCinema" src="https://github.com/user-attachments/assets/ac2c03b8-5d56-4c5c-a657-2d583c39764e" />
 
 The ERD illustrates relationships between the main entities involved in movie discovery, cinema management, seat reservations, ticket orders, payments, user accounts, reviews, favourites, gift cards, staff scheduling, equipment tracking, and business analytics.
 
