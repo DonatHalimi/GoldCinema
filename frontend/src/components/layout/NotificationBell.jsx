@@ -188,7 +188,7 @@ export default function NotificationBell() {
                             </Link>
 
                             <Link
-                                to="/account/notifications"
+                                to="/account/notification-settings"
                                 onClick={() => setOpen(false)}
                                 className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium text-marquee-muted transition hover:bg-white/[0.03] hover:text-marquee-gold"
                             >
