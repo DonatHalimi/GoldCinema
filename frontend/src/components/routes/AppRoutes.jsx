@@ -3,7 +3,7 @@ import DangerZone from '../../components/account/content/DangerZone';
 import Notifications from '../../components/account/content/Notifications';
 import TicketsContent from '../../components/account/content/TicketContent';
 import Sessions from '../../components/account/session/Sessions';
-import NotifSettings from '../../components/account/settings/NotifSettings';
+import Settings from '../../components/account/settings/Settings';
 import ProfileSettings from '../../components/account/settings/ProfileSettings';
 import SecuritySettings from '../../components/account/settings/SecuritySettings';
 import Account from '../../pages/Account';
@@ -110,7 +110,7 @@ export default function AppRoutes() {
                     <Route path="profile" element={<ProfileSettings />} />
                     <Route path="security" element={<SecuritySettings />} />
                     <Route path="notifications" element={<Notifications />} />
-                    <Route path="notification-settings" element={<NotifSettings />} />
+                    <Route path="settings" element={<Settings />} />
                     <Route path="tickets" element={<TicketsContent />} />
                     <Route path="favourites" element={<Favourites />} />
                     <Route path="reviews" element={<MyReviews />} />
