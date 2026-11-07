@@ -39,6 +39,7 @@ export default function AccountSidebar() {
             icon: Settings,
             items: [
                 { id: 'profile', label: t('profileItem'), icon: User },
+                { id: 'settings', label: 'Settings', icon: Settings },
                 { id: 'tickets', label: t('ticketsItem'), icon: Ticket },
                 { id: 'favourites', label: t('favouritesItem'), icon: Heart },
             ],
