@@ -1,5 +1,15 @@
 import { AnimatePresence, motion, useAnimationControls } from 'framer-motion';
-import { Bell, CheckCheck, ChevronRight, Settings, Shield, Tag, Ticket } from 'lucide-react';
+import {
+    Archive,
+    Bell,
+    Check,
+    CheckCheck,
+    ChevronRight,
+    Settings,
+    Shield,
+    Tag,
+    Ticket,
+} from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
@@ -10,9 +20,26 @@ const bellShake = {
     transition: { duration: 0.9, ease: 'easeInOut' },
 };
 
+const NAVBAR_NOTIFICATION_KEYS = new Set([
+    'notifPurchaseTitle',
+    'notifPurchaseMessage',
+    'notifPasskeyLoginTitle',
+    'notifPasskeyLoginMessage',
+]);
+
 export default function NotificationBell() {
-    const { t } = useTranslation('account');
-    const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+    const { t: tAccount } = useTranslation('account');
+    const { t: tNavbar } = useTranslation('navbar');
+
+    const {
+        notifications,
+        unreadCount,
+        markAsRead,
+        markAllAsRead,
+        archiveNotification,
+        deleteNotification,
+    } = useNotifications();
+
     const [open, setOpen] = useState(false);
     const dropdownRef = useRef(null);
     const navigate = useNavigate();
@@ -30,9 +57,7 @@ export default function NotificationBell() {
     }, []);
 
     useEffect(() => {
-        if (unreadCount > prevUnreadRef.current) {
-            bellControls.start(bellShake);
-        }
+        if (unreadCount > prevUnreadRef.current) bellControls.start(bellShake);
         prevUnreadRef.current = unreadCount;
     }, [unreadCount, bellControls]);
 
@@ -56,11 +81,18 @@ export default function NotificationBell() {
         }
     };
 
+    const getNotificationText = (value) => {
+        if (typeof value !== 'string') return value ?? '';
+        return NAVBAR_NOTIFICATION_KEYS.has(value)
+            ? tNavbar(value, { defaultValue: value })
+            : value;
+    };
+
     const getRelativeTime = (dateStr) => {
         if (!dateStr) return '';
         const diffMs = Date.now() - new Date(dateStr).getTime();
         const diffMins = Math.floor(diffMs / 60000);
-        if (diffMins < 1) return t('justNow');
+        if (diffMins < 1) return tAccount('justNow');
         if (diffMins < 60) return `${diffMins}m ago`;
         const diffHours = Math.floor(diffMins / 60);
         if (diffHours < 24) return `${diffHours}h ago`;
@@ -69,14 +101,28 @@ export default function NotificationBell() {
     };
 
     const handleNotificationClick = (item) => {
-        if (!item.read) {
-            markAsRead(item._id, false);
-        }
+        if (!item.read) markAsRead(item._id, false);
         setOpen(false);
-        if (item.link) {
-            navigate(item.link);
-        } else {
-            navigate('/account/notifications');
+        navigate(item.link || '/account/notifications');
+    };
+
+
+    const handleMarkRead = async (e, item) => {
+        e.stopPropagation();
+        if (item.read) return;
+        await markAsRead(item._id, true);
+    };
+
+    const handleArchive = async (e, item) => {
+        e.stopPropagation();
+        await archiveNotification(item._id, true);
+    };
+
+    const handleDelete = async (e, item) => {
+        e.stopPropagation();
+        try {
+            await deleteNotification(item._id);
+        } catch {
         }
     };
 
@@ -86,8 +132,8 @@ export default function NotificationBell() {
         <div ref={dropdownRef} className="relative">
             <button
                 onClick={handleToggle}
-                title={t('notificationsTitle')}
-                aria-label={t('notificationsTitle')}
+                title={tAccount('notificationsTitle')}
+                aria-label={tAccount('notificationsTitle')}
                 className="group relative flex h-8 w-8 items-center justify-center rounded-lg text-marquee-muted transition-colors duration-200 hover:bg-white/[0.03] hover:text-marquee-gold focus:outline-none"
             >
                 <motion.span
@@ -117,61 +163,91 @@ export default function NotificationBell() {
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.25, ease: 'easeInOut' }}
-                        className="absolute right-0 mt-3 w-80 sm:w-96 overflow-hidden rounded-xl border border-marquee-line bg-marquee-panel shadow-2xl z-50 origin-top"
+                        className="absolute right-0 mt-3 z-50 w-80 origin-top overflow-hidden rounded-xl border border-marquee-line bg-marquee-panel shadow-2xl sm:w-96"
                     >
-                        <div className="flex items-center justify-between border-b border-marquee-line px-4 py-3 bg-marquee-panel2">
+                        <div className="flex items-center justify-between border-b border-marquee-line bg-marquee-panel2 px-4 py-3">
                             <div className="flex items-center gap-2">
-                                <h3 className="font-semibold text-marquee-cream text-sm">{t('notificationsTitle')}</h3>
+                                <h3 className="text-sm font-semibold text-marquee-cream">
+                                    {tAccount('notificationsTitle')}
+                                </h3>
                                 {unreadCount > 0 && (
-                                    <span className="rounded-full bg-marquee-gold/20 px-2 py-0.5 text-xs text-marquee-gold font-medium">
-                                        {unreadCount} {t('newNotifications')}
+                                    <span className="rounded-full bg-marquee-gold/20 px-2 py-0.5 text-xs font-medium text-marquee-gold">
+                                        {unreadCount} {tAccount('newNotifications')}
                                     </span>
                                 )}
                             </div>
-
                             {unreadCount > 0 && (
                                 <button onClick={markAllAsRead} className="flex items-center gap-1 text-xs text-marquee-muted transition hover:text-marquee-gold">
                                     <CheckCheck size={14} />
-                                    {t('markAllAsRead')}
+                                    {tAccount('markAllAsRead')}
                                 </button>
                             )}
                         </div>
 
-                        <div className="max-h-80 overflow-y-auto divide-y divide-marquee-line/50">
+                        <div className="max-h-80 divide-y divide-marquee-line/50 overflow-y-auto">
                             {recentNotifications.length === 0 ? (
-                                <div className="px-4 py-8 text-center text-marquee-muted text-sm">
+                                <div className="px-4 py-8 text-center text-sm text-marquee-muted">
                                     <Bell className="mx-auto mb-2 opacity-30" size={28} />
-                                    <p>{t('noNotifications')}</p>
+                                    <p>{tAccount('noNotifications')}</p>
                                 </div>
                             ) : (
                                 recentNotifications.map((item) => (
                                     <div
                                         key={item._id}
                                         onClick={() => handleNotificationClick(item)}
-                                        className={`group flex items-start gap-3 p-3.5 transition cursor-pointer ${!item.read
+                                        className={`group flex cursor-pointer items-start gap-3 p-3.5 transition ${!item.read
                                             ? 'bg-marquee-gold/5 hover:bg-marquee-gold/10'
-                                            : 'hover:bg-marquee-panel2/60'
-                                            }`}
+                                            : 'hover:bg-marquee-panel2/60'}`}
                                     >
-                                        <div className="mt-0.5 rounded-lg bg-marquee-bg p-2 border border-marquee-line/60">
+                                        <div className="mt-0.5 rounded-lg border border-marquee-line/60 bg-marquee-bg p-2">
                                             {getTypeIcon(item.type)}
                                         </div>
 
-                                        <div className="flex-1 min-w-0">
+                                        <div className="min-w-0 flex-1">
                                             <div className="flex items-center justify-between gap-1">
-                                                <p className={`text-xs font-semibold truncate ${!item.read ? 'text-marquee-goldBright' : 'text-marquee-cream'}`}>
-                                                    {item.title}
+                                                <p className={`truncate text-xs font-semibold ${!item.read
+                                                    ? 'text-marquee-goldBright'
+                                                    : 'text-marquee-cream'}`}
+                                                >
+                                                    {getNotificationText(item.title)}
                                                 </p>
-                                                <span className="text-[10px] text-marquee-muted shrink-0">
+                                                <span className="shrink-0 text-[10px] text-marquee-muted">
                                                     {getRelativeTime(item.createdAt)}
                                                 </span>
                                             </div>
-                                            <p className="mt-0.5 text-xs text-marquee-muted line-clamp-2 leading-relaxed">
-                                                {item.message}
+
+                                            <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-marquee-muted">
+                                                {getNotificationText(item.message)}
                                             </p>
                                         </div>
 
-                                        {!item.read && <span className="h-2 w-2 rounded-full bg-marquee-gold shrink-0 mt-1.5" />}
+                                        <div className="mt-0.5 flex shrink-0 items-start gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition-opacity">
+                                            {!item.read && (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => handleMarkRead(e, item)}
+                                                    title="Mark as read"
+                                                    aria-label="Mark as read"
+                                                    className="rounded-md p-1.5 text-marquee-muted transition hover:bg-white/[0.06] hover:text-marquee-gold"
+                                                >
+                                                    <Check size={14} />
+                                                </button>
+                                            )}
+
+                                            <button
+                                                type="button"
+                                                onClick={(e) => handleArchive(e, item)}
+                                                title="Archive"
+                                                aria-label="Archive notification"
+                                                className="rounded-md p-1.5 text-marquee-muted transition hover:bg-white/[0.06] hover:text-marquee-gold"
+                                            >
+                                                <Archive size={14} />
+                                            </button>
+                                        </div>
+
+                                        {!item.read && (
+                                            <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-marquee-gold" />
+                                        )}
                                     </div>
                                 ))
                             )}
@@ -183,17 +259,16 @@ export default function NotificationBell() {
                                 onClick={() => setOpen(false)}
                                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-marquee-gold transition hover:text-marquee-goldBright"
                             >
-                                {t('viewAllNotifications')}
+                                {tAccount('viewAllNotifications')}
                                 <ChevronRight size={14} />
                             </Link>
-
                             <Link
                                 to="/account/settings#notifications"
                                 onClick={() => setOpen(false)}
                                 className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium text-marquee-muted transition hover:bg-white/[0.03] hover:text-marquee-gold"
                             >
                                 <Settings size={13} />
-                                {t('notificationSettings')}
+                                {tAccount('notificationSettings')}
                             </Link>
                         </div>
                     </motion.div>

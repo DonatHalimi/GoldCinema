@@ -1,5 +1,6 @@
-import { Bell } from 'lucide-react';
+import { Bell, Timer } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import MarqueeSelect from '../../../../components/ui/MarqueeSelect';
 
 const STORAGE_KEY = 'gc-notification-preferences';
 const DEFAULT_PREFERENCES = {
@@ -7,6 +8,12 @@ const DEFAULT_PREFERENCES = {
     inAppAlerts: true,
     frequency: 'instant',
 };
+
+const FREQUENCY_OPTIONS = [
+    { value: 'instant', label: 'Instant' },
+    { value: 'daily', label: 'Daily digest' },
+    { value: 'weekly', label: 'Weekly summary' },
+];
 
 function readPreferences() {
     try {
@@ -30,13 +37,9 @@ function PreferenceRow({ title, description, checked, onChange }) {
                 aria-checked={checked}
                 aria-label={title}
                 onClick={() => onChange(!checked)}
-                className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marquee-gold focus-visible:ring-offset-2 focus-visible:ring-offset-marquee-bg ${
-                    checked ? 'bg-marquee-gold' : 'bg-marquee-line'
-                }`}
+                className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marquee-gold focus-visible:ring-offset-2 focus-visible:ring-offset-marquee-bg ${checked ? 'bg-marquee-gold' : 'bg-marquee-line'}`}
             >
-                <span className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${
-                    checked ? 'translate-x-[20px]' : 'translate-x-0'
-                }`} />
+                <span className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-[20px]' : 'translate-x-0'}`} />
             </button>
         </div>
     );
@@ -96,16 +99,14 @@ export default function NotificationSettings() {
                 <p className="mt-1 text-xs text-marquee-muted">
                     Choose how often notification updates should be grouped.
                 </p>
-                <select
+                <MarqueeSelect
                     id="notification-frequency"
                     value={preferences.frequency}
-                    onChange={(event) => updatePreference('frequency', event.target.value)}
-                    className="mt-3 w-full max-w-md rounded-lg border border-marquee-line bg-marquee-panel2 px-3 py-3 text-sm text-marquee-cream outline-none transition focus:border-marquee-gold focus:ring-2 focus:ring-marquee-gold/20"
-                >
-                    <option value="instant">Instant</option>
-                    <option value="daily">Daily digest</option>
-                    <option value="weekly">Weekly summary</option>
-                </select>
+                    options={FREQUENCY_OPTIONS}
+                    onChange={(next) => updatePreference('frequency', next)}
+                    icon={<Timer size={16} />}
+                    className="mt-3"
+                />
             </div>
 
             <p className="mt-5 text-xs text-marquee-muted/80">

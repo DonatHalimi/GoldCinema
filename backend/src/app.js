@@ -6,6 +6,7 @@ const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
 const { auditRequestLogger } = require('./middleware/auditLogger');
 const authRoutes = require('./routes/auth');
+const multiRoleRoutes = require('./routes/multiRole');
 const userRoutes = require('./routes/user');
 const movieRoutes = require('./routes/movies');
 const showtimeRoutes = require('./routes/showtimes');
@@ -13,6 +14,7 @@ const seatHoldRoutes = require('./routes/seatHold');
 const orderRoutes = require('./routes/orders');
 const paymentRoutes = require('./routes/payments');
 const adminRoutes = require('./routes/adminRoutes');
+const adminRoleAssignmentsRoutes = require('./routes/adminRoleAssignments');
 const slideshowRoutes = require('./routes/slideshow');
 const passkeyRoutes = require('./routes/passkey');
 const contactRoutes = require('./routes/contact');
@@ -70,20 +72,29 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(auditRequestLogger);
 
-const strictLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 50,
-  standardHeaders: true,
-  legacyHeaders: false,
+const authApiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 300,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many authentication API requests. Please try again later.' },
 });
 
-app.use('/api/auth', strictLimiter);
-app.use('/api/payments', strictLimiter);
+const paymentLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 50,
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+app.use('/api/auth', authApiLimiter);
+app.use('/api/payments', paymentLimiter);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+app.use('/api/auth', multiRoleRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/auth', passkeyRoutes);
 app.use('/api/users', userRoutes);
@@ -93,6 +104,7 @@ app.use('/api', seatHoldRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/admin', adminRoleAssignmentsRoutes);
 app.use('/api/slideshows', slideshowRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/notifications', notificationRoutes);

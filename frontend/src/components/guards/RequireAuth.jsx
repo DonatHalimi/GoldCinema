@@ -1,19 +1,21 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
-export default function RequireAuth({ children }) {
-  const { user, loading } = useAuth();
-  const location = useLocation();
+export default function RequireAuth({ children, allowRoleSelection = false }) {
+    const { user, loading } = useAuth();
+    const location = useLocation();
 
-  if (loading) {
-    return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <p className="font-body text-marquee-muted">Checking your seat reservation...</p>
-      </div>
-    );
-  }
+    if (loading) {
+        return (
+            <div className="flex min-h-[50vh] items-center justify-center">
+                <p className="font-body text-marquee-muted">Checking your seat reservation...</p>
+            </div>
+        );
+    }
 
-  if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
-
-  return children;
+    if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
+    if (user.roleSelectionRequired && !allowRoleSelection && location.pathname !== '/select-role') {
+        return <Navigate to="/select-role" state={{ from: location }} replace />;
+    }
+    return children;
 }

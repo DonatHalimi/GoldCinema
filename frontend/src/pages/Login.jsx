@@ -17,7 +17,7 @@ const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const facebookAppId = import.meta.env.VITE_FACEBOOK_APP_ID;
 
 export default function Login() {
-  const { login, loginWithGoogle, loginWithFacebook, loginWithGithub } = useAuth();
+  const { login, loginWithGoogle, loginWithFacebook, loginWithGithub, refreshUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || '/';
@@ -97,9 +97,9 @@ export default function Login() {
         return;
       }
 
+      const profile = await refreshUser();
       toast.success('Passkey login successful!');
-      navigate(from, { replace: true });
-      window.location.reload();
+      navigate(profile?.roleSelectionRequired ? '/select-role' : from, { replace: true });
     } catch (err) {
       if (err.name === 'NotAllowedError') {
         toast.info('Passkey sign-in cancelled or timed out.');
@@ -126,7 +126,7 @@ export default function Login() {
         });
         return;
       }
-      navigate(from, { replace: true });
+      navigate(result?.roleSelectionRequired ? '/select-role' : from, { replace: true });
       toast.success('Google login successful!');
     } catch (err) {
       toast.error('Google login failed!');
@@ -157,7 +157,7 @@ export default function Login() {
         return;
       }
 
-      navigate(from, { replace: true });
+      navigate(result?.roleSelectionRequired ? '/select-role' : from, { replace: true });
       toast.success('Facebook login successful!');
     } catch (err) {
       toast.error('Facebook login failed!');
@@ -209,7 +209,7 @@ export default function Login() {
         return;
       }
 
-      navigate(from, { replace: true });
+      navigate(result?.roleSelectionRequired ? '/select-role' : from, { replace: true });
       toast.success('Login successful!');
     } catch (err) {
       toast.error('Login failed!');

@@ -3,11 +3,11 @@ const { requireAuth } = require('../middleware/auth');
 const {
     getUserNotifications,
     getUnreadCount,
-    toggleReadStatus,
+    updateReadStatus,
     markAllAsRead,
     archiveAll,
     unarchiveAll,
-    toggleArchiveStatus,
+    updateArchiveStatus,
     archiveAllRead,
     deleteNotification,
     clearArchived,
@@ -25,8 +25,8 @@ router.patch('/unarchive-all', unarchiveAll);
 router.patch('/archive-all-read', archiveAllRead);
 router.delete('/clear-archived', clearArchived);
 
-router.patch('/:id/read', toggleReadStatus);
-router.patch('/:id/archive', toggleArchiveStatus);
+router.patch('/:id/read', updateReadStatus);
+router.patch('/:id/archive', updateArchiveStatus);
 router.delete('/:id', deleteNotification);
 
 module.exports = router;

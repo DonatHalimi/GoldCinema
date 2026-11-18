@@ -14,7 +14,7 @@ import {
     markAllNotificationsAsRead,
     markAllNotificationsAsUnarchived,
     markNotificationAsRead,
-    toggleNotificationArchive
+    updateNotificationArchive,
 } from '../api/notifications';
 
 const NotificationContext = createContext(null);
@@ -40,7 +40,10 @@ export function NotificationProvider({ children }) {
             setUnreadCount(data.unreadCount || 0);
             setTotalPages(data.totalPages || 1);
         } catch (error) {
-            console.error('[NOTIFICATIONS] Failed to fetch notifications:', error.response?.data || error.message);
+            console.error(
+                '[NOTIFICATIONS] Failed to fetch notifications:',
+                error.response?.data || error.message
+            );
             setNotifications([]);
             setTotalCount(0);
             setTotalPages(1);
@@ -54,7 +57,6 @@ export function NotificationProvider({ children }) {
     }, [fetchNotifications]);
 
     const handleSetFilter = useCallback((newFilter) => {
-
         setFilter(newFilter);
         setPage(1);
     }, []);
@@ -66,14 +68,10 @@ export function NotificationProvider({ children }) {
     const markAsRead = useCallback(async (id, read = true) => {
         try {
             const data = await markNotificationAsRead(id, read);
-
             const updatedNotification = data.notification;
 
             setNotifications((current) =>
-                current.map((notification) =>
-                    notification._id === id
-                        ? updatedNotification
-                        : notification
+                current.map((notification) => notification._id === id ? updatedNotification : notification
                 )
             );
 
@@ -81,7 +79,10 @@ export function NotificationProvider({ children }) {
                 setUnreadCount(data.unreadCount);
             }
         } catch (error) {
-            console.error('[NOTIFICATIONS] Failed to update read status:', error.response?.data || error.message);
+            console.error(
+                '[NOTIFICATIONS] Failed to update read status:',
+                error.response?.data || error.message
+            );
         }
     }, []);
 
@@ -93,35 +94,66 @@ export function NotificationProvider({ children }) {
 
             setNotifications((current) =>
                 current.map((notification) =>
-                    notification.archived === false ? {
-                        ...notification,
-                        read: true,
-                    }
+                    notification.archived === false
+                        ? { ...notification, read: true }
                         : notification
                 )
             );
 
             await fetchNotifications();
         } catch (error) {
-            console.error('[NOTIFICATIONS] Failed to mark all as read:', error.response?.data || error.message);
+            console.error(
+                '[NOTIFICATIONS] Failed to mark all as read:',
+                error.response?.data || error.message
+            );
         }
     }, [fetchNotifications]);
 
-    const toggleArchive = useCallback(
-        async (id, archived) => {
-            try {
-                const data = await toggleNotificationArchive(id, archived);
+    const archiveNotification = useCallback(
+        async (id, archived = true) => {
+            if (!id) return false;
 
-                if (typeof data.unreadCount === 'number') {
+            const previous = notifications;
+
+            if (archived) {
+                setNotifications((current) =>
+                    current.filter((n) => String(n._id) !== String(id))
+                );
+
+                const item = previous.find(
+                    (n) => String(n._id) === String(id)
+                );
+                if (item && !item.read) {
+                    setUnreadCount((count) => Math.max(0, count - 1));
+                }
+            }
+
+            try {
+                const data = await updateNotificationArchive(id, archived);
+
+                if (typeof data?.unreadCount === 'number') {
                     setUnreadCount(data.unreadCount);
                 }
 
                 await fetchNotifications();
+                return true;
             } catch (error) {
-                console.error('[NOTIFICATIONS] Failed to update archive status:', error.response?.data || error.message);
+                setNotifications(previous);
+                console.error(
+                    '[NOTIFICATIONS] Failed to update archive status:',
+                    error.response?.data || error.message
+                );
+                return false;
             }
         },
-        [fetchNotifications]
+        [notifications, fetchNotifications]
+    );
+
+    const toggleArchive = archiveNotification;
+
+    const unarchiveNotification = useCallback(
+        (id) => archiveNotification(id, false),
+        [archiveNotification]
     );
 
     const archiveAllRead = useCallback(async () => {
@@ -134,7 +166,10 @@ export function NotificationProvider({ children }) {
 
             await fetchNotifications();
         } catch (error) {
-            console.error('[NOTIFICATIONS] Failed to archive all read notifications:', error.response?.data || error.message);
+            console.error(
+                '[NOTIFICATIONS] Failed to archive all read notifications:',
+                error.response?.data || error.message
+            );
         }
     }, [fetchNotifications]);
 
@@ -148,7 +183,10 @@ export function NotificationProvider({ children }) {
 
             await fetchNotifications();
         } catch (error) {
-            console.error('[NOTIFICATIONS] Failed to archive all notifications:', error.response?.data || error.message);
+            console.error(
+                '[NOTIFICATIONS] Failed to archive all notifications:',
+                error.response?.data || error.message
+            );
         }
     }, [fetchNotifications]);
 
@@ -163,41 +201,46 @@ export function NotificationProvider({ children }) {
             setFilter('all');
             setPage(1);
         } catch (error) {
-            console.error('[NOTIFICATIONS] Failed to unarchive all notifications:', error.response?.data || error.message);
+            console.error(
+                '[NOTIFICATIONS] Failed to unarchive all notifications:',
+                error.response?.data || error.message
+            );
         }
     }, []);
 
     const deleteNotification = useCallback(
         async (id) => {
-
             if (!id) return false;
+
+            const previous = notifications;
+
+            setNotifications((current) =>
+                current.filter((n) => String(n._id) !== String(id))
+            );
 
             try {
                 await deleteUserNotification(id);
 
-                setNotifications((current) => {
-                    const exists = current.some(
-                        (notification) =>
-                            String(notification._id) === id
-                    );
+                const removed = previous.find(
+                    (n) => String(n._id) === String(id)
+                );
 
-                    const updated = current.filter(
-                        (notification) =>
-                            String(notification._id) !== id
-                    );
-
-                    return updated;
-                });
+                if (removed && !removed.read && !removed.archived) {
+                    setUnreadCount((count) => Math.max(0, count - 1));
+                }
 
                 await fetchNotifications();
-
                 return true;
             } catch (error) {
-                console.error('[NOTIFICATIONS] Failed to delete notification:', error.response?.data || error.message);
+                setNotifications(previous);
+                console.error(
+                    '[NOTIFICATIONS] Failed to delete notification:',
+                    error.response?.data || error.message
+                );
                 throw error;
             }
         },
-        [fetchNotifications]
+        [notifications, fetchNotifications]
     );
 
     const clearArchived = useCallback(async () => {
@@ -205,7 +248,10 @@ export function NotificationProvider({ children }) {
             await clearArchivedNotifications();
             await fetchNotifications();
         } catch (error) {
-            console.error('[NOTIFICATIONS] Failed to clear archived notifications:', error.response?.data || error.message);
+            console.error(
+                '[NOTIFICATIONS] Failed to clear archived notifications:',
+                error.response?.data || error.message
+            );
         }
     }, [fetchNotifications]);
 
@@ -224,6 +270,8 @@ export function NotificationProvider({ children }) {
         markAsRead,
         markAllAsRead,
 
+        archiveNotification,
+        unarchiveNotification,
         toggleArchive,
         archiveAllRead,
         archiveAll,
@@ -244,11 +292,9 @@ export function NotificationProvider({ children }) {
 
 export function useNotifications() {
     const context = useContext(NotificationContext);
-
     if (!context) {
         throw new Error('useNotifications must be used inside NotificationProvider');
     }
-
     return context;
 }
 

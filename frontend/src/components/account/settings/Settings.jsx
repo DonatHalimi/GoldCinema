@@ -1,36 +1,33 @@
 import { useEffect } from 'react';
-import { Settings as SettingsIcon } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import AppearanceSettings from './components/AppearanceSettings';
 import LanguageSettings from './components/LanguageSettings';
 import NotificationSettings from './components/NotificationSettings';
 
 export default function Settings() {
-    useEffect(() => {
-        if (window.location.hash !== '#notifications') return undefined;
+    const location = useLocation();
 
-        const scrollToNotifications = () => {
+    useEffect(() => {
+        if (location.hash !== '#notifications') return undefined;
+
+        const frame = window.requestAnimationFrame(() => {
             document.getElementById('notifications')?.scrollIntoView({
                 behavior: 'smooth',
                 block: 'start',
             });
-        };
+        });
 
-        const frame = window.requestAnimationFrame(scrollToNotifications);
         return () => window.cancelAnimationFrame(frame);
-    }, []);
+    }, [location.hash]);
 
     return (
         <div className="space-y-7">
             <header className="border-b border-marquee-line pb-6">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-marquee-goldDim">
-                    <SettingsIcon size={14} />
-                    Personal preferences
-                </div>
-                <h2 className="mt-2 font-display text-3xl font-semibold tracking-wide text-marquee-goldBright sm:text-4xl">
+                <h2 className="font-display text-2xl font-semibold tracking-wide text-marquee-goldBright">
                     Settings
                 </h2>
                 <p className="mt-2 max-w-2xl text-sm leading-relaxed text-marquee-muted">
-                    Customize your GoldCinema experience, manage your language, and control how you receive updates.
+                    Personalize your experience, set your language, and choose frequency of your notifications
                 </p>
             </header>
 

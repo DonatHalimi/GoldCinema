@@ -86,6 +86,13 @@ const changePasswordSchema = yup.object({
         .min(8, 'New password must be at least 8 characters.'),
 }).noUnknown(true);
 
+const setPasswordSchema = yup.object({
+    password: yup
+        .string()
+        .required('Password is required.')
+        .min(8, 'Password must be at least 8 characters.'),
+}).noUnknown(true);
+
 const deleteAccountSchema = yup.object({
     password: yup
         .string()
@@ -172,6 +179,7 @@ module.exports = {
     googleLoginSchema,
     facebookLoginSchema,
     changePasswordSchema,
+    setPasswordSchema,
     deleteAccountSchema,
     sixDigitCodeSchema,
     disable2faSchema,

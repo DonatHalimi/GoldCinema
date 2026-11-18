@@ -18,20 +18,38 @@ import {
     TriangleAlert,
     User,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
-const EXPANDED_WIDTH = 256; // matches the previous w-64
+const EXPANDED_WIDTH = 256;
 const COLLAPSED_WIDTH = 64;
+const STORAGE_KEY = 'accountSidebar:expanded';
 
 export default function AccountSidebar() {
     const { t } = useTranslation('accountSidebar');
-    const { user, logout } = useAuth();
+    const { t: tNavbar } = useTranslation('navbar');
+
+    const { logout } = useAuth();
     const navigate = useNavigate();
 
-    const [expanded, setExpanded] = useState(true);
+    const [expanded, setExpanded] = useState(() => {
+        if (typeof window === 'undefined') return true;
+
+        try {
+            const stored = window.localStorage.getItem(STORAGE_KEY);
+            return stored === null ? true : stored === 'true';
+        } catch {
+            return true;
+        }
+    });
+
+    useEffect(() => {
+        try {
+            window.localStorage.setItem(STORAGE_KEY, String(expanded));
+        } catch { }
+    }, [expanded]);
 
     const ACCOUNT_SECTIONS = [
         {
@@ -96,10 +114,6 @@ export default function AccountSidebar() {
         navigate('/');
     };
 
-    const displayName = user?.name
-        ? user.name.split(' ')[0]
-        : user?.email?.split('@')[0] || t('header');
-
     return (
         <motion.aside
             initial={false}
@@ -107,7 +121,6 @@ export default function AccountSidebar() {
             transition={{ type: 'spring', stiffness: 260, damping: 30 }}
             className="sticky top-24 z-30 flex shrink-0 flex-col self-start overflow-hidden rounded-xl border border-marquee-line bg-marquee-panel"
         >
-            {/* Header */}
             <AnimatePresence initial={false}>
                 {expanded && (
                     <motion.div
@@ -149,7 +162,6 @@ export default function AccountSidebar() {
                 )}
             </AnimatePresence>
 
-            {/* Collapsed toggle — centered */}
             <AnimatePresence initial={false}>
                 {!expanded && (
                     <motion.div
@@ -157,7 +169,7 @@ export default function AccountSidebar() {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.15 }}
-                        className="flex justify-center py-4"
+                        className="flex justify-center border-b border-marquee-line/60 py-4"
                     >
                         <motion.button
                             type="button"
@@ -180,7 +192,6 @@ export default function AccountSidebar() {
                 )}
             </AnimatePresence>
 
-            {/* Sections */}
             <nav className="relative flex-1 space-y-4 overflow-y-auto px-2 py-4">
                 {ACCOUNT_SECTIONS.map((section) => {
                     const SectionIcon = section.icon;
@@ -246,7 +257,7 @@ export default function AccountSidebar() {
                                                                 <motion.div
                                                                     layoutId="activeAccountNavBg"
                                                                     transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-                                                                    className="absolute inset-0 rounded-xl bg-marquee-gold/10 border border-marquee-gold/20 -z-10"
+                                                                    className="absolute inset-0 -z-10 rounded-xl border border-marquee-gold/20 bg-marquee-gold/10"
                                                                 />
                                                             )}
 
@@ -284,33 +295,20 @@ export default function AccountSidebar() {
                 })}
             </nav>
 
-            {/* Divider + Logout */}
             <div className="border-t border-marquee-line/60 p-2">
-                <motion.button
+                <button
                     type="button"
                     onClick={handleLogout}
-                    whileHover={{ x: 2 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="relative flex h-10 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium text-marquee-muted transition-colors hover:bg-red-500/10 hover:text-red-300"
+                    className={`flex h-10 w-full items-center rounded-lg px-3 text-sm font-medium text-marquee-muted transition-colors hover:bg-red-500/10 hover:text-red-300 ${expanded ? 'gap-3' : 'justify-center'}`}
                 >
-                    <span className="shrink-0">
-                        <LogOut className="h-5 w-5" />
-                    </span>
+                    <LogOut className="h-5 w-5 shrink-0" />
 
-                    <AnimatePresence initial={false}>
-                        {expanded && (
-                            <motion.span
-                                initial={{ opacity: 0, x: -6 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -6 }}
-                                transition={{ duration: 0.12 }}
-                                className="whitespace-nowrap"
-                            >
-                                Log out
-                            </motion.span>
-                        )}
-                    </AnimatePresence>
-                </motion.button>
+                    {expanded && (
+                        <span className="whitespace-nowrap">
+                            {tNavbar('logOut')}
+                        </span>
+                    )}
+                </button>
             </div>
         </motion.aside>
     );

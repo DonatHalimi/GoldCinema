@@ -3,10 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 
 export default function RequireGuest({ children }) {
     const { user, loading } = useAuth();
-
     if (loading) return null;
-
-    if (user) return <Navigate to="/" replace />;
-
+    if (user) return <Navigate to={user.roleSelectionRequired ? '/select-role' : '/'} replace />;
     return children;
 }

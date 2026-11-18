@@ -24,7 +24,7 @@ export async function markAllNotificationsAsRead() {
     return data;
 };
 
-export async function toggleNotificationArchive(id, archived) {
+export const updateNotificationArchive = async (id, archived) => {
     const { data } = await api.patch(`/notifications/${id}/archive`, { archived });
 
     return data;

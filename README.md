@@ -814,6 +814,7 @@ PAYPAL_ENV=sandbox
 # OAuth (optional)
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
+GOOGLE_CALLBACK_URL=http://localhost:4000/api/auth/google/callback
 FACEBOOK_APP_ID=your_facebook_app_id
 FACEBOOK_APP_SECRET=your_facebook_app_secret
 
@@ -837,6 +838,12 @@ VITE_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
 ```
 
 > Never commit production secrets. Both `.env` files should be listed in `.gitignore`.
+
+Google account linking uses a backend OAuth callback. Add the exact value of
+`GOOGLE_CALLBACK_URL` to the OAuth client’s **Authorized redirect URIs** in
+Google Cloud Console. For production, use the HTTPS callback URL of the
+deployed API. The frontend Google login still uses Google Identity Services
+and requires its frontend origin under **Authorized JavaScript origins**.
 
 <p align="right"><sub><a href="#table-of-contents">↑ Top</a></sub></p>
 

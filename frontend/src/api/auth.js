@@ -47,7 +47,7 @@ export async function updateLoginAlerts(loginAlerts) {
 };
 
 export async function getProfile() {
-    const { data } = await api.get('/auth/me');
+    const { data } = await api.get('/auth/me', { params: { _request: Date.now() }, });
 
     return data;
 };
@@ -121,6 +121,12 @@ export async function updatePassword(passwordForm) {
         currentPassword: passwordForm.currentPassword,
         newPassword: passwordForm.newPassword,
     });
+
+    return data;
+};
+
+export async function setInitialPassword(password) {
+    const { data } = await api.post('/auth/set-password', { password });
 
     return data;
 };

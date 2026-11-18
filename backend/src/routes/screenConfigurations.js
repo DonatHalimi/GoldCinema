@@ -1,5 +1,6 @@
 const express = require('express');
 const { requireAuth } = require('../middleware/auth');
+const { requirePermission } = require('../middleware/roleAccess');
 const {
     getAllConfigurations,
     getConfigurationById,
@@ -8,11 +9,9 @@ const {
     updateConfiguration,
     deleteConfiguration,
 } = require('../controllers/screenConfigurations');
-
 const router = express.Router();
 
-router.use(requireAuth);
-
+router.use(requireAuth, requirePermission('screen-configurations:manage'));
 router.get('/', getAllConfigurations);
 router.get('/screen/:screenId', getConfigurationByScreen);
 router.get('/:id', getConfigurationById);

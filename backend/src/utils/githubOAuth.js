@@ -84,10 +84,12 @@ async function fetchGithubIdentity(accessToken) {
     if (!email) throw oauthError('github_no_verified_email');
 
     return {
+        provider: 'github',
         providerUserId: String(profile.id),
         login: profile.login,
         name: profile.name || profile.login,
         email,
+        emailVerified: true,
         avatar: profile.avatar_url || null,
     };
 }

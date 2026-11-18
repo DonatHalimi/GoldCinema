@@ -102,7 +102,7 @@ export default function BackupCodesCard({ twoFactor }) {
                     type="button"
                     onClick={handleGenerateCodes}
                     disabled={loading || !isTotpEnabled}
-                    className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-marquee-gold bg-marquee-panel2 px-3 py-2 text-xs font-semibold text-marquee-gold transition-all hover:border-marquee-gold/40 hover:bg-marquee-gold/10 hover:text-marquee-gold disabled:opacity-50"
+                    className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-marquee-line px-3 py-2 text-xs font-medium text-marquee-muted transition hover:border-marquee-gold/40 hover:text-marquee-gold disabled:opacity-50"
                 >
                     <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
                     {codes.length > 0 ? t('regenCodes') : t('genCodes')}
@@ -129,7 +129,7 @@ export default function BackupCodesCard({ twoFactor }) {
                         <button
                             type="button"
                             onClick={handleToggleVisibility}
-                            className="ml-4 inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold text-marquee-gold transition hover:text-marquee-goldBright"
+                            className="ml-4 inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-marquee-line px-3 py-2 text-xs font-medium text-marquee-muted transition hover:border-marquee-gold/40 hover:text-marquee-gold disabled:opacity-50"
                         >
                             {showCodes ? (
                                 <>
@@ -156,7 +156,7 @@ export default function BackupCodesCard({ twoFactor }) {
                     <button
                         type="button"
                         onClick={handleDownload}
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-marquee-gold hover:text-marquee-goldBright"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-marquee-line px-3 py-2 text-xs font-medium text-marquee-muted transition hover:border-marquee-gold/40 hover:text-marquee-gold disabled:opacity-50"
                     >
                         <Download className="h-4 w-4" />
                         {t('downloadCodesFile')}

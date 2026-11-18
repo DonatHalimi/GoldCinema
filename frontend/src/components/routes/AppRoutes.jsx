@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import DangerZone from '../../components/account/content/DangerZone';
 import Notifications from '../../components/account/content/Notifications';
 import TicketsContent from '../../components/account/content/TicketContent';
@@ -21,6 +21,7 @@ import MyReviews from '../../pages/MyReviews';
 import NotFound from '../../pages/NotFound';
 import Register from '../../pages/Register';
 import ResetPassword from '../../pages/ResetPassword';
+import RoleSelectionPage from '../../pages/RoleSelectionPage';
 import SeatSelection from '../../pages/SeatSelection';
 import VerifyEmail from '../../pages/VerifyEmail';
 import RequireAdmin from '../guards/RequireAdmin';
@@ -28,8 +29,16 @@ import RequireAuth from '../guards/RequireAuth';
 import RequireGuest from '../guards/RequireGuest';
 import PageTransition from '../PageTransition';
 import PaymentMethods from '../payments/PaymentMethods';
+import { useAuth } from '../../context/AuthContext';
 
 export default function AppRoutes() {
+    const { user, loading } = useAuth();
+    const location = useLocation();
+
+    if (!loading && user?.roleSelectionRequired && location.pathname !== '/select-role') {
+        return <Navigate to="/select-role" state={{ from: location }} replace />;
+    }
+
     return (
         <PageTransition>
             <Routes>
@@ -38,74 +47,17 @@ export default function AppRoutes() {
                 <Route path="/showtimes/:id" element={<SeatSelection />} />
                 <Route path="/cinemas/:id" element={<Cinema />} />
 
-                <Route
-                    path="/login"
-                    element={
-                        <RequireGuest>
-                            <Login />
-                        </RequireGuest>
-                    }
-                />
-                <Route
-                    path="/register"
-                    element={
-                        <RequireGuest>
-                            <Register />
-                        </RequireGuest>
-                    }
-                />
-                <Route
-                    path="/verify-email"
-                    element={
-                        <RequireGuest>
-                            <VerifyEmail />
-                        </RequireGuest>
-                    }
-                />
-                <Route
-                    path="/reset-password"
-                    element={
-                        <RequireGuest>
-                            <ResetPassword />
-                        </RequireGuest>
-                    }
-                />
+                <Route path="/login" element={<RequireGuest><Login /></RequireGuest>} />
+                <Route path="/register" element={<RequireGuest><Register /></RequireGuest>} />
+                <Route path="/verify-email" element={<RequireGuest><VerifyEmail /></RequireGuest>} />
+                <Route path="/reset-password" element={<RequireGuest><ResetPassword /></RequireGuest>} />
+                <Route path="/select-role" element={<RequireAuth allowRoleSelection><RoleSelectionPage /></RequireAuth>} />
 
-                <Route
-                    path="/checkout/:orderId"
-                    element={
-                        <RequireAuth>
-                            <Checkout />
-                        </RequireAuth>
-                    }
-                />
+                <Route path="/checkout/:orderId" element={<RequireAuth><Checkout /></RequireAuth>} />
+                <Route path="/confirmation/:orderId" element={<RequireAuth><Confirmation /></RequireAuth>} />
+                <Route path="/gift-cards" element={<RequireAuth><BuyGiftCard /></RequireAuth>} />
 
-                <Route
-                    path="/confirmation/:orderId"
-                    element={
-                        <RequireAuth>
-                            <Confirmation />
-                        </RequireAuth>
-                    }
-                />
-
-                <Route
-                    path="/gift-cards"
-                    element={
-                        <RequireAuth>
-                            <BuyGiftCard />
-                        </RequireAuth>
-                    }
-                />
-
-                <Route
-                    path="/account"
-                    element={
-                        <RequireAuth>
-                            <Account />
-                        </RequireAuth>
-                    }
-                >
+                <Route path="/account" element={<RequireAuth><Account /></RequireAuth>}>
                     <Route index element={<Navigate to="profile" replace />} />
                     <Route path="profile" element={<ProfileSettings />} />
                     <Route path="security" element={<SecuritySettings />} />
@@ -120,16 +72,7 @@ export default function AppRoutes() {
                 </Route>
 
                 <Route path="/contact" element={<ContactPage />} />
-
-                <Route
-                    path="/admin/:moduleName?"
-                    element={
-                        <RequireAdmin>
-                            <AdminDashboard />
-                        </RequireAdmin>
-                    }
-                />
-
+                <Route path="/admin/:moduleName?" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
                 <Route path="*" element={<NotFound />} />
             </Routes>
         </PageTransition>

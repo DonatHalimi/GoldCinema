@@ -1,6 +1,11 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
+function getRoleName(value) {
+    if (!value) return '';
+    return String(typeof value === 'object' ? value.name : value).toLowerCase();
+}
+
 export default function RequireAdmin({ children }) {
     const { user, loading } = useAuth();
     const location = useLocation();
@@ -12,13 +17,10 @@ export default function RequireAdmin({ children }) {
             </div>
         );
     }
-
     if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
+    if (user.roleSelectionRequired) return <Navigate to="/select-role" state={{ from: location }} replace />;
 
-    const roleName = typeof user.role === 'object' ? user.role?.name : user.role;
-    const isAdmin = roleName?.toLowerCase() === 'admin';
-
-    if (!isAdmin) return <Navigate to="/" replace />;
-
+    const activeName = getRoleName(user.activeRole || user.role);
+    if (!['admin', 'super_admin', 'cinema_manager'].includes(activeName)) return <Navigate to="/" replace />;
     return children;
 }

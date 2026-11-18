@@ -1,5 +1,6 @@
 const express = require('express');
 const { requireAuth } = require('../middleware/auth');
+const { requirePermission } = require('../middleware/roleAccess');
 const {
     getAllShifts,
     getShiftById,
@@ -13,13 +14,12 @@ const {
 const router = express.Router();
 
 router.use(requireAuth);
-
-router.get('/me', getMyShifts);
-router.get('/', getAllShifts);
-router.get('/:id', getShiftById);
-router.post('/', createShift);
-router.put('/:id', updateShift);
-router.patch('/:id/status', updateShiftStatus);
-router.delete('/:id', deleteShift);
+router.get('/me', requirePermission('shifts:self'), getMyShifts);
+router.get('/', requirePermission('shifts:read'), getAllShifts);
+router.get('/:id', requirePermission('shifts:read'), getShiftById);
+router.post('/', requirePermission('shifts:manage'), createShift);
+router.put('/:id', requirePermission('shifts:manage'), updateShift);
+router.patch('/:id/status', requirePermission('shifts:manage'), updateShiftStatus);
+router.delete('/:id', requirePermission('shifts:manage'), deleteShift);
 
 module.exports = router;

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Modal from './Modal';
 import { Save } from 'lucide-react';
+import MarqueeSelect from '../MarqueeSelect';
 
 const getNestedValue = (obj, path) => {
     return path.split('.').reduce((value, key) => value?.[key], obj);
@@ -39,20 +40,40 @@ export default function CrudModal({
         if (!isOpen) return;
 
         if (initialData) {
-            setFormData({
+            const initialFormData = {
                 ...initialData,
                 releaseDate: initialData.releaseDate
-                    ? new Date(initialData.releaseDate)
-                        .toISOString()
-                        .split('T')[0]
+                    ? new Date(initialData.releaseDate).toISOString().split('T')[0]
                     : '',
                 genres: Array.isArray(initialData.genres)
                     ? initialData.genres.join(', ')
                     : initialData.genres || '',
+            };
+
+            fields.filter((field) => field.type === 'multiselect').forEach((field) => {
+                const initialValue = getNestedValue(initialData, field.name);
+
+                initialFormData[field.name] = Array.isArray(initialValue)
+                    ? initialValue.map((item) =>
+                        typeof item === 'object' ? item.name : item
+                    ).filter(Boolean)
+                    : [];
             });
 
+            fields
+                .filter((field) =>
+                    field.defaultValue !== undefined &&
+                    getNestedValue(initialData, field.name) === undefined
+                )
+                .forEach((field) => {
+                    initialFormData[field.name] = field.defaultValue;
+                });
+
+            setFormData(initialFormData);
             return;
         }
+
+        const initialFormData = {};
 
         fields.forEach((field) => {
             let defaultValue = field.defaultValue;
@@ -60,27 +81,26 @@ export default function CrudModal({
             if (defaultValue === undefined) {
                 if (field.type === 'checkbox') {
                     defaultValue = false;
-                } else if (field.type === 'select') {
-                    defaultValue = field.options?.[0] ?? '';
                 } else {
                     defaultValue = '';
                 }
             }
 
-            setFormData((previous) =>
-                field.name.includes('.')
-                    ? setNestedValue(previous, field.name, defaultValue)
-                    : {
-                        ...previous,
-                        [field.name]: defaultValue,
-                    }
-            );
+            if (field.name.includes('.')) {
+                Object.assign(
+                    initialFormData,
+                    setNestedValue(initialFormData, field.name, defaultValue)
+                );
+            } else {
+                initialFormData[field.name] = defaultValue;
+            }
         });
+
+        setFormData(initialFormData);
     }, [initialData, fields, isOpen]);
 
     const handleChange = (event) => {
         const { name, value, type, checked } = event.target;
-
         const finalValue = type === 'checkbox' ? checked : value;
 
         setFormData((previous) =>
@@ -89,6 +109,17 @@ export default function CrudModal({
                 : {
                     ...previous,
                     [name]: finalValue,
+                }
+        );
+    };
+
+    const handleFieldChange = (name, value) => {
+        setFormData((previous) =>
+            name.includes('.')
+                ? setNestedValue(previous, name, value)
+                : {
+                    ...previous,
+                    [name]: value,
                 }
         );
     };
@@ -137,11 +168,11 @@ export default function CrudModal({
                     value={fieldValue ?? ''}
                     onChange={handleChange}
                     required={field.required}
+                    disabled={field.disabled}
                     className={commonClassName}
                 >
                     {field.options?.map((option) => {
                         const isObject = typeof option === 'object' && option !== null;
-
                         const value = isObject ? option.value : option;
                         const label = isObject ? option.label : option;
 
@@ -152,6 +183,34 @@ export default function CrudModal({
                         );
                     })}
                 </select>
+            );
+        }
+
+        if (field.type === 'marquee-select') {
+            return (
+                <MarqueeSelect
+                    id={`crud-${field.name}`}
+                    value={fieldValue ?? ''}
+                    options={field.options || []}
+                    onChange={(value) => handleFieldChange(field.name, value)}
+                    disabled={field.disabled}
+                    maxWidth="max-w-full"
+                />
+            );
+        }
+
+        if (field.type === 'multiselect') {
+            return (
+                <MarqueeSelect
+                    id={`crud-${field.name}`}
+                    value={Array.isArray(fieldValue) ? fieldValue : []}
+                    options={field.options || []}
+                    onChange={(value) => handleFieldChange(field.name, value)}
+                    multiple
+                    selectAll
+                    disabled={field.disabled}
+                    maxWidth="max-w-full"
+                />
             );
         }
 
@@ -184,6 +243,7 @@ export default function CrudModal({
                 min={field.min}
                 max={field.max}
                 step={field.step}
+                disabled={field.disabled}
                 className={commonClassName}
             />
         );
@@ -198,7 +258,7 @@ export default function CrudModal({
         >
             <form onSubmit={handleSubmit} className="mt-5 max-h-[75vh] overflow-y-auto pr-2">
                 <div className="grid grid-cols-2 gap-x-4 gap-y-4">
-                    {fields.map((field) => {
+                    {fields.filter((field) => !field.visibleWhen || field.visibleWhen(formData)).map((field) => {
                         const span = field.span === 1 ? 'col-span-1' : 'col-span-2';
 
                         return (

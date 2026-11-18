@@ -12,11 +12,22 @@ const refreshTokenSchema = new Schema(
         deviceLabel: { type: String, default: null },
         loginMethod: {
             type: String,
-            enum: ['password', 'google', 'facebook', 'passkey', 'mfa', 'register', null],
+            enum: [
+                'password',
+                'google',
+                'facebook',
+                'github',
+                'passkey',
+                'mfa',
+                'register',
+                null,
+            ],
             default: null,
         },
         lastActiveAt: { type: Date, default: Date.now },
         revokedAt: { type: Date, default: null },
+        activeRole: { type: Schema.Types.ObjectId, ref: 'Role', default: null },
+        roleSelectionComplete: { type: Boolean, default: false },
     },
     { _id: true }
 );
@@ -107,11 +118,35 @@ const twoFactorSchema = new Schema(
 
 const oauthIdentitySchema = new Schema(
     {
-        provider: { type: String, enum: ['github'], required: true },
-        providerUserId: { type: String, required: true },
-        login: { type: String, default: null },
-        email: { type: String, default: null },
-        linkedAt: { type: Date, default: Date.now },
+        provider: {
+            type: String,
+            enum: ['google', 'facebook', 'github'],
+            required: true,
+        },
+        providerUserId: {
+            type: String,
+            required: true,
+        },
+        login: {
+            type: String,
+            default: null,
+        },
+        email: {
+            type: String,
+            default: null,
+        },
+        name: {
+            type: String,
+            default: null,
+        },
+        avatar: {
+            type: String,
+            default: null,
+        },
+        linkedAt: {
+            type: Date,
+            default: Date.now,
+        },
     },
     { _id: false }
 );
@@ -127,16 +162,26 @@ const userSchema = new Schema(
             trim: true,
             index: true,
         },
+
         passwordHash: { type: String, default: null },
+
         authProviders: {
-            type: [{
-                type: String,
-                enum: ['password', 'google', 'facebook'],
-            }],
+            type: [
+                {
+                    type: String,
+                    enum: ['password', 'google', 'facebook', 'github'],
+                },
+            ],
             default: [],
         },
-        oauthIdentities: { type: [oauthIdentitySchema], default: [] },
+
+        oauthIdentities: {
+            type: [oauthIdentitySchema],
+            default: [],
+        },
+
         role: { type: Schema.Types.ObjectId, ref: 'Role' },
+        roles: { type: [{ type: Schema.Types.ObjectId, ref: 'Role' }], default: [] },
         avatar: { type: String, default: null },
 
         emailVerified: { type: Boolean, default: false },
@@ -163,6 +208,34 @@ const userSchema = new Schema(
         mfaLockUntil: { type: Date, default: null },
 
         twoFactor: { type: twoFactorSchema, default: () => ({}) },
+
+        socialAccountOtpHash: {
+            type: String,
+            default: null,
+            select: false,
+        },
+        socialAccountOtpExpiresAt: {
+            type: Date,
+            default: null,
+            select: false,
+        },
+        socialAccountOtpProvider: {
+            type: String,
+            enum: ['google', 'facebook', 'github', null],
+            default: null,
+            select: false,
+        },
+        socialAccountOtpMethod: {
+            type: String,
+            enum: ['email', 'sms', null],
+            default: null,
+            select: false,
+        },
+        socialAccountOtpSentAt: {
+            type: Date,
+            default: null,
+        },
+
         phoneNumber: { type: String, default: null },
         phoneVerified: { type: Boolean, default: false },
 
@@ -179,8 +252,16 @@ const userSchema = new Schema(
 );
 
 userSchema.index(
-    { 'oauthIdentities.provider': 1, 'oauthIdentities.providerUserId': 1 },
-    { unique: true, partialFilterExpression: { 'oauthIdentities.providerUserId': { $exists: true } } }
+    {
+        'oauthIdentities.provider': 1,
+        'oauthIdentities.providerUserId': 1,
+    },
+    {
+        unique: true,
+        partialFilterExpression: {
+            'oauthIdentities.providerUserId': { $exists: true },
+        },
+    }
 );
 
 userSchema.methods.toPublicJSON = function toPublicJSON() {

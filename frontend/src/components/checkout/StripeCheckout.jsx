@@ -195,6 +195,7 @@ function StripeForm({
   clientSecret,
   confirmPaymentFn,
   paymentLabel,
+  payError,          // ← NEW: accept it here
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -211,7 +212,6 @@ function StripeForm({
       onSuccess(data.order ?? data.giftCard);
     } catch (err) {
       onError(err.response?.data?.error || err.message || 'Payment confirmation failed.');
-    } finally {
       setSubmitting(false);
     }
   }
@@ -266,10 +266,10 @@ function StripeForm({
   const currency = order.currency || 'USD';
   const total = formatMoney(order.totalAmount, currency);
   const canPay = Boolean(selectedPaymentMethod) || paymentComplete;
-  const ready = Boolean(stripe && elements) && canPay && !submitting;
+  const disabled = !(stripe && elements) || !canPay;
 
   async function handleConfirmedPay() {
-    if (submitting) return;
+    if (submitting || disabled) return;
     onError('');
     setSubmitting(true);
 
@@ -295,7 +295,9 @@ function StripeForm({
         ariaLabel={`Confirm payment of ${total}. Drag right, or press Enter.`}
         price={total}
         onConfirm={handleConfirmedPay}
-        loading={!ready}
+        loading={submitting}
+        disabled={disabled}
+        error={Boolean(payError)}
       />
 
       <p className="flex items-center justify-center gap-1.5 text-xs text-marquee-muted">
@@ -314,6 +316,7 @@ export default function StripeCheckout({
   onPaymentMethodAdded,
   createIntentFn = createStripePaymentIntent,
   confirmPaymentFn = confirmStripePayment,
+  payError,
 }) {
   const [clientSecret, setClientSecret] = useState(null);
   const [loadError, setLoadError] = useState('');
@@ -412,6 +415,7 @@ export default function StripeCheckout({
           clientSecret={clientSecret}
           confirmPaymentFn={confirmPaymentFn}
           paymentLabel={paymentLabel}
+          payError={payError}
         />
       </Elements>
     </>

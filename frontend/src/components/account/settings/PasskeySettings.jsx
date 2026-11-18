@@ -173,7 +173,7 @@ export default function PasskeySettings() {
                         type="button"
                         onClick={handleRegisterPasskey}
                         disabled={registering || loading}
-                        className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-marquee-gold bg-marquee-panel2 px-3 py-2 text-xs font-semibold text-marquee-gold transition-all hover:border-marquee-gold/40 hover:bg-marquee-gold/10 hover:text-marquee-gold disabled:opacity-50"
+                        className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-marquee-line px-3 py-2 text-xs font-medium text-marquee-muted transition hover:border-marquee-gold/40 hover:text-marquee-gold disabled:opacity-50"
                     >
                         <Fingerprint className="h-3.5 w-3.5" />
                         {registering ? t('registeringPasskey') : t('addPasskey')}

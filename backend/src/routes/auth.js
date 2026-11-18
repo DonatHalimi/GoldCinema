@@ -1,84 +1,135 @@
 const express = require('express');
+const rateLimit = require('express-rate-limit');
+
 const { requireAuth } = require('../middleware/auth');
+const requireSameOrigin = require('../middleware/requireSameOrigin');
+
 const {
-  register,
-  login,
-  googleLogin,
-  facebookLogin,
-  forgotPassword,
-  resetPassword,
-  changePassword,
-  deleteAccount,
-  refreshToken,
-  verifyEmail,
-  resendVerification,
-  me,
-  updateProfile,
-  verifyLoginMfa,
-  setupTotp,
-  verifyTotpSetup,
-  enableEmail2fa,
-  verifyEmail2faSetup,
-  disable2fa,
-  disable2faMethod,
-  resendLoginMfaCode,
-  updateLoginAlerts,
-  getTrustedDevices,
-  revokeTrustedDevice,
-  getSecurityActivity,
-  generateBackupCodesRoute,
-  exportSecurityLogs,
-  getSessions,
-  revokeSession,
-  revokeAllOtherSessions,
-  logoutAllDevices,
-  logout,
-  enableSms2fa,
-  verifySms2faSetup,
-  sendEmail2faDisableCode,
-  sendSms2faDisableCode,
+    register,
+    login,
+    forgotPassword,
+    resetPassword,
+    changePassword,
+    setPassword,
+    deleteAccount,
+    refreshToken,
+    verifyEmail,
+    resendVerification,
+    me,
+    updateProfile,
+    verifyLoginMfa,
+    setupTotp,
+    verifyTotpSetup,
+    enableEmail2fa,
+    verifyEmail2faSetup,
+    disable2fa,
+    disable2faMethod,
+    resendLoginMfaCode,
+    updateLoginAlerts,
+    getTrustedDevices,
+    revokeTrustedDevice,
+    getSecurityActivity,
+    generateBackupCodesRoute,
+    exportSecurityLogs,
+    getSessions,
+    revokeSession,
+    revokeAllOtherSessions,
+    logoutAllDevices,
+    logout,
+    enableSms2fa,
+    verifySms2faSetup,
+    sendEmail2faDisableCode,
+    sendSms2faDisableCode,
 } = require('../controllers/auth');
+
 const {
-  validateBody,
-  validateQuery,
-  auth: {
-    registerSchema,
-    loginSchema,
-    googleLoginSchema,
-    facebookLoginSchema,
-    verifyEmailQuerySchema,
-    forgotPasswordSchema,
-    resetPasswordSchema,
-    changePasswordSchema,
-    deleteAccountSchema,
-  },
+    googleLogin,
+    facebookLogin,
+    getSocialAccounts,
+    linkSocialAccount,
+    sendUnlinkVerificationCode,
+    unlinkSocialAccount,
+} = require('../controllers/socialAccounts');
+
+const {
+    validateBody,
+    validateQuery,
+    auth: {
+        registerSchema,
+        loginSchema,
+        googleLoginSchema,
+        facebookLoginSchema,
+        verifyEmailQuerySchema,
+        forgotPasswordSchema,
+        resetPasswordSchema,
+        changePasswordSchema,
+        setPasswordSchema,
+        deleteAccountSchema,
+    },
 } = require('../validations');
+
 const {
-  sixDigitCodeSchema,
-  disable2faSchema,
-  verifyLoginMfaSchema,
-  resendLoginMfaSchema,
-  loginAlertsSchema,
-  disable2faMethodSchema,
-  smsPhoneSchema,
-  verifySms2faSchema,
+    sixDigitCodeSchema,
+    disable2faSchema,
+    verifyLoginMfaSchema,
+    resendLoginMfaSchema,
+    loginAlertsSchema,
+    disable2faMethodSchema,
+    smsPhoneSchema,
+    verifySms2faSchema,
 } = require('../validations/auth');
-const { githubStart, githubCallback } = require('../controllers/githubAuth');
+
+const {
+    githubStart,
+    githubLinkStart,
+    githubUnlinkStart,
+    githubCallbackAuth,
+    githubCallback,
+} = require('../controllers/githubAuth');
+const {
+    googleLinkStart,
+    googleUnlinkStart,
+    googleCallbackAuth,
+    googleCallback,
+} = require('../controllers/googleAuth');
 
 const router = express.Router();
+
+const socialAccountLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+        error: 'Too many social-account security requests. Please try again later.',
+    },
+});
 
 // Registration & Login
 router.post('/register', validateBody(registerSchema), register);
 router.post('/login', validateBody(loginSchema), login);
 router.post('/google', validateBody(googleLoginSchema), googleLogin);
 router.post('/facebook', validateBody(facebookLoginSchema), facebookLogin);
+
+// GitHub OAuth
 router.get('/github', githubStart);
-router.get('/github/callback', githubCallback);
+
+router.get('/github/link', requireSameOrigin, requireAuth, socialAccountLimiter, githubLinkStart);
+router.get('/connected-accounts/github/link', requireSameOrigin, requireAuth, socialAccountLimiter, githubLinkStart);
+router.get('/github/unlink', requireSameOrigin, requireAuth, socialAccountLimiter, githubUnlinkStart);
+router.get('/connected-accounts/github/unlink', requireSameOrigin, requireAuth, socialAccountLimiter, githubUnlinkStart);
+router.get('/github/callback', githubCallbackAuth, githubCallback);
+
+// Google OAuth
+router.get('/google/callback', googleCallbackAuth, googleCallback);
+router.get('/connected-accounts/google/link', requireSameOrigin, requireAuth, socialAccountLimiter, googleLinkStart);
+router.get('/connected-accounts/google/unlink', requireSameOrigin, requireAuth, socialAccountLimiter, googleUnlinkStart);
 
 // Password
 router.post('/forgot-password', validateBody(forgotPasswordSchema), forgotPassword);
 router.post('/reset-password', validateBody(resetPasswordSchema), resetPassword);
 router.put('/change-password', requireAuth, validateBody(changePasswordSchema), changePassword);
+router.post('/set-password', requireAuth, requireSameOrigin, socialAccountLimiter, validateBody(setPasswordSchema), setPassword);
 
 // Account
 router.delete('/account', requireAuth, validateBody(deleteAccountSchema), deleteAccount);
@@ -91,6 +142,17 @@ router.post('/resend-verification', requireAuth, resendVerification);
 // Profile
 router.get('/me', requireAuth, me);
 router.put('/profile', requireAuth, updateProfile);
+
+// Social Account Management
+router.get('/social/accounts', requireAuth, getSocialAccounts);
+router.get('/connected-accounts', requireAuth, getSocialAccounts);
+
+router.post('/social/:provider/link', requireAuth, requireSameOrigin, socialAccountLimiter, linkSocialAccount);
+router.post('/connected-accounts/:provider/link', requireAuth, requireSameOrigin, socialAccountLimiter, linkSocialAccount);
+router.post('/social/:provider/unlink-code', requireAuth, requireSameOrigin, socialAccountLimiter, sendUnlinkVerificationCode);
+router.post('/connected-accounts/:provider/unlink-code', requireAuth, requireSameOrigin, socialAccountLimiter, sendUnlinkVerificationCode);
+router.post('/social/:provider/unlink', requireAuth, requireSameOrigin, socialAccountLimiter, unlinkSocialAccount);
+router.post('/connected-accounts/:provider/unlink', requireAuth, requireSameOrigin, socialAccountLimiter, unlinkSocialAccount);
 
 // Two-Factor Authentication
 router.post('/2fa/verify-login', validateBody(verifyLoginMfaSchema), verifyLoginMfa);
@@ -106,7 +168,6 @@ router.post('/2fa/sms/verify', requireAuth, validateBody(verifySms2faSchema), ve
 
 router.post('/2fa/disable', requireAuth, validateBody(disable2faSchema), disable2fa);
 router.post('/2fa/email/disable-code', requireAuth, sendEmail2faDisableCode);
-
 router.post('/2fa/sms/disable-code', requireAuth, sendSms2faDisableCode);
 router.post('/2fa/disable-method', requireAuth, validateBody(disable2faMethodSchema), disable2faMethod);
 
@@ -128,7 +189,7 @@ router.delete('/sessions/:id', requireAuth, revokeSession);
 router.delete('/sessions/revoke-all', requireAuth, revokeAllOtherSessions);
 
 // Logout
-router.post('/logout-all', requireAuth, logoutAllDevices)
 router.post('/logout', logout);
+router.post('/logout-all', requireAuth, logoutAllDevices);
 
 module.exports = router;

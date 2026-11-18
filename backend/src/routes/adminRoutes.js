@@ -1,13 +1,23 @@
 const express = require('express');
 const router = express.Router();
+const { getAll, getOne, createOne, updateOne, deleteOne, deleteMany } = require('../controllers/adminFactory');
+const { getUsers, getUser, createUser, updateUser, deleteUser, deleteUsersBulk } = require('../controllers/adminUsers');
+const { requirePermission } = require('../middleware/roleAccess');
+const { requireAuth, requireAdmin } = require('../middleware/auth');
 const {
-    getAll,
-    getOne,
-    createOne,
-    updateOne,
-    deleteOne,
-    deleteMany,
-} = require('../controllers/adminFactory');
+    getAllStaff,
+    getStaffById,
+    createStaff,
+    updateStaff,
+    deleteStaff,
+} = require('../controllers/staff');
+const {
+    getAllShifts,
+    getShiftById,
+    createShift,
+    updateShift,
+    deleteShift,
+} = require('../controllers/shift');
 
 const User = require('../models/user');
 const Role = require('../models/role');
@@ -22,27 +32,43 @@ const Order = require('../models/order');
 const Contact = require('../models/contact');
 const Review = require('../models');
 const TranslationKey = require('../models/translationKey');
-const Staff = require('../models/staff');
-const Shift = require('../models/shift');
 const ScreenConfiguration = require('../models/screenConfiguration');
 const Equipment = require('../models/equipment');
 const MaintenanceLog = require('../models/maintenanceLog');
 const MoviePerformance = require('../models/moviePerformance');
 const CustomerAnalytics = require('../models/customerAnalytics');
 
+router.use(requireAuth);
+
 const registerAdminResource = (path, Model, populateOpts = '') => {
-    router.get(`/${path}`, getAll(Model, populateOpts));
-    router.get(`/${path}/:id`, getOne(Model, populateOpts));
-    router.post(`/${path}`, createOne(Model));
-    router.put(`/${path}/:id`, updateOne(Model));
-    router.delete(`/${path}/bulk-delete`, deleteMany(Model));
-    router.delete(`/${path}/:id`, deleteOne(Model));
+    const adminAccess = requirePermission('admin:access');
+    router.get(`/${path}`, adminAccess, getAll(Model, populateOpts));
+    router.get(`/${path}/:id`, adminAccess, getOne(Model, populateOpts));
+    router.post(`/${path}`, adminAccess, createOne(Model));
+    router.put(`/${path}/:id`, adminAccess, updateOne(Model));
+    router.delete(`/${path}/bulk-delete`, adminAccess, deleteMany(Model));
+    router.delete(`/${path}/:id`, adminAccess, deleteOne(Model));
 };
 
-registerAdminResource('users', User, {
-    path: 'role',
-    select: 'name',
-});
+router.get('/users', requirePermission('users:read'), getUsers);
+router.get('/users/:id', requirePermission('users:read'), getUser);
+router.post('/users', requireAdmin, createUser);
+router.put('/users/:id', requireAdmin, updateUser);
+router.delete('/users/bulk-delete', requireAdmin, deleteUsersBulk);
+router.delete('/users/:id', requireAdmin, deleteUser);
+
+router.get('/staff', requirePermission('staff:read'), getAllStaff);
+router.get('/staff/:id', requirePermission('staff:read'), getStaffById);
+router.post('/staff', requirePermission('staff:manage'), createStaff);
+router.put('/staff/:id', requirePermission('staff:manage'), updateStaff);
+router.delete('/staff/:id', requirePermission('staff:manage'), deleteStaff);
+
+router.get('/shifts', requirePermission('shifts:read'), getAllShifts);
+router.get('/shifts/:id', requirePermission('shifts:read'), getShiftById);
+router.post('/shifts', requirePermission('shifts:manage'), createShift);
+router.put('/shifts/:id', requirePermission('shifts:manage'), updateShift);
+router.delete('/shifts/:id', requirePermission('shifts:manage'), deleteShift);
+
 registerAdminResource('roles', Role);
 registerAdminResource('movies', Movie);
 registerAdminResource('cinemas', Cinema);
@@ -60,8 +86,6 @@ registerAdminResource('orders', Order, [
 registerAdminResource('contacts', Contact, 'user');
 registerAdminResource('reviews', Review, 'user movie');
 registerAdminResource('translations', TranslationKey);
-registerAdminResource('staff', Staff, 'user cinema');
-registerAdminResource('shifts', Shift, 'staff cinema');
 registerAdminResource('screen-configurations', ScreenConfiguration, 'screen');
 registerAdminResource('equipment', Equipment, 'cinema');
 registerAdminResource('maintenance-logs', MaintenanceLog, 'equipment');

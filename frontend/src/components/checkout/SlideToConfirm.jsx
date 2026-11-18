@@ -12,7 +12,15 @@ function isTouchDevice() {
     return window.matchMedia?.('(hover: none)').matches ?? false;
 }
 
-export default function SlideToConfirm({ label, ariaLabel, onConfirm, loading = false, price }) {
+export default function SlideToConfirm({
+    label,
+    ariaLabel,
+    onConfirm,
+    loading = false,
+    price,
+    error = false,
+    disabled = false,
+}) {
     const trackRef = useRef(null);
     const firedRef = useRef(false);
     const [max, setMax] = useState(0);
@@ -22,6 +30,7 @@ export default function SlideToConfirm({ label, ariaLabel, onConfirm, loading = 
     const reduceMotion = useReducedMotion();
 
     const threshold = isTouch ? DEFAULT_THRESHOLD : DESKTOP_THRESHOLD;
+    const locked = loading || firedRef.current || disabled;
 
     const fillWidth = useTransform(x, (v) => Math.max(HANDLE_SIZE + PADDING * 2, v + HANDLE_SIZE + PADDING * 2));
     const labelOpacity = useTransform(x, [0, 70], [1, 0]);
@@ -36,11 +45,11 @@ export default function SlideToConfirm({ label, ariaLabel, onConfirm, loading = 
         return 1 + p * 0.06;
     });
 
-    const morphLabel = useTransform(() => {
-        if (phase === 'loading') return 'Processing…';
-        if (phase === 'confirm') return price ? `Release to confirm ${price}` : 'Release to confirm';
-        return label;
-    });
+    const visibleLabel = phase === 'loading'
+        ? 'Processing…' : phase === 'confirm' ? price
+            ? `Release to confirm ${price}`
+            : 'Release to confirm'
+            : label;
 
     useEffect(() => {
         setIsTouch(isTouchDevice());
@@ -50,34 +59,35 @@ export default function SlideToConfirm({ label, ariaLabel, onConfirm, loading = 
         const node = trackRef.current;
         if (!node) return undefined;
 
-        const observer = new ResizeObserver(([entry]) => {
-            setMax(Math.max(0, entry.contentRect.width - HANDLE_SIZE - PADDING * 2));
-        });
+        const observer = new ResizeObserver(([entry]) => { setMax(Math.max(0, entry.contentRect.width - HANDLE_SIZE)); });
         observer.observe(node);
         return () => observer.disconnect();
     }, []);
 
     useEffect(() => {
-        if (loading) {
-            setPhase('loading');
-            return;
-        }
-        setPhase('idle');
+        if (!error) return;
         firedRef.current = false;
-        animate(x, 0, { duration: reduceMotion ? 0 : 0.25, ease: [0.22, 1, 0.36, 1] });
-    }, [loading, reduceMotion, x]);
+        setPhase('idle');
+        animate(x, 0, {
+            duration: reduceMotion ? 0 : 0.25,
+            ease: [0.22, 1, 0.36, 1],
+        });
+    }, [error, reduceMotion, x]);
+
+    useEffect(() => {
+        if (!firedRef.current || max === 0) return;
+        animate(x, max, { duration: 0 });
+    }, [max, x]);
 
     function buzz(pattern = 12) {
         if (!isTouch) return;
         try {
             navigator.vibrate?.(pattern);
-        } catch {
-            /* noop */
-        }
+        } catch { }
     }
 
     function fire() {
-        if (firedRef.current || loading) return;
+        if (firedRef.current || loading || disabled) return;
         firedRef.current = true;
         setPhase('loading');
         buzz([10, 20, 14]);
@@ -85,7 +95,7 @@ export default function SlideToConfirm({ label, ariaLabel, onConfirm, loading = 
     }
 
     function handleDrag() {
-        if (max === 0 || loading) return;
+        if (max === 0 || loading || disabled || firedRef.current) return;
         const ratio = x.get() / max;
         const next = ratio >= threshold ? 'confirm' : 'idle';
         if (next !== phase && phase !== 'loading') {
@@ -95,8 +105,13 @@ export default function SlideToConfirm({ label, ariaLabel, onConfirm, loading = 
     }
 
     function handleDragEnd() {
+        if (firedRef.current) return;
+
         if (max > 0 && x.get() >= max * threshold) {
-            animate(x, max, { duration: reduceMotion ? 0 : 0.18, ease: [0.22, 1, 0.36, 1] });
+            animate(x, max, {
+                duration: reduceMotion ? 0 : 0.18,
+                ease: [0.22, 1, 0.36, 1],
+            });
             fire();
         } else {
             setPhase('idle');
@@ -105,8 +120,10 @@ export default function SlideToConfirm({ label, ariaLabel, onConfirm, loading = 
     }
 
     function handleKeyDown(e) {
+        if (loading || disabled || firedRef.current) return;
         if (['Enter', ' ', 'ArrowRight'].includes(e.key)) {
             e.preventDefault();
+            animate(x, max, { duration: reduceMotion ? 0 : 0.18 });
             fire();
         }
     }
@@ -114,10 +131,7 @@ export default function SlideToConfirm({ label, ariaLabel, onConfirm, loading = 
     const disableMotion = reduceMotion;
 
     return (
-        <div
-            ref={trackRef}
-            className="relative h-14 select-none overflow-hidden rounded-full border border-marquee-gold/40 bg-marquee-panel2 p-1 touch-pan-y"
-        >
+        <div ref={trackRef} className="relative h-14 select-none overflow-hidden rounded-full border border-marquee-gold/40 bg-marquee-panel2 p-1 touch-pan-y">
             <motion.div
                 aria-hidden="true"
                 style={{ width: fillWidth, opacity: disableMotion ? 1 : fillOpacity }}
@@ -131,11 +145,11 @@ export default function SlideToConfirm({ label, ariaLabel, onConfirm, loading = 
                     className="pointer-events-none absolute inset-y-0 left-0 overflow-hidden rounded-full"
                 >
                     <div
-                        className="absolute inset-y-0 right-0 w-16"
                         style={{
                             background: 'linear-gradient(90deg, transparent 0%, rgba(198,161,91,0.9) 100%)',
                             filter: 'blur(6px)',
                         }}
+                        className="absolute inset-y-0 right-0 w-16"
                     />
                 </motion.div>
             )}
@@ -145,7 +159,7 @@ export default function SlideToConfirm({ label, ariaLabel, onConfirm, loading = 
                 style={{ opacity: labelOpacity }}
                 className="pointer-events-none absolute inset-0 flex items-center justify-center pl-12 text-sm font-semibold text-marquee-muted"
             >
-                {morphLabel}
+                {visibleLabel}
             </motion.span>
 
             {!disableMotion && (
@@ -167,7 +181,7 @@ export default function SlideToConfirm({ label, ariaLabel, onConfirm, loading = 
             <motion.button
                 type="button"
                 aria-label={ariaLabel}
-                drag={loading ? false : 'x'}
+                drag={locked ? false : 'x'}
                 dragConstraints={{ left: 0, right: max }}
                 dragElastic={0}
                 dragMomentum={false}
@@ -175,14 +189,18 @@ export default function SlideToConfirm({ label, ariaLabel, onConfirm, loading = 
                 onDrag={handleDrag}
                 onDragEnd={handleDragEnd}
                 onKeyDown={handleKeyDown}
-                onClick={(e) => { if (e.detail === 0) fire(); }}
+                onClick={(e) => {
+                    if (e.detail === 0) {
+                        animate(x, max, { duration: reduceMotion ? 0 : 0.18 });
+                        fire();
+                    }
+                }}
                 onContextMenu={(e) => e.preventDefault()}
                 className="relative z-10 flex h-12 w-12 cursor-grab touch-none items-center justify-center rounded-full bg-gradient-to-br from-marquee-goldBright to-marquee-gold text-marquee-bg shadow-lg shadow-marquee-gold/25 active:cursor-grabbing"
             >
                 {!disableMotion && !loading && (
                     <motion.span
                         aria-hidden="true"
-                        className="pointer-events-none absolute inset-0 rounded-full"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: [0.45, 0, 0.45] }}
                         transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
@@ -190,14 +208,12 @@ export default function SlideToConfirm({ label, ariaLabel, onConfirm, loading = 
                             background:
                                 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.45), transparent 62%)',
                         }}
+                        className="pointer-events-none absolute inset-0 rounded-full"
                     />
                 )}
 
                 {!disableMotion && !loading && (
-                    <motion.span
-                        aria-hidden="true"
-                        className="pointer-events-none absolute inset-0 overflow-hidden rounded-full"
-                    >
+                    <motion.span aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden rounded-full">
                         <motion.span
                             className="absolute -inset-y-2 -left-1/3 w-1/3 rotate-12 bg-white/45 blur-md"
                             animate={{ x: ['0%', '420%'] }}

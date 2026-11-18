@@ -15,10 +15,16 @@ const { authenticator } = require('@otplib/preset-default');
 const LoginAttempt = require('../models/loginAttempt');
 const qrcode = require('qrcode');
 const crypto = require('crypto');
-const { generateTokens, setCookies, issueVerificationEmail, googleClient, TRUSTED_DEVICE_MAX_AGE_MS, EMAIL_OTP_TTL_MS, MFA_MAX_ATTEMPTS, MAX_FAILED_ATTEMPTS, LOCK_STAGES_MIN, DAY_MS, } = require('../middleware/auth');
+const { generateTokens, setCookies, issueVerificationEmail, TRUSTED_DEVICE_MAX_AGE_MS, EMAIL_OTP_TTL_MS, MFA_MAX_ATTEMPTS, MAX_FAILED_ATTEMPTS, LOCK_STAGES_MIN, DAY_MS, } = require('../middleware/auth');
 const { createNotification } = require('../utils/notifications');
 const { issueEmailOtp, issueSmsOtp } = require('../utils/mfaOtp');
-const { findOrCreateSocialUser, completeSocialLogin } = require('../services/socialAuth');
+const {
+    findOrCreateSocialUser,
+    findOrCreateOAuthUser,
+    verifyGoogleCredential,
+    completeSocialLogin,
+    getLinkedProviders,
+} = require('../services/socialAuth');
 const { notifyLoginAlert } = require('../utils/loginAlerts');
 const { issueTrustedDevice } = require('../utils/deviceTrust');
 const { addSecurityEvent, buildSessionMeta } = require('../utils/securityEvents');
@@ -203,14 +209,8 @@ async function googleLogin(req, res, next) {
         const { credential } = req.body;
         if (!credential) return res.status(400).json({ error: 'Google credential is required.' });
 
-        const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: process.env.GOOGLE_CLIENT_ID });
-        const payload = ticket.getPayload();
-        const email = payload?.email?.toLowerCase();
-
-        if (!email || !payload?.email_verified) return res.status(400).json({ error: 'Google account could not be verified.' });
-
-        const name = payload.name || payload.given_name || email.split('@')[0];
-        const user = await findOrCreateSocialUser(email, name, 'google');
+        const identity = await verifyGoogleCredential(credential);
+        const user = await findOrCreateOAuthUser(identity, req);
         const result = await completeSocialLogin({ req, res, user, provider: 'Google' });
 
         if (result.mfaRequired) return res.json({ message: 'Two-factor authentication required.', ...result });
@@ -337,6 +337,36 @@ async function changePassword(req, res, next) {
         res.json({ message: 'Password updated successfully. Please log in again.' });
     } catch (err) {
         next(err);
+    }
+}
+
+async function setPassword(req, res, next) {
+    try {
+        const password = String(req.body?.password || '');
+        const user = await User.findById(req.user.id).select('+passwordHash');
+        if (!user) return res.status(404).json({ error: 'User not found.' });
+        if (hasPasswordAuthentication(user)) {
+            return res.status(409).json({ error: 'A password is already configured for this account.' });
+        }
+        if (getLinkedProviders(user).length < 1) {
+            return res.status(409).json({
+                error: 'Connect at least one social account before creating a password.',
+            });
+        }
+
+        user.passwordHash = await bcrypt.hash(password, 12);
+        user.authProviders = user.authProviders || [];
+        if (!user.authProviders.includes('password')) user.authProviders.push('password');
+        await addSecurityEvent(user, {
+            type: 'password_created',
+            title: 'Password Created',
+            description: `A password was added to this account. IP: ${req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'Unknown'}`,
+        });
+        await user.save();
+
+        return res.json({ message: 'Password created successfully.', hasPassword: true });
+    } catch (error) {
+        return next(error);
     }
 }
 
@@ -1570,6 +1600,7 @@ module.exports = {
     forgotPassword,
     resetPassword,
     changePassword,
+    setPassword,
     deleteAccount,
     googleLogin,
     facebookLogin,

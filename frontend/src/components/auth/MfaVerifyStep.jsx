@@ -80,7 +80,7 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
         setError('');
 
         try {
-            await verifyLoginMfa(
+            const result = await verifyLoginMfa(
                 mfaState.mfaToken,
                 cleanCode,
                 selectedMethod,
@@ -88,7 +88,7 @@ export default function MfaVerifyStep({ mfaState, from, onBack }) {
                 trustDevice
             );
 
-            navigate(from, { replace: true });
+            navigate(result?.roleSelectionRequired ? '/select-role' : from, { replace: true });
         } catch (err) {
             setError(
                 err.response?.data?.error ||

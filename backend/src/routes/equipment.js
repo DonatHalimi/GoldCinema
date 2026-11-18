@@ -1,5 +1,6 @@
 const express = require('express');
 const { requireAuth } = require('../middleware/auth');
+const { requirePermission } = require('../middleware/roleAccess');
 const {
     getAllEquipment,
     getEquipmentById,
@@ -8,11 +9,9 @@ const {
     updateEquipmentStatus,
     deleteEquipment,
 } = require('../controllers/equipment');
-
 const router = express.Router();
 
-router.use(requireAuth);
-
+router.use(requireAuth, requirePermission('equipment:manage'));
 router.get('/', getAllEquipment);
 router.get('/:id', getEquipmentById);
 router.post('/', createEquipment);

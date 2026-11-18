@@ -84,7 +84,7 @@ export default function NavLinks({ mobile = false, onNavigate }) {
                     </NavLink>
                 </motion.div>
             ) : (
-                <div className={`flex items-center gap-2.5 ${mobile ? 'mt-2' : 'pl-1'} overflow-visible`}>
+                <div className={`flex ${mobile ? 'mt-2 flex-col items-stretch gap-2' : 'items-center gap-2.5 pl-1'} overflow-visible`}>
                     <NotificationBell />
                     <UserDropdown />
                 </div>
@@ -96,7 +96,6 @@ export default function NavLinks({ mobile = false, onNavigate }) {
 function NavItem({ to, end, className, children, onClick }) {
     const [ripples, setRipples] = useState([]);
 
-    // Magnetic tilt
     const mx = useMotionValue(0);
     const my = useMotionValue(0);
     const sx = useSpring(mx, { stiffness: 250, damping: 22 });
@@ -142,17 +141,14 @@ function NavItem({ to, end, className, children, onClick }) {
                     transition={{ type: 'spring', stiffness: 480, damping: 26, mass: 0.6 }}
                     className="relative inline-flex flex-col items-center justify-center py-1 px-1.5 overflow-visible"
                 >
-                    {/* Label — inherits parent scale so text shrinks on press */}
                     <span className="relative z-10 inline-block">
                         {children}
                     </span>
 
-                    {/* Click-anchored glow burst (behind ripples) */}
                     {ripples.map((r) => (
                         <motion.span
                             key={`glow-${r.id}`}
                             aria-hidden="true"
-                            className="pointer-events-none absolute rounded-full"
                             style={{
                                 left: r.x,
                                 top: r.y,
@@ -163,41 +159,40 @@ function NavItem({ to, end, className, children, onClick }) {
                             initial={{ width: 0, height: 0, opacity: 0.7 }}
                             animate={{ width: 80, height: 80, opacity: 0 }}
                             transition={{ duration: 0.5, ease: 'easeOut' }}
+                            className="pointer-events-none absolute rounded-full"
                         />
                     ))}
 
-                    {/* Minimal double ripple from click point */}
                     {ripples.map((r) => (
                         <span
                             key={`ripple-${r.id}`}
                             aria-hidden="true"
-                            className="pointer-events-none absolute"
                             style={{ left: r.x, top: r.y, translate: '-50% -50%' }}
+                            className="pointer-events-none absolute"
                         >
                             <motion.span
-                                className="absolute rounded-full bg-marquee-gold/20"
                                 initial={{ width: 0, height: 0, opacity: 0.55 }}
                                 animate={{ width: 34, height: 34, opacity: 0 }}
                                 transition={{ duration: 0.45, ease: 'easeOut' }}
                                 style={{ translate: '-50% -50%' }}
+                                className="absolute rounded-full bg-marquee-gold/20"
                             />
                             <motion.span
-                                className="absolute rounded-full border border-marquee-gold/25"
                                 initial={{ width: 0, height: 0, opacity: 0.45 }}
                                 animate={{ width: 48, height: 48, opacity: 0 }}
                                 transition={{ duration: 0.6, ease: 'easeOut', delay: 0.05 }}
                                 style={{ translate: '-50% -50%' }}
+                                className="absolute rounded-full border border-marquee-gold/25"
                             />
                         </span>
                     ))}
 
-                    {/* Active indicator */}
                     {isActive && (
                         <>
                             <motion.span
                                 layoutId="active-nav-indicator"
-                                className="absolute -bottom-0.5 h-1 w-6 rounded-full bg-marquee-gold shadow-[0_0_12px_rgba(198,161,91,0.8),0_0_4px_rgba(198,161,91,1)]"
                                 transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+                                className="absolute -bottom-0.5 h-1 w-6 rounded-full bg-marquee-gold shadow-[0_0_12px_rgba(198,161,91,0.8),0_0_4px_rgba(198,161,91,1)]"
                             />
                             <motion.span
                                 aria-hidden="true"

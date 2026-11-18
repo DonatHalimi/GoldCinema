@@ -71,10 +71,27 @@ function recordAdminMutation({ req, action, resourceType, resourceId, before, af
     }).catch((err) => console.error('[audit] Failed to persist admin mutation log:', err.message));
 }
 
+function handleDuplicateKey(error, res) {
+    if (error?.code === 11000) {
+        const field = Object.keys(error.keyPattern || {})[0] || '_id';
+        return res.status(409).json({
+            success: false,
+            error: `A resource with that ${field} already exists.`,
+            field,
+            value: error.keyValue?.[field],
+        });
+    }
+    return null;
+}
+
 function createOne(Model) {
     return async function createOneResource(req, res, next) {
         try {
-            const doc = await Model.create(req.body);
+            const payload = { ...req.body };
+            delete payload._id;
+
+            const doc = await Model.create(payload);
+
             recordAdminMutation({
                 req,
                 action: `${Model.modelName}.created`,
@@ -82,8 +99,11 @@ function createOne(Model) {
                 resourceId: doc._id,
                 after: doc.toObject(),
             });
+
             res.status(201).json({ success: true, data: doc });
         } catch (error) {
+            const handled = handleDuplicateKey(error, res);
+            if (handled) return handled;
             next(error);
         }
     };
@@ -95,7 +115,10 @@ function updateOne(Model) {
             const before = await Model.findById(req.params.id).lean();
             if (!before) return res.status(404).json({ success: false, message: 'Resource not found' });
 
-            const doc = await Model.findByIdAndUpdate(req.params.id, req.body, {
+            const payload = { ...req.body };
+            delete payload._id;
+
+            const doc = await Model.findByIdAndUpdate(req.params.id, payload, {
                 new: true,
                 runValidators: true,
             });
@@ -111,6 +134,8 @@ function updateOne(Model) {
 
             res.status(200).json({ success: true, data: doc });
         } catch (error) {
+            const handled = handleDuplicateKey(error, res);
+            if (handled) return handled;
             next(error);
         }
     };

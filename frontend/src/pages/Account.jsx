@@ -4,8 +4,9 @@ import AccountSidebar from '../components/account/AccountSidebar';
 export default function Account() {
     return (
         <div className="mx-auto flex max-w-6xl items-start gap-8 px-6 py-12">
-            <AccountSidebar />
-
+            <div className="sticky top-24 w-64 shrink-0">
+                <AccountSidebar />
+            </div>
             <main className="min-w-0 flex-1 rounded-xl border border-marquee-line bg-marquee-panel p-8">
                 <Outlet />
             </main>

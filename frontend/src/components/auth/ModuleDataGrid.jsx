@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { bulkDeleteItems, createItem, deleteItem, getItems, updateItem } from '../../api/admin';
+import { getRoleCatalog, updateUserRoleAssignments } from '../../api/multiRole';
 import useEscapeKey from '../../hooks/useEscKey';
 import CrudModal from '../ui/modals/CrudModal';
 import DeleteConfirmModal from '../ui/modals/DeleteConfirmModal';
@@ -26,6 +27,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
     const [search, setSearch] = useState('');
     const [searchInput, setSearchInput] = useState('');
     const [roleOptions, setRoleOptions] = useState([]);
+    const [cinemaOptions, setCinemaOptions] = useState([]);
     const [loadingRoles, setLoadingRoles] = useState(false);
 
     const [isFiltersOpen, setIsFiltersOpen] = useState(false);
@@ -46,20 +48,20 @@ export default function ModuleDataGrid({ moduleConfig }) {
             setLoadingRoles(true);
 
             try {
-                const res = await getItems('roles', 1, 1000);
-
-                const roles = res.data || [];
-
-                setRoleOptions(
-                    roles.map((role) => ({
-                        label: role.name,
-                        value: role._id,
-                    }))
-                );
+                const [roles, cinemasResponse] = await Promise.all([
+                    getRoleCatalog(),
+                    getItems('cinemas', 1, 1000),
+                ]);
+                setRoleOptions(roles.map((role) => ({
+                    label: role.name.replaceAll('_', ' '),
+                    value: role.name,
+                })));
+                setCinemaOptions((cinemasResponse.data || []).map((cinema) => ({
+                    label: cinema.location?.city ? `${cinema.name} - ${cinema.location.city}` : cinema.name,
+                    value: cinema._id,
+                })));
             } catch (err) {
-                toast.error(
-                    t('errors.fetchRoles', { message: err.response?.data?.message || err.message })
-                );
+                toast.error(t('errors.fetchRoles', { message: err.response?.data?.error || err.response?.data?.message || err.message }));
             } finally {
                 setLoadingRoles(false);
             }
@@ -108,7 +110,37 @@ export default function ModuleDataGrid({ moduleConfig }) {
     const handleModalSubmit = async (formData) => {
         try {
             if (selectedItem) {
-                await updateItem(moduleConfig.key, selectedItem._id, formData);
+                if (moduleConfig.key === 'users') {
+                    const roles = formData.roles;
+                    if (Array.isArray(roles) && roles.length === 0) {
+                        toast.error('At least one role must remain assigned.');
+                        return;
+                    }
+
+                    const changedUserFields = Object.fromEntries(
+                        ['name', 'email']
+                            .filter((key) => formData[key] !== undefined)
+                            .map((key) => [key, formData[key]])
+                            .filter(([key, value]) => {
+                                if (key === 'email') {
+                                    return String(value).trim().toLowerCase() !== String(selectedItem.email || '').toLowerCase();
+                                }
+                                return value !== selectedItem[key];
+                            })
+                    );
+
+                    if (Object.keys(changedUserFields).length) await updateItem(moduleConfig.key, selectedItem._id, changedUserFields);
+
+                    if (roles) {
+                        const result = await updateUserRoleAssignments(selectedItem._id, roles, formData.managerCinemaId);
+                        setData((current) => current.map((item) => item._id === selectedItem._id
+                            ? { ...item, roles: result.user.roles }
+                            : item));
+                    }
+                } else {
+                    await updateItem(moduleConfig.key, selectedItem._id, formData);
+                }
+
                 toast.success(t('success.updated', { label: moduleConfig.label }));
             } else {
                 await createItem(moduleConfig.key, formData);
@@ -120,6 +152,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
             await fetchModuleData();
         } catch (err) {
             toast.error(
+                err.response?.data?.error ||
                 err.response?.data?.message ||
                 err.message ||
                 t('errors.failedSave', { label: moduleConfig.label })
@@ -184,14 +217,24 @@ export default function ModuleDataGrid({ moduleConfig }) {
             ? [
                 { name: 'name', label: t('form.name'), type: 'text', required: true },
                 { name: 'email', label: t('form.email'), type: 'email', required: true },
-                {
-                    name: 'role',
-                    label: t('form.role'),
-                    type: 'select',
+                ...(selectedItem ? [{
+                    name: 'roles',
+                    label: 'Roles (select multiple)',
+                    type: 'multiselect',
                     options: roleOptions,
-                    required: true,
-                    disabled: loadingRoles,
-                },
+                    disabled: loadingRoles || !roleOptions.length,
+                }, {
+                    name: 'managerCinemaId',
+                    label: 'Cinema for cinema manager',
+                    type: 'marquee-select',
+                    options: [
+                        { label: 'Select a cinema', value: '' },
+                        ...cinemaOptions,
+                    ],
+                    defaultValue: '',
+                    visibleWhen: (formData) => formData.roles?.includes('cinema_manager'),
+                    disabled: loadingRoles || !cinemaOptions.length,
+                }] : []),
             ]
             : moduleConfig?.formFields || fields;
 
@@ -379,7 +422,12 @@ export default function ModuleDataGrid({ moduleConfig }) {
                                                     const value = getNestedValue(row, col.name);
                                                     return (
                                                         <td key={col.name} className="px-6 py-4 text-marquee-cream">
-                                                            {col.format ? col.format(value) : String(value ?? '-')}
+                                                            {moduleConfig.key === 'users' && col.name === 'role.name'
+                                                                ? ((row.roles?.length ? row.roles : [row.role])
+                                                                    .filter(Boolean)
+                                                                    .map((role) => role.name.replaceAll('_', ' '))
+                                                                    .join(', ') || '-')
+                                                                : col.format ? col.format(value) : String(value ?? '-')}
                                                         </td>
                                                     );
                                                 })}
