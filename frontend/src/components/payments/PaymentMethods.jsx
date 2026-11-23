@@ -1,9 +1,13 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { CreditCard, Plus, Star, Trash2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-import { deletePaymentMethod, getPaymentMethods, setDefaultPaymentMethod } from '../../api/payments';
+import {
+    useDeletePaymentMethodMutation,
+    useGetPaymentMethodsQuery,
+    useSetDefaultPaymentMethodMutation,
+} from '../../store/api/paymentsApiSlice';
 import CreditCard3D from '../CreditCard3D';
 import AddPaymentMethodModal from '../payments/AddPaymentMethodModal';
 import RemovePaymentMethodModal from '../payments/RemovePaymentMethodModal';
@@ -34,41 +38,23 @@ function CardSkeleton() {
 
 export default function PaymentMethods() {
     const { t } = useTranslation('account');
-    const [methods, setMethods] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+    const { data: methods = [], isLoading: loading, error: queryError, refetch } = useGetPaymentMethodsQuery();
+    const error = queryError?.data?.error || queryError?.message || '';
+    const [setDefaultMethod] = useSetDefaultPaymentMethodMutation();
+    const [deleteMethod] = useDeletePaymentMethodMutation();
 
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [removeTarget, setRemoveTarget] = useState(null);
     const [removing, setRemoving] = useState(false);
     const [busyId, setBusyId] = useState(null);
 
-    useEffect(() => {
-        loadMethods();
-    }, []);
-
-    async function loadMethods() {
-        setLoading(true);
-        setError('');
-        try {
-            const data = await getPaymentMethods();
-            setMethods(data.paymentMethods || []);
-        } catch (err) {
-            setError(err.message || 'Failed to load payment methods.');
-            toast.error('Failed to load payment methods.');
-        } finally {
-            setLoading(false);
-        }
-    }
-
     async function handleMakeDefault(id) {
         setBusyId(id);
         try {
-            await setDefaultPaymentMethod(id);
-            setMethods((prev) => prev.map((m) => ({ ...m, isDefault: m.id === id })));
+            await setDefaultMethod(id).unwrap();
             toast.success('Default payment method updated.');
         } catch (err) {
-            toast.error(err.message || 'Failed to update default payment method.');
+            toast.error(err.data?.error || err.message || 'Failed to update default payment method.');
         } finally {
             setBusyId(null);
         }
@@ -78,12 +64,11 @@ export default function PaymentMethods() {
         if (!removeTarget) return;
         setRemoving(true);
         try {
-            await deletePaymentMethod(removeTarget.id);
-            setMethods((prev) => prev.filter((m) => m.id !== removeTarget.id));
+            await deleteMethod(removeTarget.id).unwrap();
             toast.success('Payment method removed.');
             setRemoveTarget(null);
         } catch (err) {
-            toast.error(err.message || 'Failed to remove payment method.');
+            toast.error(err.data?.error || err.message || 'Failed to remove payment method.');
         } finally {
             setRemoving(false);
         }
@@ -195,7 +180,7 @@ export default function PaymentMethods() {
                     onClose={() => setIsAddOpen(false)}
                     onAdded={() => {
                         setIsAddOpen(false);
-                        loadMethods();
+                        refetch();
                     }}
                 />
 

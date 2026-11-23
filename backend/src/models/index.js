@@ -1,6 +1,9 @@
 module.exports = {
     User: require('./user'),
     Role: require('./role'),
+    Permission: require('./permission'),
+    RolePermission: require('./rolePermission'),
+    EmailTemplate: require('./emailTemplate'),
     Movie: require('./movie'),
     Cinema: require('./cinema'),
     Screen: require('./screen'),

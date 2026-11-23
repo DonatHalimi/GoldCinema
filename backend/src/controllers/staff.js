@@ -3,9 +3,7 @@ const Shift = require('../models/shift');
 const User = require('../models/user');
 
 function managerScope(req) {
-    return String(req.activeRole?.name || '').toLowerCase() === 'cinema_manager'
-        ? req.accessScope?.cinemaId
-        : null;
+    return req.accessScope?.cinemaId || null;
 }
 
 async function findStaffInScope(req, id) {

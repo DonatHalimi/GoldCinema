@@ -1,26 +1,19 @@
 import { Gift } from 'lucide-react';
 import { useState } from 'react';
-import { finalizeOrderWithGiftCard } from '../../api/giftCard';
+import { useFinalizeOrderWithGiftCardMutation } from '../../store/api/paymentsApiSlice';
 
 export default function GiftCardFullCoverage({ order, onSuccess }) {
-    const [submitting, setSubmitting] = useState(false);
+    const [finalizeOrder, { isLoading: submitting }] = useFinalizeOrderWithGiftCardMutation();
     const [error, setError] = useState('');
 
     async function handleConfirm() {
-        setSubmitting(true);
         setError('');
 
         try {
-            const data = await finalizeOrderWithGiftCard(order._id);
+            const data = await finalizeOrder(order._id).unwrap();
             onSuccess(data.order);
         } catch (err) {
-            setError(
-                err.response?.data?.error ||
-                err.message ||
-                'Failed to complete order.'
-            );
-        } finally {
-            setSubmitting(false);
+            setError(err.data?.error || err.message || 'Failed to complete order.');
         }
     }
 

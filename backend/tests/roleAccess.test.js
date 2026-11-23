@@ -3,18 +3,9 @@ const assert = require('node:assert/strict');
 const { requireAdmin } = require('../src/middleware/auth');
 const { hasPermission } = require('../src/middleware/roleAccess');
 
-test('admin roles can read the users table', () => {
-    assert.equal(hasPermission({ name: 'admin' }, 'users:read'), true);
-    assert.equal(hasPermission({ name: 'super_admin' }, 'users:read'), true);
-});
-
-test('cinema managers are limited to staff and shift permissions', () => {
-    assert.equal(hasPermission({ name: 'cinema_manager' }, 'staff:read'), true);
-    assert.equal(hasPermission({ name: 'cinema_manager' }, 'staff:manage'), true);
-    assert.equal(hasPermission({ name: 'cinema_manager' }, 'shifts:read'), true);
-    assert.equal(hasPermission({ name: 'cinema_manager' }, 'shifts:manage'), true);
-    assert.equal(hasPermission({ name: 'cinema_manager' }, 'admin:access'), false);
-    assert.equal(hasPermission({ name: 'cinema_manager' }, 'users:read'), false);
+test('database-backed permission helper has no name-only fallback', () => {
+    assert.equal(hasPermission({ name: 'admin' }, 'users:read'), false);
+    assert.equal(hasPermission({ name: 'super_admin' }, 'users:read'), false);
 });
 
 test('requireAdmin accepts a role stored as a name or populated role', () => {

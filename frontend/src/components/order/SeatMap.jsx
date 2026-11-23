@@ -1,9 +1,12 @@
+import { memo, useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import {
   Accessibility,
   Armchair,
   Sofa,
   User,
 } from 'lucide-react';
+import { selectCanAddSeat, selectIsSeatSelected, selectSelectedSeatCount } from '../../store/selectors/bookingSelectors';
 
 const MAX_SEATS = 10;
 
@@ -25,13 +28,46 @@ const SEAT_ICONS = {
   'love-seat': Sofa,
 };
 
-export default function SeatMap({ seats, selected, onToggle }) {
-  const rows = {};
-  seats.forEach((seat) => {
-    const rowLetter = seat.id.match(/^[A-Z]+/)[0];
-    if (!rows[rowLetter]) rows[rowLetter] = [];
-    rows[rowLetter].push(seat);
-  });
+const SeatButton = memo(function SeatButton({ seat, onToggle }) {
+  const isSelected = useSelector((state) => selectIsSeatSelected(state, seat.id));
+  const canAddSeat = useSelector(selectCanAddSeat);
+  const isDisabled = seat.status !== 'available' && !isSelected;
+  const disableNewSelection = !isSelected && !isDisabled && !canAddSeat;
+  const visualStatus = isSelected ? 'selected' : seat.status;
+  const SeatIcon = SEAT_ICONS[seat.type] || User;
+
+  return (
+    <button
+      type="button"
+      disabled={isDisabled || disableNewSelection}
+      onClick={() => onToggle(seat.id)}
+      aria-pressed={isSelected}
+      aria-label={`${seat.id} ${seat.type || 'standard'} seat, ${visualStatus}`}
+      className={[
+        'flex h-10 w-10 items-center justify-center rounded-t-lg border-2 transition-all',
+        STATUS_STYLES[visualStatus],
+        disableNewSelection && !isDisabled ? 'cursor-not-allowed opacity-40' : '',
+      ].join(' ')}
+    >
+      <div className="flex flex-col items-center leading-none">
+        <SeatIcon size={14} />
+        <span className="text-[9px]">{seat.number}</span>
+      </div>
+    </button>
+  );
+});
+
+function SeatMap({ seats, onToggle }) {
+  const selectedCount = useSelector(selectSelectedSeatCount);
+  const rows = useMemo(() => {
+    const grouped = {};
+    seats.forEach((seat) => {
+      const rowLetter = seat.id.match(/^[A-Z]+/)[0];
+      if (!grouped[rowLetter]) grouped[rowLetter] = [];
+      grouped[rowLetter].push(seat);
+    });
+    return grouped;
+  }, [seats]);
 
   return (
     <div className="select-none">
@@ -48,35 +84,12 @@ export default function SeatMap({ seats, selected, onToggle }) {
             </span>
             <div className="flex gap-2.5">
               {rowSeats.map((seat) => {
-                const isSelected = selected.includes(seat.id);
-                const isDisabled =
-                  seat.status !== 'available' && !isSelected;
-                const disableNewSelection =
-                  !isSelected && !isDisabled && selected.length >= MAX_SEATS;
-
-                const visualStatus = isSelected ? 'selected' : seat.status;
-
-                const SeatIcon = SEAT_ICONS[seat.type] || User;
-
                 return (
-                  <button
+                  <SeatButton
                     key={seat.id}
-                    type="button"
-                    disabled={isDisabled || disableNewSelection}
-                    onClick={() => onToggle(seat.id)}
-                    className={[
-                      'flex h-10 w-10 items-center justify-center rounded-t-lg border-2 transition-all',
-                      STATUS_STYLES[visualStatus],
-                      disableNewSelection && !isDisabled
-                        ? 'cursor-not-allowed opacity-40'
-                        : '',
-                    ].join(' ')}
-                  >
-                    <div className="flex flex-col items-center leading-none">
-                      <SeatIcon size={14} />
-                      <span className="text-[9px]">{seat.number}</span>
-                    </div>
-                  </button>
+                    seat={seat}
+                    onToggle={onToggle}
+                  />
                 );
               })}
             </div>
@@ -96,7 +109,7 @@ export default function SeatMap({ seats, selected, onToggle }) {
         <SeatTypeLegend icon={Sofa} label="Love Seat" />
         <SeatTypeLegend icon={Accessibility} label="Wheelchair Accessible" />
       </div>
-      {selected.length >= MAX_SEATS && (
+      {selectedCount >= MAX_SEATS && (
         <p className="mt-4 text-center text-xs text-marquee-goldDim">
           Maximum {MAX_SEATS} seats per booking.
         </p>
@@ -104,6 +117,8 @@ export default function SeatMap({ seats, selected, onToggle }) {
     </div>
   );
 }
+
+export default memo(SeatMap);
 
 function Legend({ swatchClass, label }) {
   return (

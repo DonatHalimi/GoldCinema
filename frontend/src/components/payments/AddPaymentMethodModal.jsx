@@ -16,7 +16,7 @@ import {
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-import { createSetupIntent } from '../../api/payments';
+import { useCreateSetupIntentMutation } from '../../store/api/paymentsApiSlice';
 import Modal from '../ui/modals/Modal';
 
 const stripePromise = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
@@ -46,6 +46,7 @@ function AddCardForm({ onSuccess, onClose }) {
     const { t } = useTranslation('account');
     const stripe = useStripe();
     const elements = useElements();
+    const [createSetupIntent] = useCreateSetupIntentMutation();
 
     const [clientSecret, setClientSecret] = useState(null);
     const [loadError, setLoadError] = useState('');
@@ -56,20 +57,20 @@ function AddCardForm({ onSuccess, onClose }) {
     useEffect(() => {
         let mounted = true;
 
-        createSetupIntent()
+        createSetupIntent().unwrap()
             .then((data) => {
                 if (mounted) {
                     setClientSecret(data.clientSecret);
                 }
             })
             .catch((err) => {
-                if (mounted) setLoadError(err.message || 'Failed to start secure card setup.');
+                if (mounted) setLoadError(err.data?.error || err.message || 'Failed to start secure card setup.');
             });
 
         return () => {
             mounted = false;
         };
-    }, []);
+    }, [createSetupIntent]);
 
     async function handleSubmit(event) {
         event.preventDefault();

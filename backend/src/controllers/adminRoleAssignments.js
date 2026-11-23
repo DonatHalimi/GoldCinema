@@ -4,17 +4,24 @@ const Role = require('../models/role');
 const RoleAuditLog = require('../models/roleAuditLog');
 const Staff = require('../models/staff');
 const Cinema = require('../models/cinema');
-const { roleName } = require('../middleware/roleAccess');
-
-const ALLOWED_ROLE_NAMES = ['customer', 'staff', 'cinema_manager', 'admin', 'super_admin'];
+const { resolveRolePermissions } = require('../services/permissionService');
 
 async function getRoleCatalog(req, res, next) {
     try {
-        const roleNames = roleName(req.activeRole) === 'super_admin'
-            ? ALLOWED_ROLE_NAMES
-            : ALLOWED_ROLE_NAMES.filter((name) => name !== 'super_admin');
-        const roles = await Role.find({ name: { $in: roleNames } }).sort({ name: 1 }).select('name description');
-        return res.json({ roles: roles.map((role) => ({ id: role._id, name: role.name, description: role.description || '' })) });
+        const permissionSet = await resolveRolePermissions(req.activeRole?._id);
+        const unrestricted = Boolean(permissionSet?.unrestricted);
+        const roles = await Role.find(unrestricted ? {} : { unrestricted: { $ne: true } })
+            .sort({ name: 1 })
+            .select('name description isProtected unrestricted');
+        return res.json({
+            roles: roles.map((role) => ({
+                id: role._id,
+                name: role.name,
+                description: role.description || '',
+                isProtected: role.isProtected,
+                unrestricted: role.unrestricted,
+            })),
+        });
     } catch (error) { return next(error); }
 }
 
@@ -39,9 +46,6 @@ async function updateUserRoles(req, res, next) {
 
         const names = [...new Set(requested.map((value) => String(value).trim().toLowerCase()))];
         if (names.includes('cinema_manager') && !names.includes('staff')) names.push('staff');
-        const invalid = names.filter((name) => !ALLOWED_ROLE_NAMES.includes(name));
-        if (invalid.length) return res.status(400).json({ error: `Unsupported role(s): ${invalid.join(', ')}.` });
-
         const [target, roleDocs] = await Promise.all([
             User.findById(id).populate('role roles'),
             Role.find({ name: { $in: names } }),
@@ -49,6 +53,13 @@ async function updateUserRoles(req, res, next) {
 
         if (!target) return res.status(404).json({ error: 'User not found.' });
         if (roleDocs.length !== names.length) return res.status(409).json({ error: 'One or more role documents are missing. Run the multi-role migration first.' });
+        const permissionSet = await resolveRolePermissions(req.activeRole?._id);
+        const actorIsUnrestricted = Boolean(permissionSet?.unrestricted);
+        const unrestrictedRoleIds = await Role.find({ unrestricted: true }).distinct('_id');
+        const requestedUnrestrictedRole = roleDocs.some((role) => role.unrestricted);
+        if (!actorIsUnrestricted && requestedUnrestrictedRole) {
+            return res.status(403).json({ error: 'Only an unrestricted administrator can assign unrestricted roles.' });
+        }
 
         if (names.includes('cinema_manager')) {
             const managerProfile = await Staff.findOne({ user: target._id, isActive: true, position: 'manager' }).select('_id');
@@ -88,22 +99,26 @@ async function updateUserRoles(req, res, next) {
 
         const beforeRoles = target.roles?.length ? target.roles : (target.role ? [target.role] : []);
         const beforeNames = beforeRoles.map((role) => role.name).filter(Boolean);
-        const actorIsSuperAdmin = roleName(req.activeRole) === 'super_admin';
-        if (!actorIsSuperAdmin && (names.includes('super_admin') || beforeNames.includes('super_admin'))) {
-            return res.status(403).json({ error: 'Only a super administrator can assign or change super administrator roles.' });
+        const hadUnrestrictedRole = beforeRoles.some((role) => unrestrictedRoleIds.some((id) => String(id) === String(role._id || role)));
+        const keepsUnrestrictedRole = roleDocs.some((role) => role.unrestricted);
+        if (!actorIsUnrestricted && hadUnrestrictedRole) {
+            return res.status(403).json({ error: 'Only an unrestricted administrator can modify an unrestricted administrator account.' });
         }
 
-        if (String(target._id) === String(req.user._id) && beforeNames.includes('super_admin') && !names.includes('super_admin')) {
-            return res.status(409).json({ error: 'You cannot remove your own super administrator role.' });
+        if (String(target._id) === String(req.user._id) && hadUnrestrictedRole && !keepsUnrestrictedRole) {
+            return res.status(409).json({ error: 'You cannot remove your own unrestricted administrator role.' });
         }
 
-        if (beforeNames.includes('super_admin') && !names.includes('super_admin')) {
+        if (hadUnrestrictedRole && !keepsUnrestrictedRole) {
             const remainingSuperAdmins = await User.countDocuments({
-                roles: { $in: await Role.find({ name: 'super_admin' }).distinct('_id') },
+                $or: [
+                    { roles: { $in: unrestrictedRoleIds } },
+                    { role: { $in: unrestrictedRoleIds } },
+                ],
                 _id: { $ne: target._id },
                 isActive: true,
             });
-            if (remainingSuperAdmins < 1) return res.status(409).json({ error: 'At least one active super administrator must remain.' });
+            if (remainingSuperAdmins < 1) return res.status(409).json({ error: 'At least one active unrestricted administrator must remain.' });
         }
 
         const roleByName = new Map(roleDocs.map((role) => [role.name, role]));

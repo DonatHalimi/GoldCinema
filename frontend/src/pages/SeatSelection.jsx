@@ -1,111 +1,110 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertCircle, MailCheck, MailWarning, Ticket } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { resendEmailVerification } from '../api/auth';
-import { createOrder } from '../api/orders';
-import { holdSeat } from '../api/seatHolds';
-import { getShowtimeById } from '../api/showtimes';
 import SeatMap from '../components/order/SeatMap';
 import { useAuth } from '../context/AuthContext';
+import { useCreateOrderMutation, useHoldSeatsMutation } from '../store/api/bookingsApiSlice';
+import { useGetShowtimeQuery } from '../store/api/moviesApiSlice';
+import {
+  clearBookingSelection,
+  restoreSelectedSeats,
+  setBookingContext,
+  setBookingHold,
+  setBookingStatus,
+  toggleSelectedSeat,
+} from '../store/slices/bookingSlice';
+import { selectSelectedSeatTotal, selectSelectedSeats } from '../store/selectors/bookingSelectors';
 
 export default function SeatSelection() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const dispatch = useDispatch();
+  const { data: showtimeData, isLoading: loading, error: showtimeError, refetch: refetchShowtime } = useGetShowtimeQuery(id);
+  const [holdSeats] = useHoldSeatsMutation();
+  const [createOrder] = useCreateOrderMutation();
+  const selected = useSelector(selectSelectedSeats);
+  const total = useSelector(selectSelectedSeatTotal);
+  const holdExpiresAt = useSelector((state) => state.booking.holdExpiresAt);
+  const holdId = useSelector((state) => state.booking.holdId);
+  const showtime = showtimeData?.showtime || null;
+  const movie = showtimeData?.movie || null;
 
-  const [showtime, setShowtime] = useState(null);
-  const [movie, setMovie] = useState(null);
-  const [selected, setSelected] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [actionError, setActionError] = useState('');
   const [needsVerification, setNeedsVerification] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [resending, setResending] = useState(false);
 
-  const total = movie ? selected.length * movie.price : 0;
-
-  useEffect(() => { loadShowtime(); }, [id]);
-
   useEffect(() => {
+    if (!showtime || !movie) return;
+    dispatch(setBookingContext({
+      cinemaId: showtime.cinemaId,
+      screenId: showtime.screenId,
+      movieId: movie._id,
+      showtimeId: id,
+      ticketPrice: movie.price,
+    }));
+
     const saved = sessionStorage.getItem(`selectedSeats-${id}`);
-
-    if (!saved) return;
-
-    try {
-      const parsed = JSON.parse(saved);
-
-      if (parsed.expiresAt && new Date(parsed.expiresAt) > new Date()) {
-        setSelected(parsed.seats);
-      } else {
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.holdId && parsed.expiresAt && new Date(parsed.expiresAt) > new Date()) {
+          const restored = parsed.seats.map((seatId) => ({
+            id: seatId,
+            type: showtime.seats.find((seat) => seat.id === seatId)?.type || 'standard',
+          }));
+          dispatch(restoreSelectedSeats(restored));
+          dispatch(setBookingHold({ id: parsed.holdId, expiresAt: parsed.expiresAt }));
+        } else {
+          sessionStorage.removeItem(`selectedSeats-${id}`);
+        }
+      } catch {
         sessionStorage.removeItem(`selectedSeats-${id}`);
       }
-    } catch {
-      sessionStorage.removeItem(`selectedSeats-${id}`);
     }
-  }, [id]);
 
-  useEffect(() => {
-    if (!selected.length) return;
-
-    if (!showtime?.holdExpiresAt) return;
-
-    sessionStorage.setItem(
-      `selectedSeats-${id}`,
-      JSON.stringify({ seats: selected, expiresAt: showtime.holdExpiresAt })
-    );
-  }, [selected, id, showtime]);
-
-  useEffect(() => {
     const savedBooking = sessionStorage.getItem('pendingBooking');
-
     if (!savedBooking) return;
-
-    const booking = JSON.parse(savedBooking);
-
-    if (booking.showtimeId === id && Date.now() - booking.createdAt < 15 * 60 * 1000) {
-      setSelected(booking.seats);
+    try {
+      const booking = JSON.parse(savedBooking);
+      if (booking.showtimeId === id && Date.now() - booking.createdAt < 15 * 60 * 1000) {
+        dispatch(restoreSelectedSeats(booking.seats));
+        sessionStorage.removeItem('pendingBooking');
+      }
+    } catch {
       sessionStorage.removeItem('pendingBooking');
     }
-  }, [id]);
+  }, [dispatch, id, movie, showtime]);
 
   useEffect(() => {
-    if (!showtime?.holdExpiresAt) return;
+    if (!holdExpiresAt || !selected.length) return;
+    sessionStorage.setItem(
+      `selectedSeats-${id}`,
+      JSON.stringify({ seats: selected, expiresAt: holdExpiresAt })
+    );
+  }, [holdExpiresAt, holdId, id, selected]);
 
+  useEffect(() => {
+    if (!holdExpiresAt) return undefined;
     const interval = setInterval(() => {
-      const remaining = new Date(showtime.holdExpiresAt).getTime() - Date.now();
-
-      if (remaining <= 0) {
+      if (new Date(holdExpiresAt).getTime() <= Date.now()) {
         sessionStorage.removeItem(`selectedSeats-${id}`);
-
-        setSelected([]);
-
+        dispatch(clearBookingSelection());
         clearInterval(interval);
       }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [showtime, id]);
+  }, [dispatch, holdExpiresAt, id]);
 
-  async function loadShowtime() {
-    setLoading(true);
-    setError('');
-
-    try {
-      const data = await getShowtimeById(id);
-
-      setShowtime(data.showtime);
-      setMovie(data.movie);
-    } catch (err) {
-      setError(err.response?.data?.error || err.message || 'Unable to load showtime.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function toggleSeat(seatId) {
-    setSelected(prev => prev.includes(seatId) ? prev.filter(s => s !== seatId) : [...prev, seatId]);
-  }
+  const toggleSeat = useCallback((seatId) => {
+    const seat = showtime?.seats.find((item) => item.id === seatId);
+    dispatch(toggleSelectedSeat({ id: seatId, type: seat?.type }));
+  }, [dispatch, showtime]);
 
   async function handleContinue() {
     if (!user) {
@@ -122,12 +121,14 @@ export default function SeatSelection() {
     if (!selected.length) return;
 
     setSubmitting(true);
-    setError('');
+    setActionError('');
     setNeedsVerification(false);
+    dispatch(setBookingStatus('reserving'));
 
     try {
-      const holdResponse = await holdSeat({ showtimeId: id, seatIds: selected });
+      const holdResponse = await holdSeats({ showtimeId: id, seatIds: selected }).unwrap();
       const hold = holdResponse.hold;
+      dispatch(setBookingHold(hold));
 
       const orderResponse = await createOrder({
         movie: movie._id,
@@ -137,20 +138,22 @@ export default function SeatSelection() {
         totalAmount: total,
         holdId: hold.id,
         holdExpiresAt: hold.expiresAt,
-      });
+      }).unwrap();
 
-      navigate(`/checkout/${orderResponse.order._id}`);
+      dispatch(setBookingStatus('reserved'));
+      navigate(`/checkout/${orderResponse._id}`);
     } catch (err) {
-      if (err.response?.data?.code === 'EMAIL_NOT_VERIFIED' || /verify your email/i.test(err.message)) {
+      if (err.data?.code === 'EMAIL_NOT_VERIFIED' || /verify your email/i.test(err.data?.error || err.message || '')) {
         setNeedsVerification(true);
       } else {
-        setError(err.response?.data?.error || err.response?.data?.message || err.message || 'Something went wrong');
+        setActionError(err.data?.error || err.data?.message || err.message || 'Something went wrong');
       }
 
-      await loadShowtime();
+      dispatch(setBookingStatus('idle'));
+      await refetchShowtime();
 
       sessionStorage.removeItem(`selectedSeats-${id}`);
-      setSelected([]);
+      dispatch(clearBookingSelection());
     } finally {
       setSubmitting(false);
     }
@@ -162,14 +165,14 @@ export default function SeatSelection() {
       await resendEmailVerification();
       setNeedsVerification('sent');
     } catch (err) {
-      setError(err.message);
+      setActionError(err.response?.data?.error || err.message);
     } finally {
       setResending(false);
     }
   }
 
   if (loading) return <p className="py-20 text-center text-marquee-muted">Loading seats...</p>;
-  if (!showtime || !movie) return <p className="py-20 text-center text-marquee-muted">Showtime not found.</p>;
+  if (!showtime || !movie) return <p className="py-20 text-center text-marquee-muted">{showtimeError?.data?.error || 'Showtime not found.'}</p>;
 
   const hasSeats = selected.length > 0;
 
@@ -185,7 +188,7 @@ export default function SeatSelection() {
       </div>
 
       <AnimatePresence initial={false}>
-        {error && (
+        {actionError && (
           <motion.div
             key="error"
             initial={{ opacity: 0, y: -12, height: 0, marginBottom: 0 }}
@@ -196,7 +199,7 @@ export default function SeatSelection() {
           >
             <div className="flex items-center justify-center gap-2 rounded-lg border border-marquee-marquee/30 bg-marquee-marquee/10 px-4 py-3 text-center text-sm text-marquee-marquee">
               <AlertCircle className="h-4 w-4 shrink-0" />
-              <span>{error}</span>
+              <span>{actionError}</span>
             </div>
           </motion.div>
         )}
@@ -239,7 +242,7 @@ export default function SeatSelection() {
       </AnimatePresence>
 
       <div className="rounded-xl border border-marquee-line bg-marquee-panel p-8">
-        <SeatMap seats={showtime.seats} selected={selected} onToggle={toggleSeat} />
+        <SeatMap seats={showtime.seats} onToggle={toggleSeat} />
       </div>
 
       <motion.div

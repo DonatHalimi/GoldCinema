@@ -1,0 +1,4522 @@
+[
+  {
+    "namespace": "home",
+    "key": "overline",
+    "values": {
+      "en": "Tonight's lineup",
+      "sq": "Programi i mbrëmjes",
+      "sr-Latn": "Večerašnji raspored"
+    },
+    "context": null
+  },
+  {
+    "namespace": "home",
+    "key": "header",
+    "values": {
+      "en": "NOW SHOWING",
+      "sq": "NË SHFAQJE",
+      "sr-Latn": "TRENUTNO NA REPERTOARU"
+    },
+    "context": null
+  },
+  {
+    "namespace": "home",
+    "key": "homeDescription",
+    "values": {
+      "en": "Pick a film, choose your seats, and step into the dark. Doors open every day, all day",
+      "sq": "Zgjidhni një film, zgjidhni vendet tuaja dhe hyni në errësirë. Dyert janë të hapura çdo ditë, gjatë gjithë ditës",
+      "sr-Latn": "Izaberite film, odaberite mesta i zakoračite u tamu. Vrata su otvorena svakog dana, tokom celog dana"
+    },
+    "context": null
+  },
+  {
+    "namespace": "home",
+    "key": "loadingShowtimes",
+    "values": {
+      "en": "Loading showtimes...",
+      "sq": "Duke ngarkuar oraret e shfaqjeve...",
+      "sr-Latn": "Učitavanje termina projekcija..."
+    },
+    "context": null
+  },
+  {
+    "namespace": "accountSidebar",
+    "key": "accountMenu",
+    "values": {
+      "en": "Account",
+      "sq": "Llogaria",
+      "sr-Latn": "Nalog"
+    },
+    "context": null
+  },
+  {
+    "namespace": "accountSidebar",
+    "key": "profileItem",
+    "values": {
+      "en": "Profile",
+      "sq": "Profili",
+      "sr-Latn": "Profil"
+    },
+    "context": null
+  },
+  {
+    "namespace": "accountSidebar",
+    "key": "ticketsItem",
+    "values": {
+      "en": "Tickets",
+      "sq": "Biletat",
+      "sr-Latn": "Ulaznice"
+    },
+    "context": null
+  },
+  {
+    "namespace": "accountSidebar",
+    "key": "favouritesItem",
+    "values": {
+      "en": "Favourites",
+      "sq": "Të preferuarat",
+      "sr-Latn": "Omiljeno"
+    },
+    "context": null
+  },
+  {
+    "namespace": "accountSidebar",
+    "key": "paymentMenu",
+    "values": {
+      "en": "Payments",
+      "sq": "Pagesat",
+      "sr-Latn": "Plaćanja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "accountSidebar",
+    "key": "paymentItem",
+    "values": {
+      "en": "Payment Methods",
+      "sq": "Mënyrat e Pagesës",
+      "sr-Latn": "Načini Plaćanja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "accountSidebar",
+    "key": "securityMenu",
+    "values": {
+      "en": "Security & Privacy",
+      "sq": "Siguria & Privatësia",
+      "sr-Latn": "Bezbednost & Privatnost"
+    },
+    "context": null
+  },
+  {
+    "namespace": "accountSidebar",
+    "key": "securityItem",
+    "values": {
+      "en": "Security",
+      "sq": "Siguria",
+      "sr-Latn": "Bezbednost"
+    },
+    "context": null
+  },
+  {
+    "namespace": "accountSidebar",
+    "key": "sessionItem",
+    "values": {
+      "en": "Sessions",
+      "sq": "Sesionet",
+      "sr-Latn": "Sesije"
+    },
+    "context": null
+  },
+  {
+    "namespace": "accountSidebar",
+    "key": "communicationMenu",
+    "values": {
+      "en": "Communication",
+      "sq": "Komunikimi",
+      "sr-Latn": "Komunikacija"
+    },
+    "context": null
+  },
+  {
+    "namespace": "accountSidebar",
+    "key": "notificationItem",
+    "values": {
+      "en": "Notifications",
+      "sq": "Njoftime",
+      "sr-Latn": "Obaveštenja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "accountSidebar",
+    "key": "reviewsItem",
+    "values": {
+      "en": "My Reviews",
+      "sq": "Vlerësimet e Mia",
+      "sr-Latn": "Moje Recenzije"
+    },
+    "context": null
+  },
+  {
+    "namespace": "accountSidebar",
+    "key": "dangerZoneMenu",
+    "values": {
+      "en": "Danger Zone",
+      "sq": "Zona e Rrezikut",
+      "sr-Latn": "Zona Opasnosti"
+    },
+    "context": null
+  },
+  {
+    "namespace": "accountSidebar",
+    "key": "dangerZoneItem",
+    "values": {
+      "en": "Danger Zone",
+      "sq": "Zona e Rrezikut",
+      "sr-Latn": "Zona Opasnosti"
+    },
+    "context": null
+  },
+  {
+    "namespace": "accountSidebar",
+    "key": "header",
+    "values": {
+      "en": "Account",
+      "sq": "Llogaria",
+      "sr-Latn": "Nalog"
+    },
+    "context": null
+  },
+  {
+    "namespace": "accountSidebar",
+    "key": "subheader",
+    "values": {
+      "en": "Manage your account",
+      "sq": "Menaxhoni llogarinë tuaj",
+      "sr-Latn": "Upravljajte svojim nalogom"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "profileHeader",
+    "values": {
+      "en": "Profile Settings",
+      "sq": "Cilësimet e Profilit",
+      "sr-Latn": "Podešavanja profila"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "manageAccountInformation",
+    "values": {
+      "en": "Manage your account information",
+      "sq": "Menaxhoni informacionin e llogarisë suaj",
+      "sr-Latn": "Upravljajte podacima o svom nalogu"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "fullName",
+    "values": {
+      "en": "Full Name",
+      "sq": "Emri i Plotë",
+      "sr-Latn": "Puno Ime"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "email",
+    "values": {
+      "en": "Email",
+      "sq": "Email",
+      "sr-Latn": "E-pošta"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "isVerified",
+    "values": {
+      "en": "Verified",
+      "sq": "E verifikuar",
+      "sr-Latn": "Potvrđeno"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "saving",
+    "values": {
+      "en": "Saving...",
+      "sq": "Duke ruajtur...",
+      "sr-Latn": "Čuvanje..."
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "save",
+    "values": {
+      "en": "Save Changes",
+      "sq": "Ruaj Ndryshimet",
+      "sr-Latn": "Sačuvaj Izmene"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "changePasswordHeader",
+    "values": {
+      "en": "Change Password",
+      "sq": "Ndrysho Fjalëkalimin",
+      "sr-Latn": "Promeni Lozinku"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "changePasswordDesc",
+    "values": {
+      "en": "Secure your account by changing your password",
+      "sq": "Sigurojeni llogarinë tuaj duke ndryshuar fjalëkalimin",
+      "sr-Latn": "Obezbedite svoj nalog promenom lozinke"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "currentPsw",
+    "values": {
+      "en": "Current Password",
+      "sq": "Fjalëkalimi Aktual",
+      "sr-Latn": "Trenutna Lozinka"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "newPsw",
+    "values": {
+      "en": "New Password",
+      "sq": "Fjalëkalim i Ri",
+      "sr-Latn": "Nova Lozinka"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "updatingPsw",
+    "values": {
+      "en": "Updating...",
+      "sq": "Duke përditësuar...",
+      "sr-Latn": "Ažuriranje..."
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "updatePsw",
+    "values": {
+      "en": "Update Password",
+      "sq": "Përditëso Fjalëkalimin",
+      "sr-Latn": "Ažuriraj Lozinku"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "allTix",
+    "values": {
+      "en": "All",
+      "sq": "Të Gjitha",
+      "sr-Latn": "Sve"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "upcomingTix",
+    "values": {
+      "en": "Upcoming",
+      "sq": "Hapura",
+      "sr-Latn": "Predstojeće"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "pastTix",
+    "values": {
+      "en": "Past",
+      "sq": "Mbyllura",
+      "sr-Latn": "Prošlost"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "cancelledTix",
+    "values": {
+      "en": "Cancelled",
+      "sq": "Anuluara",
+      "sr-Latn": "Otkazano"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "upcomingMovies",
+    "values": {
+      "en": "Upcoming Movies",
+      "sq": "Filmat e Ardhshëm",
+      "sr-Latn": "Predstojeći Filmovi"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "pastMovies",
+    "values": {
+      "en": "Past Movies",
+      "sq": "Filmat e Mëparshëm",
+      "sr-Latn": "Prethodni Filmovi"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "manageTickets",
+    "values": {
+      "en": "View and manage your movie tickets",
+      "sq": "Shikoni dhe menaxhoni biletat tuaja të filmit",
+      "sr-Latn": "Pregledajte i upravljajte ulaznicama"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "emptyTickets",
+    "values": {
+      "en": "You haven't booked any tickets yet",
+      "sq": "Nuk keni rezervuar ende asnjë biletë",
+      "sr-Latn": "Još nisi rezervisao nijednu kartu"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "browseMovies",
+    "values": {
+      "en": "Browse movies",
+      "sq": "Shfletoni filma",
+      "sr-Latn": "Pregledaj filmove"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "admitOne",
+    "values": {
+      "en": "Admit One",
+      "sq": "Biletë hyrjeje",
+      "sr-Latn": "Pojedinačna"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "seatsNr",
+    "values": {
+      "en": "Seats",
+      "sq": "Ulëset",
+      "sr-Latn": "Sedišta"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "cancelledTickets",
+    "values": {
+      "en": "Cancelled",
+      "sq": "Anuluar",
+      "sr-Latn": "Otkazano"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "favouritesHeader",
+    "values": {
+      "en": "My Favourites",
+      "sq": "Të Preferuarat",
+      "sr-Latn": "Moji favoriti"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "manageFav",
+    "values": {
+      "en": "Manage your favourite movies and cinemas",
+      "sq": "Menaxhoni filmat dhe kinematë tuaja të preferuara",
+      "sr-Latn": "Upravljajte svojim omiljenim filmovima i bioskopima"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "movies",
+    "values": {
+      "en": "Movies",
+      "sq": "Filmat",
+      "sr-Latn": "Filmovi"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "cinemas",
+    "values": {
+      "en": "Cinemas",
+      "sq": "Kinematë",
+      "sr-Latn": "Bioskopi"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "noFavMovies",
+    "values": {
+      "en": "No favourite movies yet",
+      "sq": "Ende nuk ke filma të preferuar",
+      "sr-Latn": "Još nema omiljenih filmova"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "noFavCinemas",
+    "values": {
+      "en": "No favourite cinemas yet",
+      "sq": "Ende nuk ke kinema të preferuara",
+      "sr-Latn": "Još nema omiljenih bioskopa"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "noFavMoviesMsg",
+    "values": {
+      "en": "Movies you favourite will appear here",
+      "sq": "Filmat që keni shtuar te të preferuarat do të shfaqen këtu",
+      "sr-Latn": "Filmovi koje označite kao omiljene pojaviće se ovde"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "noFavCinemasMsg",
+    "values": {
+      "en": "Cinemas you favourite will appear here",
+      "sq": "Kinematë tuaja të preferuara do të shfaqen këtu",
+      "sr-Latn": "Ovde će se pojaviti bioskopi koje ste označili kao omiljene"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "paymentMethodHeader",
+    "values": {
+      "en": "Payment Methods",
+      "sq": "Mënyrat e Pagesës",
+      "sr-Latn": "Načini Plaćanja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "managePayments",
+    "values": {
+      "en": "Manage your saved payment methods",
+      "sq": "Menaxhoni mënyrat tuaja të ruajtura të pagesës",
+      "sr-Latn": "Upravljajte sačuvanim načinima plaćanja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "noPayments",
+    "values": {
+      "en": "No saved payment methods",
+      "sq": "Nuk ke metoda pagese të ruajtura",
+      "sr-Latn": "Nema sačuvanih načina plaćanja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "addPaymentsMsg",
+    "values": {
+      "en": "Add a card to make your future GoldCinema checkout experience faster",
+      "sq": "Shtoni një kartë për ta bërë më të shpejtë procesin e pagesës në GoldCinema në të ardhmen",
+      "sr-Latn": "Dodajte karticu kako biste ubrzali buduće plaćanje na GoldCinema-i"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "addPayments",
+    "values": {
+      "en": "Add payment method",
+      "sq": "Shto mënyrën e pagesës",
+      "sr-Latn": "Dodajte način plaćanja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "cardInfo",
+    "values": {
+      "en": "Card information",
+      "sq": "Të dhënat e kartelës",
+      "sr-Latn": "Podaci o kartici"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "secure",
+    "values": {
+      "en": "Secure",
+      "sq": "Sigurt",
+      "sr-Latn": "Bezbedno"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "paymentPolicy",
+    "values": {
+      "en": "GoldCinema never stores your full card number or security code. \nStripe securely handles sensitive payment information.",
+      "sq": "GoldCinema nuk e ruan kurrë numrin e plotë të kartës suaj apo kodin e sigurisë.\nStripe e trajton në mënyrë të sigurt informacionin delikat të pagesës.",
+      "sr-Latn": "GoldCinema nikada ne čuva pun broj vaše kartice niti bezbednosni kod. Stripe bezbedno rukuje osetljivim podacima o plaćanju"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "cancelAddPayment",
+    "values": {
+      "en": "Cancel",
+      "sq": "Anulo",
+      "sr-Latn": "Otkaži"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "savingCard",
+    "values": {
+      "en": "Saving...",
+      "sq": "Duke ruajtur...",
+      "sr-Latn": "Čuvanje..."
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "stripeNotConfigured",
+    "values": {
+      "en": "Stripe isn't configured",
+      "sq": "Stripe nuk është konfiguruar",
+      "sr-Latn": "Stripe nije konfigurisan."
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "saveCard",
+    "values": {
+      "en": "Save",
+      "sq": "Ruaj",
+      "sr-Latn": "Sačuvaj"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "security",
+    "values": {
+      "en": "Security",
+      "sq": "Siguria",
+      "sr-Latn": "Bezbednost"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "securityDesc",
+    "values": {
+      "en": "Manage your account security and authentication methods",
+      "sq": "Menaxhoni sigurinë e llogarisë dhe metodat e vërtetimit",
+      "sr-Latn": "Upravljajte bezbednošću naloga i metodama autentifikacije"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "2faHeader",
+    "values": {
+      "en": "Two-Factor Authentication",
+      "sq": "Autentifikimi me Dy-Faktorë",
+      "sr-Latn": "Dvofaktorska autentifikacija"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "2faDesc",
+    "values": {
+      "en": "Add an extra layer of protection to your account using email or an authenticator app",
+      "sq": "Shtoni një shtresë shtesë mbrojtjeje në llogarinë tuaj duke përdorur emailin ose një aplikacion autentifikimi",
+      "sr-Latn": "Dodajte dodatni sloj zaštite svom nalogu korišćenjem imejla ili aplikacije za autentifikaciju"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "is2FAEnabled",
+    "values": {
+      "en": "Enabled",
+      "sq": "Aktivizuar",
+      "sr-Latn": "Omogućeno"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "email2FA",
+    "values": {
+      "en": "Email 2FA",
+      "sq": "2FA me Email",
+      "sr-Latn": "2FA putem E-pošte"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "email2FADesc",
+    "values": {
+      "en": "Verification codes are sent to your email",
+      "sq": "Kodet e verifikimit dërgohen në emailin tuaj",
+      "sr-Latn": "Kodovi za verifikaciju se šalju na vašu imejl adresu"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "removeEmail2FA",
+    "values": {
+      "en": "Remove",
+      "sq": "Largo",
+      "sr-Latn": "Ukloni"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "enableEmail2FA",
+    "values": {
+      "en": "Email 2FA",
+      "sq": "2FA me Email",
+      "sr-Latn": "2FA putem E-pošte"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "enableAuthApp2FA",
+    "values": {
+      "en": "Authenticator App 2FA",
+      "sq": "2FA me Aplikacion",
+      "sr-Latn": "Aplikacija za Autentifikaciju 2FA"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "enableSMS2FA",
+    "values": {
+      "en": "SMS 2FA",
+      "sq": "2FA me SMS",
+      "sr-Latn": "SMS 2FA"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "authApp2FAHeader",
+    "values": {
+      "en": "Authenticator App 2FA",
+      "sq": "2FA me Aplikacion",
+      "sr-Latn": "Aplikacija za Autentifikaciju 2FA"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "removeAuthApp2FA",
+    "values": {
+      "en": "Remove",
+      "sq": "Largo",
+      "sr-Latn": "Ukloni"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "sms2FAHeader",
+    "values": {
+      "en": "SMS 2FA",
+      "sq": "2FA me SMS",
+      "sr-Latn": "SMS 2FA"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "removeSMS2FA",
+    "values": {
+      "en": "Remove",
+      "sq": "Largo",
+      "sr-Latn": "Ukloni"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "authApp2FADesc",
+    "values": {
+      "en": "Use an authenticator app to generate verification codes",
+      "sq": "Përdorni një aplikacion autentifikimi për të gjeneruar kode verifikimi",
+      "sr-Latn": "Koristite aplikaciju za autentifikaciju za generisanje kodova za verifikaciju"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "sms2FADesc",
+    "values": {
+      "en": "Verification codes are sent to your phone",
+      "sq": "Kodet e verifikimit dërgohen në telefonin tuaj",
+      "sr-Latn": "Kodovi za potvrdu se šalju na vaš telefon"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "2FAEnabled",
+    "values": {
+      "en": "Enabled",
+      "sq": "Aktivizuar",
+      "sr-Latn": "Omogućeno"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "backupHeader",
+    "values": {
+      "en": "Backup Recovery Codes",
+      "sq": "Kodet Rezervë të Rikuperimit",
+      "sr-Latn": "Rezervni Kodovi za Oporavak"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "backupDesc",
+    "values": {
+      "en": "Use backup codes to access your account if you lose your device or authenticator app",
+      "sq": "Përdorni kodet rezervë për të hyrë në llogarinë tuaj nëse humbisni pajisjen ose aplikacionin e vërtetimit",
+      "sr-Latn": "Koristite rezervne kodove za pristup nalogu ako izgubite uređaj ili aplikaciju za autentifikaciju"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "passkeysHeading",
+    "values": {
+      "en": "Passkeys",
+      "sq": "Passkeys",
+      "sr-Latn": "Pas-ključevi"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "passkeysActive",
+    "values": {
+      "en": "Active",
+      "sq": "Aktiv",
+      "sr-Latn": "Aktivan"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "passkeysDesc",
+    "values": {
+      "en": "Manage your registered passkeys for fast, secure passwordless login",
+      "sq": "Menaxhoni fjalëkalimet tuaja të regjistruara për hyrje të shpejtë dhe të sigurt pa fjalëkalim",
+      "sr-Latn": "Upravljajte svojim registrovanim ključevima pristupa za brzu i bezbednu prijavu bez lozinke"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "passkeysAdded",
+    "values": {
+      "en": "Added on",
+      "sq": "Shtuar më",
+      "sr-Latn": "Dodato"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "editPasskey",
+    "values": {
+      "en": "Edit",
+      "sq": "Redakto",
+      "sr-Latn": "Uredi"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "removePasskey",
+    "values": {
+      "en": "Remove",
+      "sq": "Largo",
+      "sr-Latn": "Ukloni"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "showLessPasskeys",
+    "values": {
+      "en": "Show less",
+      "sq": "Trego më pak",
+      "sr-Latn": "Prikaži manje"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "showAllPasskeys",
+    "values": {
+      "en": "Show all",
+      "sq": "Shfaq gjithçka",
+      "sr-Latn": "Prikaži sve"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "morePasskeys",
+    "values": {
+      "en": "more",
+      "sq": "më shumë",
+      "sr-Latn": "još"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "addPasskey",
+    "values": {
+      "en": "Add Passkey",
+      "sq": "Shto Passkey",
+      "sr-Latn": "Dodaj ključ pristupa"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "registeringPasskey",
+    "values": {
+      "en": "Registering...",
+      "sq": "Duke u regjistruar...",
+      "sr-Latn": "Registrovanje..."
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "genCodes",
+    "values": {
+      "en": "Generate codes",
+      "sq": "Gjenero kode",
+      "sr-Latn": "Generiši kodove"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "authReqDesc",
+    "values": {
+      "en": "Authenticator App 2FA must be enabled to generate backup recovery codes",
+      "sq": "Aplikacioni i autentifikimit (2FA) duhet të jetë i aktivizuar për të gjeneruar kode rezervë për rikuperim",
+      "sr-Latn": "Aplikacija za autentifikaciju (2FA) mora biti omogućena da bi se generisali rezervni kodovi za oporavak"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "storeCodesDesc",
+    "values": {
+      "en": "Store these codes safely. Each code can only be used once.\nRegenerating your codes invalidates the previous set",
+      "sq": "Ruajini këto kode në mënyrë të sigurt. Secili kod mund të përdoret vetëm një herë.\nRigjenerimi i kodeve e bën të pavlefshëm grupin e mëparshëm",
+      "sr-Latn": "Čuvajte ove kodove na sigurnom. Svaki kod se može iskoristiti samo jednom.\nGenerisanje novih kodova čini prethodni skup nevažećim"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "hideCodes",
+    "values": {
+      "en": "Hide",
+      "sq": "Fshih",
+      "sr-Latn": "Sakrij"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "showCodes",
+    "values": {
+      "en": "Show",
+      "sq": "Shfaq",
+      "sr-Latn": "Prikaži"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "downloadCodesFile",
+    "values": {
+      "en": "Download Codes File",
+      "sq": "Shkarko Skedarin e Kodeve",
+      "sr-Latn": "Datoteka sa Kodovima za Preuzimanje"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "recentActivity",
+    "values": {
+      "en": "Recent Security Activity",
+      "sq": "Aktivitetet e Fundit të Sigurisë",
+      "sr-Latn": "Nedavne Bezbednosne Aktivnosti"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "recentActivityDesc",
+    "values": {
+      "en": "Review recent logins, password changes, and other important security events",
+      "sq": "Shqyrtoni hyrjet e fundit, ndryshimet e fjalëkalimit dhe ngjarje të tjera të rëndësishme të sigurisë",
+      "sr-Latn": "Pregledajte nedavne prijave, promene lozinke i druge važne bezbednosne događaje"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "loadingActivity",
+    "values": {
+      "en": "Loading activity...",
+      "sq": "Duke ngarkuar aktivitetin...",
+      "sr-Latn": "Učitavanje aktivnosti..."
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "noActivity",
+    "values": {
+      "en": "No security events recorded yet",
+      "sq": "Ende nuk janë regjistruar ngjarje sigurie",
+      "sr-Latn": "Još uvek nisu zabeleženi bezbednosni događaji"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "showLessActivity",
+    "values": {
+      "en": "Show less",
+      "sq": "Shfaq më pak",
+      "sr-Latn": "Prikaži manje"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "showAllActivity",
+    "values": {
+      "en": "Show all",
+      "sq": "Shfaq të gjitha",
+      "sr-Latn": "Prikaži sve"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "securityLogExportHeader",
+    "values": {
+      "en": "Security Log Export",
+      "sq": "Eksport i Regjistrit të Sigurisë",
+      "sr-Latn": "Izvoz Bezbednosnog Zapisa"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "downloadSecurityLogDesc",
+    "values": {
+      "en": "Download your full account security event history",
+      "sq": "Shkarko historikun e plotë të ngjarjeve të llogarisë suaj",
+      "sr-Latn": "Preuzmite kompletnu istoriju bezbednosnih događaja na svom nalogu"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "exportActivityLog",
+    "values": {
+      "en": "Export Activity Logs",
+      "sq": "Eksporto Regjistrat e Aktiviteteve",
+      "sr-Latn": "Izvoz Zapisa o Aktivnostima"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "exportingActivityLog",
+    "values": {
+      "en": "Exporting...",
+      "sq": "Duke eksportuar...",
+      "sr-Latn": "Izvoz..."
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "validThru",
+    "values": {
+      "en": "Valid Thru",
+      "sq": "Vlen deri më",
+      "sr-Latn": "Važi do"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "cardholder",
+    "values": {
+      "en": "Cardholder",
+      "sq": "Mbajtësi i kartës",
+      "sr-Latn": "Vlasnik kartice"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "member",
+    "values": {
+      "en": "MEMBER",
+      "sq": "ANËTAR",
+      "sr-Latn": "ČLAN"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "addPaymentMethod",
+    "values": {
+      "en": "Add payment method",
+      "sq": "Shto mënyrën e pagesës",
+      "sr-Latn": "Dodajte način plaćanja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "makeDefault",
+    "values": {
+      "en": "Make default",
+      "sq": "Cakto si të paracaktuar",
+      "sr-Latn": "Postavi kao podrazumevano"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "updatingDefault",
+    "values": {
+      "en": "Updating...",
+      "sq": "Duke përditësuar...",
+      "sr-Latn": "Ažuriranje..."
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "removeCardModal",
+    "values": {
+      "en": "Remove payment method?",
+      "sq": "Largo mënyrën e pagesës?",
+      "sr-Latn": "Ukloniti način plaćanja?"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "removeCardDesc",
+    "values": {
+      "en": "Are you sure you want to remove",
+      "sq": "A jeni i sigurt që doni të hiqni",
+      "sr-Latn": "Da li ste sigurni da želite da uklonite"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "removeCardDesc2",
+    "values": {
+      "en": "This card will no longer be available for checkout",
+      "sq": "Kjo kartë nuk do të jetë më e disponueshme për pagesë",
+      "sr-Latn": "Ova kartica više neće biti dostupna za plaćanje"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "removeCard",
+    "values": {
+      "en": "Remove",
+      "sq": "Largo",
+      "sr-Latn": "Ukloni"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "removeConfirmText",
+    "values": {
+      "en": "REMOVE",
+      "sq": "LARGO",
+      "sr-Latn": "UKLONI"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "removeConfirmLabel",
+    "values": {
+      "en": "Remove",
+      "sq": "Largo",
+      "sr-Latn": "Ukloni"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "cancelPaymentModal",
+    "values": {
+      "en": "Cancel",
+      "sq": "Anulo",
+      "sr-Latn": "Otkaži"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "confirmPaymentModal",
+    "values": {
+      "en": "Confirm",
+      "sq": "Konfirmo",
+      "sr-Latn": "Potvrdi"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "confirmationAccepted",
+    "values": {
+      "en": "Confirmation accepted",
+      "sq": "Konfirmimi u pranua",
+      "sr-Latn": "Potvrda prihvaćena"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "removePaymentMethodModal",
+    "values": {
+      "en": "Please type",
+      "sq": "Ju lutem shkruani",
+      "sr-Latn": "Molim vas, ukucajte"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "typePaymentMethodModal",
+    "values": {
+      "en": "Type",
+      "sq": "Shkruaj",
+      "sr-Latn": "Tip"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "typePaymentMethodModal2",
+    "values": {
+      "en": "to confirm",
+      "sq": "për të konfirmuar",
+      "sr-Latn": "potvrditi"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "defaultPaymentMethod",
+    "values": {
+      "en": "Default payment method",
+      "sq": "Mënyra e paracaktuar e pagesës",
+      "sr-Latn": "Podrazumevani način plaćanja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "defaultCard",
+    "values": {
+      "en": "Default",
+      "sq": "E paracaktuar",
+      "sr-Latn": "Podrazumevano"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "stripeNotConfiguredDesc",
+    "values": {
+      "en": "Set",
+      "sq": "Vendos",
+      "sr-Latn": "Set"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "stripeNotConfiguredEnv",
+    "values": {
+      "en": "VITE_STRIPE_PUBLISHABLE_KEY",
+      "sq": "VITE_STRIPE_PUBLISHABLE_KEY",
+      "sr-Latn": "VITE_STRIPE_PUBLISHABLE_KEY"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "stripeNotConfiguredDesc2",
+    "values": {
+      "en": "in your frontend environment to enable saved payment methods",
+      "sq": "në mjedisin tuaj frontend për të aktivizuar metodat e ruajtura të pagesës",
+      "sr-Latn": "u vašem frontend okruženju kako biste omogućili sačuvane načine plaćanja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "trustedDevicesHeader",
+    "values": {
+      "en": "Trusted Devices",
+      "sq": "Pajisjet e Besuara",
+      "sr-Latn": "Pouzdani Uređaji"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "trustedDevicesDesc",
+    "values": {
+      "en": "Manage devices you've marked as trusted for quicker and safer sign-ins",
+      "sq": "Menaxhoni pajisjet që keni shënuar si të besuara për hyrje më të shpejta dhe më të sigurta",
+      "sr-Latn": "Upravljajte uređajima koje ste označili kao pouzdane radi brže i bezbednije prijave"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "noTrustedDevicesFound",
+    "values": {
+      "en": "No trusted devices found",
+      "sq": "Nuk u gjet asnjë pajisje e besuar",
+      "sr-Latn": "Nisu pronađeni pouzdani uređaji"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "loadingTrustedDevices",
+    "values": {
+      "en": "Loading devices...",
+      "sq": "Duke ngarkuar pajisjet...",
+      "sr-Latn": "Učitavanje uređaja..."
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "trustedDevicesAddedOn",
+    "values": {
+      "en": "Added on",
+      "sq": "Shtuar më",
+      "sr-Latn": "Dodato"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "trustedDevicesRevoke",
+    "values": {
+      "en": "Revoke",
+      "sq": "Revoko",
+      "sr-Latn": "Opozvati"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "loginAlertsHeader",
+    "values": {
+      "en": "Login Alerts",
+      "sq": "Njoftime për Hyrje",
+      "sr-Latn": "Obaveštenja o Prijavljivanju"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "loginAlertsDesc",
+    "values": {
+      "en": "Get notified via email whenever your account is accessed from a new login",
+      "sq": "Merrni njoftime me email sa herë që llogaria juaj aksesohet përmes një hyrjeje të re",
+      "sr-Latn": "Dobijajte obaveštenja putem e-pošte kad god se nalogu pristupi sa nove lokacije ili uređaja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "sessionsHeader",
+    "values": {
+      "en": "Sessions",
+      "sq": "Sesionet",
+      "sr-Latn": "Sesije"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "sessionsDesc",
+    "values": {
+      "en": "Every device or browser that's currently signed into your account. Revoke any session you don't recognise",
+      "sq": "Çdo pajisje ose shfletues që është aktualisht i kyçur në llogarinë tuaj. Anuloni çdo sesion që nuk e njihni",
+      "sr-Latn": "Svaki uređaj ili pregledač koji je trenutno prijavljen na vaš nalog. Opozovite svaku sesiju koju ne prepoznajete"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "sessionsActive",
+    "values": {
+      "en": "active session",
+      "sq": "sesion aktiv",
+      "sr-Latn": "sesija je aktivna"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "sessionsOtherDevice",
+    "values": {
+      "en": "other devices",
+      "sq": "pajisje të tjera",
+      "sr-Latn": "drugi uređaji"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "sessionsLoggedIn",
+    "values": {
+      "en": "logged in",
+      "sq": "kyçura",
+      "sr-Latn": "prijavljen"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "sessionsOtherDevices",
+    "values": {
+      "en": "s",
+      "sq": "të",
+      "sr-Latn": "s"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "sessionsRefresh",
+    "values": {
+      "en": "Refresh",
+      "sq": "Rifresko",
+      "sr-Latn": "Osveži"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "sessionsLogOutEverywhereElse",
+    "values": {
+      "en": "Log out everywhere else",
+      "sq": "Dil nga llogaria kudo tjetër",
+      "sr-Latn": "Odjavi se sa svih ostalih mesta"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "sessionsWarning",
+    "values": {
+      "en": "If you see a session you don't recognise, revoke it immediately and consider changing your password",
+      "sq": "Nëse shihni një sesion që nuk e njihni, anulojeni menjëherë dhe merrni në konsideratë ndryshimin e fjalëkalimit",
+      "sr-Latn": "Ako vidite sesiju koju ne prepoznajete, odmah je opozovite i razmislite o promeni lozinke"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "sessionsOnlyThisDevice",
+    "values": {
+      "en": "Only this device",
+      "sq": "Vetëm kjo pajisje",
+      "sr-Latn": "Samo ovaj uređaj"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "sessionsNoOtherActiveSessions",
+    "values": {
+      "en": "No other active sessions found",
+      "sq": "Nuk u gjetën sesione të tjera aktive",
+      "sr-Latn": "Nisu pronađene druge aktivne sesije"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "sessionsCurrent",
+    "values": {
+      "en": "Current",
+      "sq": "Aktual",
+      "sr-Latn": "Aktuelno"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "sessionsRemembered",
+    "values": {
+      "en": "Remembered",
+      "sq": "I kujtuar",
+      "sr-Latn": "Upamćen"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "sessionsLastActive",
+    "values": {
+      "en": "Last active:",
+      "sq": "Aktiv së fundmi:",
+      "sr-Latn": "Poslednji put aktivan:"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "sessionsLoggedIn2",
+    "values": {
+      "en": "Logged in:",
+      "sq": "Të kyçur:",
+      "sr-Latn": "Prijavljeni ste:"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "sessionsRevoke",
+    "values": {
+      "en": "Revoke",
+      "sq": "Revoko",
+      "sr-Latn": "Opozvati"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "revokeLoading",
+    "values": {
+      "en": "Revoking...",
+      "sq": "Duke revokuar...",
+      "sr-Latn": "Opozivanje..."
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "sessionsExpires",
+    "values": {
+      "en": "Expires:",
+      "sq": "Skadon më:",
+      "sr-Latn": "Ističe:"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "allNotifications",
+    "values": {
+      "en": "All Notifications",
+      "sq": "Të gjitha njoftimet",
+      "sr-Latn": "Sva obaveštenja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "unreadNotifications",
+    "values": {
+      "en": "Unread Notifications",
+      "sq": "Njoftimet e palexuara",
+      "sr-Latn": "Nepročitana obaveštenja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "archivedNotifications",
+    "values": {
+      "en": "Archived Notifications",
+      "sq": "Njoftimet e arkivuara",
+      "sr-Latn": "Arhivirana obaveštenja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "archivedDesc",
+    "values": {
+      "en": "Archived notifications are deleted after 30 days",
+      "sq": "Njoftimet e arkivuara fshihen pas 30 ditësh",
+      "sr-Latn": "Arhivirana obaveštenja se brišu nakon 30 dana"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "notificationDesc",
+    "values": {
+      "en": "Manage your notifications and preferences",
+      "sq": "Menaxhoni njoftimet dhe preferencat tuaja",
+      "sr-Latn": "Upravljajte obaveštenjima i svojim podešavanjima"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "allNotifications2",
+    "values": {
+      "en": "All",
+      "sq": "Të gjitha",
+      "sr-Latn": "Sve"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "unreadNotifications2",
+    "values": {
+      "en": "Unread",
+      "sq": "Të palexuara",
+      "sr-Latn": "Nepročitano"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "archivedNotifications2",
+    "values": {
+      "en": "Archived",
+      "sq": "Të arkivuara",
+      "sr-Latn": "Arhivirano"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "showingNotifications",
+    "values": {
+      "en": "Showing",
+      "sq": "Duke shfaqur",
+      "sr-Latn": "Prikazivanje"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "activeNotifications",
+    "values": {
+      "en": "active",
+      "sq": "aktiv",
+      "sr-Latn": "aktivan"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "notificationLabel",
+    "values": {
+      "en": "notification",
+      "sq": "njoftim",
+      "sr-Latn": "obaveštenje"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "markAllAsRead",
+    "values": {
+      "en": "Mark all as read",
+      "sq": "Shënoji të gjitha si të lexuara",
+      "sr-Latn": "Označi sve kao pročitano"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "archiveRead",
+    "values": {
+      "en": "Archive read",
+      "sq": "Arkivi të lexuarat",
+      "sr-Latn": "Arhiva pročitana"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "archiveAll",
+    "values": {
+      "en": "Archive all",
+      "sq": "Arkivoji të gjitha",
+      "sr-Latn": "Arhiviraj sve"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "unarchiveAll",
+    "values": {
+      "en": "Unarchive all",
+      "sq": "Largo nga arkivi të gjitha",
+      "sr-Latn": "Vrati sve iz arhive"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "clearArchived",
+    "values": {
+      "en": "Clear archived",
+      "sq": "Pastro arkivën",
+      "sr-Latn": "Arhiva je očišćena"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "allArchivedNotifications",
+    "values": {
+      "en": "all archived notifications",
+      "sq": "të gjitha njoftimet e arkivuara",
+      "sr-Latn": "sva arhivirana obaveštenja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "showingNotifications2",
+    "values": {
+      "en": "Showing",
+      "sq": "Duke shfaqur",
+      "sr-Latn": "Prikazivanje"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "pluralNotifications",
+    "values": {
+      "en": "s",
+      "sq": "e",
+      "sr-Latn": "s"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "justNow",
+    "values": {
+      "en": "Just now",
+      "sq": "Tani",
+      "sr-Latn": "Just now"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "notificationsTitle",
+    "values": {
+      "en": "Notifications",
+      "sq": "Njoftimet",
+      "sr-Latn": "Obaveštenja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "newNotifications",
+    "values": {
+      "en": "new",
+      "sq": "të reja",
+      "sr-Latn": "novo"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "viewAllNotifications",
+    "values": {
+      "en": "View all notifications",
+      "sq": "Shiko të gjitha njoftimet",
+      "sr-Latn": "Prikaži sva obaveštenja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "noNotifications",
+    "values": {
+      "en": "No notifications yet",
+      "sq": "Ende nuk ke njoftime",
+      "sr-Latn": "Još uvek nema obaveštenja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "loadingNotifications",
+    "values": {
+      "en": "Loading notifications...",
+      "sq": "Duke ngarkuar njoftimet...",
+      "sr-Latn": "Učitavanje obaveštenja..."
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "noArchivedNotifications",
+    "values": {
+      "en": "No archived notifications",
+      "sq": "Nuk ke njoftime të arkivuara",
+      "sr-Latn": "Nema arhiviranih obaveštenja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "noUnreadNotifications",
+    "values": {
+      "en": "No unread notifications",
+      "sq": "Nuk ka njoftime të palexuara",
+      "sr-Latn": "Nema nepročitanih obaveštenja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "archivedEmptyDescription",
+    "values": {
+      "en": "Archived notifications will be stored here",
+      "sq": "Njoftimet e arkivuara do të ruhen këtu",
+      "sr-Latn": "Arhivirana obaveštenja će biti sačuvana ovde"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "unreadEmptyDescription",
+    "values": {
+      "en": "You have read all your notifications",
+      "sq": "I keni lexuar të gjitha njoftimet",
+      "sr-Latn": "Pročitali ste sva obaveštenja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "emptyDescription",
+    "values": {
+      "en": "Notifications about ticket purchases and login activity will appear here",
+      "sq": "Njoftimet për biletat dhe hyrjet do të shfaqen këtu",
+      "sr-Latn": "Obaveštenja o kupovini karata i prijavama će se pojaviti ovde"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "myReviews",
+    "values": {
+      "en": "My Reviews",
+      "sq": "Vlerësimet e Mia",
+      "sr-Latn": "Moje Recenzije"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "myReviewsDescription",
+    "values": {
+      "en": "Reviews you've shared about movies you've watched",
+      "sq": "Vlerësimet që keni lënë për filmat që keni parë",
+      "sr-Latn": "Recenzije koje ste ostavili za filmove koje ste gledali"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "loadingReviews",
+    "values": {
+      "en": "Loading your reviews...",
+      "sq": "Duke ngarkuar vlerësimet...",
+      "sr-Latn": "Učitavanje vaših recenzija..."
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "reviewsLoadError",
+    "values": {
+      "en": "Unable to load your reviews. Please try again",
+      "sq": "Vlerësimet nuk mund të ngarkoheshin. Ju lutemi provoni përsëri",
+      "sr-Latn": "Nije moguće učitati vaše recenzije. Pokušajte ponovo"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "noReviews",
+    "values": {
+      "en": "No reviews yet",
+      "sq": "Nuk ke ende vlerësime",
+      "sr-Latn": "Još nema recenzija"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "noReviewsDescription",
+    "values": {
+      "en": "Reviews you leave for movies you've watched will appear here",
+      "sq": "Vlerësimet që lini për filmat që keni parë do të shfaqen këtu",
+      "sr-Latn": "Recenzije koje ostavite za filmove koje ste gledali pojaviće se ovde"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "browseMovies2",
+    "values": {
+      "en": "Browse Movies",
+      "sq": "Shfleto Filmat",
+      "sr-Latn": "Pregledaj Filmove"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "dangerZone",
+    "values": {
+      "en": "Danger Zone",
+      "sq": "Zona e Rrezikut",
+      "sr-Latn": "Zona Opasnosti"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "dangerZoneDesc",
+    "values": {
+      "en": "Permanently deactivate your account. This action requires your password and can only be undone during the grace period",
+      "sq": "Çaktivizoni përgjithmonë llogarinë tuaj. Ky veprim kërkon fjalëkalimin tuaj dhe mund të zhbëhet vetëm gjatë periudhës së tolerancës",
+      "sr-Latn": "Trajno deaktivirajte svoj nalog. Ova radnja zahteva vašu lozinku i može se poništiti samo tokom perioda za opoziv"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "logoutAllDevices",
+    "values": {
+      "en": "Log out of all devices",
+      "sq": "Dil nga të gjitha pajisjet",
+      "sr-Latn": "Odjavi se sa svih uređaja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "deleteAccount",
+    "values": {
+      "en": "Delete account",
+      "sq": "Fshi llogarinë",
+      "sr-Latn": "Obriši nalog"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "logoutAllSuccess",
+    "values": {
+      "en": "Logged out of all devices",
+      "sq": "Dolët nga të gjitha pajisjet",
+      "sr-Latn": "Odjavljeni ste sa svih uređaja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "logoutAllError",
+    "values": {
+      "en": "Failed to log out of all devices",
+      "sq": "Dalja nga të gjitha pajisjet dështoi",
+      "sr-Latn": "Odjava sa svih uređaja nije uspela"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "logoutAllDevicesTitle",
+    "values": {
+      "en": "Log out of all devices",
+      "sq": "Dil nga të gjitha pajisjet",
+      "sr-Latn": "Odjavi se sa svih uređaja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "logoutAllDevicesDesc",
+    "values": {
+      "en": "This will end all active sessions, including this device. You'll need to sign in again everywhere",
+      "sq": "Kjo do të mbyllë të gjitha sesionet aktive, përfshirë këtë pajisje. Do të duhet të hyni përsëri kudo",
+      "sr-Latn": "Ovo će prekinuti sve aktivne sesije, uključujući ovu sesiju. Moraćete ponovo da se prijavite svuda"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "logoutAllDevicesCountDescription_one",
+    "values": {
+      "en": "This will end {{count}} active session, including this device. You'll need to sign in again everywhere",
+      "sq": "Kjo do të mbyllë {{count}} sesion aktiv, përfshirë këtë pajisje. Do të duhet të hyni përsëri kudo",
+      "sr-Latn": "Ovo će prekinuti {{count}} aktivnu sesiju, uključujući ovu sesiju. Moraćete ponovo da se prijavite svuda"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "logoutAllDevicesCountDescription_other",
+    "values": {
+      "en": "This will end {{count}} active sessions, including this device. You'll need to sign in again everywhere",
+      "sq": "Kjo do të mbyllë {{count}} sesione aktive, përfshirë këtë pajisje. Do të duhet të hyni përsëri kudo",
+      "sr-Latn": "Ovo će prekinuti {{count}} aktivnih sesija, uključujući ovu sesiju. Moraćete ponovo da se prijavite svuda"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "cancelLogOutAll",
+    "values": {
+      "en": "Cancel",
+      "sq": "Anulo",
+      "sr-Latn": "Otkaži"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "loggingOut",
+    "values": {
+      "en": "Logging out...",
+      "sq": "Duke dalë...",
+      "sr-Latn": "Odjavljivanje..."
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "logoutEverywhere",
+    "values": {
+      "en": "Log out everywhere",
+      "sq": "Dil nga të gjitha pajisjet",
+      "sr-Latn": "Odjavi se svuda"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "deleteAccountTitle",
+    "values": {
+      "en": "Delete account",
+      "sq": "Fshi llogarinë",
+      "sr-Latn": "Obriši nalog"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "deleteAccountWarning",
+    "values": {
+      "en": "This action cannot be undone",
+      "sq": "Ky veprim nuk mund të zhbëhet",
+      "sr-Latn": "Ova radnja se ne može poništiti"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "deleteAccountDesc",
+    "values": {
+      "en": "Your account and associated personal data will be permanently deleted. You will also be signed out of all active sessions",
+      "sq": "Llogaria juaj dhe të dhënat personale të lidhura me të do të fshihen përgjithmonë. Gjithashtu do të dilni nga të gjitha sesionet aktive",
+      "sr-Latn": "Vaš nalog i povezani lični podaci biće trajno obrisani. Takođe ćete biti odjavljeni sa svih aktivnih sesija"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "passwordDeleteAccount",
+    "values": {
+      "en": "Password",
+      "sq": "Fjalëkalimi",
+      "sr-Latn": "Lozinka"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "enterPasswordDeleteAccount",
+    "values": {
+      "en": "Please enter your password",
+      "sq": "Ju lutemi shkruani fjalëkalimin",
+      "sr-Latn": "Unesite lozinku"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "typeDeleteConfirm",
+    "values": {
+      "en": "Please type DELETE to confirm",
+      "sq": "Ju lutemi shkruani DELETE për të konfirmuar",
+      "sr-Latn": "Unesite DELETE za potvrdu"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "typeToConfirm",
+    "values": {
+      "en": "Type",
+      "sq": "Shkruani",
+      "sr-Latn": "Unesite"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "toConfirm",
+    "values": {
+      "en": "to confirm",
+      "sq": "për ta konfirmuar",
+      "sr-Latn": "za potvrdu"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "typeDeleteExactly",
+    "values": {
+      "en": "Please type DELETE exactly as shown",
+      "sq": "Ju lutemi shkruani DELETE saktësisht siç tregohet",
+      "sr-Latn": "Unesite DELETE tačno kao što je prikazano"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "confirmationAccepted2",
+    "values": {
+      "en": "Confirmation accepted",
+      "sq": "Konfirmimi u pranua",
+      "sr-Latn": "Potvrda je prihvaćena"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "deleting",
+    "values": {
+      "en": "Deleting...",
+      "sq": "Duke fshirë...",
+      "sr-Latn": "Brisanje..."
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "deleteAccountError",
+    "values": {
+      "en": "Unable to delete account",
+      "sq": "Fshirja e llogarisë dështoi",
+      "sr-Latn": "Brisanje naloga nije uspelo"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "cancelDeleteAccount",
+    "values": {
+      "en": "Cancel",
+      "sq": "Anulo",
+      "sr-Latn": "Otkaži"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "deleteAccount2",
+    "values": {
+      "en": "Delete account",
+      "sq": "Fshi llogarinë",
+      "sr-Latn": "Obriši nalog"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "deleteConfirmationLabel",
+    "values": {
+      "en": "Type",
+      "sq": "Shkruani",
+      "sr-Latn": "Unesite"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "deleteConfirmationWord",
+    "values": {
+      "en": "DELETE",
+      "sq": "FSHI",
+      "sr-Latn": "OBRIŠI"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "typeDeleteConfirm2",
+    "values": {
+      "en": "Please type {{word}} to delete",
+      "sq": "Shkruani {{word}} për të fshirë",
+      "sr-Latn": "Unesite {{word}} za brisanje"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "typeDeleteExactly2",
+    "values": {
+      "en": "Please type {{word}} exactly as shown",
+      "sq": "Ju lutemi shkruani {{word}} saktësisht siç tregohet",
+      "sr-Latn": "Unesite {{word}} tačno kao što je prikazano"
+    },
+    "context": null
+  },
+  {
+    "namespace": "navbar",
+    "key": "nowShowing",
+    "values": {
+      "en": "Now Showing",
+      "sq": "Në Shfaqje",
+      "sr-Latn": "Trenutno na Repertoaru"
+    },
+    "context": null
+  },
+  {
+    "namespace": "navbar",
+    "key": "giftCards",
+    "values": {
+      "en": "Gift Cards",
+      "sq": "Karta Dhurate",
+      "sr-Latn": "Poklon-kartice"
+    },
+    "context": null
+  },
+  {
+    "namespace": "navbar",
+    "key": "user",
+    "values": {
+      "en": "User",
+      "sq": "Përdoruesi",
+      "sr-Latn": "Korisnik"
+    },
+    "context": null
+  },
+  {
+    "namespace": "navbar",
+    "key": "account",
+    "values": {
+      "en": "Account",
+      "sq": "Llogaria",
+      "sr-Latn": "Nalog"
+    },
+    "context": null
+  },
+  {
+    "namespace": "navbar",
+    "key": "dashboard",
+    "values": {
+      "en": "Dashboard",
+      "sq": "Paneli",
+      "sr-Latn": "Kontrolna tabla"
+    },
+    "context": null
+  },
+  {
+    "namespace": "navbar",
+    "key": "myTickets",
+    "values": {
+      "en": "My Tickets",
+      "sq": "Biletat e Mia",
+      "sr-Latn": "Moje Karte"
+    },
+    "context": null
+  },
+  {
+    "namespace": "navbar",
+    "key": "favourites",
+    "values": {
+      "en": "Favourites",
+      "sq": "Të Preferuarat",
+      "sr-Latn": "Omiljeno"
+    },
+    "context": null
+  },
+  {
+    "namespace": "navbar",
+    "key": "logOut",
+    "values": {
+      "en": "Log out",
+      "sq": "Dil",
+      "sr-Latn": "Odjavi se"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "dashboardTitle",
+    "values": {
+      "en": "Admin Dashboard",
+      "sq": "Paneli i Administratorit",
+      "sr-Latn": "Administratorska kontrolna tabla"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "deleteArchivedNotifTitle",
+    "values": {
+      "en": "Delete Archived Notifications",
+      "sq": "Fshi Njoftimet e Arkivuara",
+      "sr-Latn": "Obriši Arhivirana Obaveštenja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "deleteNotifTitle",
+    "values": {
+      "en": "Delete Notification",
+      "sq": "Fshi Njoftimin",
+      "sr-Latn": "Obriši Obaveštenje"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "deleteNotifWarning",
+    "values": {
+      "en": "This action cannot be undone",
+      "sq": "Ky veprim nuk mund të zhbëhet",
+      "sr-Latn": "Ova radnja se ne može poništiti"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "confirmDeleteArchivedNotif",
+    "values": {
+      "en": "Are you sure you want to permanently delete all archived notifications?",
+      "sq": "A jeni i sigurt që dëshironi të fshini përgjithmonë të gjitha njoftimet e arkivuara?",
+      "sr-Latn": "Da li ste sigurni da želite trajno da obrišete sva arhivirana obaveštenja?"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "confirmDeleteNotif",
+    "values": {
+      "en": "Are you sure you want to permanently delete this notification?",
+      "sq": "A jeni i sigurt që dëshironi ta fshini përgjithmonë këtë njoftim?",
+      "sr-Latn": "Da li ste sigurni da želite trajno da obrišete ovo obaveštenje?"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "archivedNotifs",
+    "values": {
+      "en": "Archived Notifications",
+      "sq": "Njoftimet e Arkivuara",
+      "sr-Latn": "Arhivirana Obaveštenja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "notification",
+    "values": {
+      "en": "Notification",
+      "sq": "Njoftim",
+      "sr-Latn": "Obaveštenje"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "allArchivedNotifs",
+    "values": {
+      "en": "All archived notifications",
+      "sq": "Të gjitha njoftimet e arkivuara",
+      "sr-Latn": "Sva arhivirana obaveštenja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "deletingNotif",
+    "values": {
+      "en": "Deleting...",
+      "sq": "Duke fshirë...",
+      "sr-Latn": "Brisanje..."
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "deleteNotif",
+    "values": {
+      "en": "Delete",
+      "sq": "Fshi",
+      "sr-Latn": "Obriši"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "cancelDeleteNotif",
+    "values": {
+      "en": "Cancel",
+      "sq": "Anulo",
+      "sr-Latn": "Otkaži"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "notifPurchaseTitle",
+    "values": {
+      "en": "Ticket Purchase Confirmed",
+      "sq": "Blerja e Biletës u Konfirmua",
+      "sr-Latn": "Kupovina Karte Potvrđena"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "notifPurchaseMessage",
+    "values": {
+      "en": "Your booking for \\\"{{movieTitle}}\\\" (Seats: {{seatStr}}) has been confirmed. Total: ${{amount}}",
+      "sq": "Rezervimi juaj për filmin \\\"{{movieTitle}}\\\" (Vendet: {{seatStr}}) është konfirmuar. Gjithsej: ${{amount}}",
+      "sr-Latn": "Vaša rezervacija za film „{{movieTitle}}“ (Sedišta: {{seatStr}}) je potvrđena. Ukupno: ${{amount}}"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "passkeyNotRecognized",
+    "values": {
+      "en": "Passkey not recognized",
+      "sq": "Passkey nuk u njoh",
+      "sr-Latn": "Passkey nije prepoznat"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "passkeyNotRegistered",
+    "values": {
+      "en": "Passkey is not registered for any account",
+      "sq": "Passkey nuk është i regjistruar për asnjë llogari",
+      "sr-Latn": "Passkey nije registrovan ni za jedan nalog"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "passkeyAuthenticationFailed",
+    "values": {
+      "en": "Passkey authentication failed",
+      "sq": "Autentifikimi me Passkey dështoi",
+      "sr-Latn": "Autentifikacija putem Passkey-a nije uspela"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "loginSuccessful",
+    "values": {
+      "en": "Logged in successfully",
+      "sq": "U kyçët me sukses",
+      "sr-Latn": "Uspešno ste se prijavili"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "notifPasskeyLoginTitle",
+    "values": {
+      "en": "Passkey Login Detected",
+      "sq": "U Diktua Hyrje me Passkey",
+      "sr-Latn": "Otkriveno prijavljivanje putem Passkey-a"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "notifPasskeyLoginMessage",
+    "values": {
+      "en": "You logged in to GoldCinema using a Passkey",
+      "sq": "Jeni kyçur në GoldCinema duke përdorur një Passkey",
+      "sr-Latn": "Prijavili ste se na GoldCinema koristeći Passkey"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "notificationSettings",
+    "values": {
+      "en": "Settings",
+      "sq": "Cilësimet",
+      "sr-Latn": "Podešavanja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "thisMovie",
+    "values": {
+      "en": "this movie",
+      "sq": "këtë film",
+      "sr-Latn": "ovaj film"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "editReview",
+    "values": {
+      "en": "Edit Review",
+      "sq": "Ndrysho vlerësimin",
+      "sr-Latn": "Izmeni recenziju"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "editingReviewFor",
+    "values": {
+      "en": "Editing your review for",
+      "sq": "Po ndryshoni vlerësimin tuaj për",
+      "sr-Latn": "Menjate svoju recenziju za"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "unableToUpdateReview",
+    "values": {
+      "en": "Unable to update review",
+      "sq": "Vlerësimi nuk mund të përditësohet",
+      "sr-Latn": "Nije moguće ažurirati recenziju"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "reviewUpdated",
+    "values": {
+      "en": "Review updated",
+      "sq": "Vlerësimi u përditësua",
+      "sr-Latn": "Recenzija je ažurirana"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "reviewUpdatedSuccessfully",
+    "values": {
+      "en": "Review updated successfully",
+      "sq": "Vlerësimi u përditësua me sukses",
+      "sr-Latn": "Recenzija je uspešno ažurirana"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "failedToUpdateReview",
+    "values": {
+      "en": "Failed to update review",
+      "sq": "Përditësimi i vlerësimit dështoi",
+      "sr-Latn": "Ažuriranje recenzije nije uspelo"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "selectRating",
+    "values": {
+      "en": "Please select a rating",
+      "sq": "Ju lutemi zgjidhni një vlerësim",
+      "sr-Latn": "Molimo izaberite ocenu"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "commentLength",
+    "values": {
+      "en": "Comment must be between 3 and 1000 characters",
+      "sq": "Komenti duhet të jetë nga 3 deri në 1000 karaktere",
+      "sr-Latn": "Komentar mora imati između 3 i 1000 karaktera"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "ratingReview",
+    "values": {
+      "en": "Rating",
+      "sq": "Vlerësimi",
+      "sr-Latn": "Ocena"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "commentReview",
+    "values": {
+      "en": "Comment",
+      "sq": "Komenti",
+      "sr-Latn": "Komentar"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "cancelReview",
+    "values": {
+      "en": "Cancel",
+      "sq": "Anulo",
+      "sr-Latn": "Otkaži"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "savingReview",
+    "values": {
+      "en": "Saving...",
+      "sq": "Duke ruajtur...",
+      "sr-Latn": "Čuvanje..."
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "saveReview",
+    "values": {
+      "en": "Save Changes",
+      "sq": "Ruaj Ndryshimet",
+      "sr-Latn": "Sačuvaj Izmene"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "removePaymentMethodModal2",
+    "values": {
+      "en": "exactly as shown",
+      "sq": "pikërisht siç tregohet",
+      "sr-Latn": "tačno kako je prikazano"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "addToFavourites",
+    "values": {
+      "en": "Add to favourites",
+      "sq": "Shto te të preferuarat",
+      "sr-Latn": "Dodaj u omiljene"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "removeFromFavourites",
+    "values": {
+      "en": "Remove from favourites",
+      "sq": "Hiq nga të preferuarat",
+      "sr-Latn": "Ukloni iz omiljenih"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "deleteReview",
+    "values": {
+      "en": "Delete Review",
+      "sq": "Fshi vlerësimin",
+      "sr-Latn": "Obriši recenziju"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "deleteReviewWarning",
+    "values": {
+      "en": "This action cannot be undone",
+      "sq": "Ky veprim nuk mund të zhbëhet",
+      "sr-Latn": "Ova radnja se ne može poništiti"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "deleteReviewConfirmation",
+    "values": {
+      "en": "Your review for",
+      "sq": "Vlerësimi juaj për",
+      "sr-Latn": "Vaša recenzija za"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "reviewWillBeDeleted",
+    "values": {
+      "en": "will be permanently deleted",
+      "sq": "do të fshihet përgjithmonë",
+      "sr-Latn": "biće trajno obrisana"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "unableToDeleteReview",
+    "values": {
+      "en": "Unable to delete review",
+      "sq": "Vlerësimi nuk mund të fshihet",
+      "sr-Latn": "Recenzija nije mogla biti obrisana"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "reviewDeleted",
+    "values": {
+      "en": "Review deleted",
+      "sq": "Vlerësimi u fshi",
+      "sr-Latn": "Recenzija je obrisana"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "reviewDeletedSuccessfully",
+    "values": {
+      "en": "Your review has been deleted successfully",
+      "sq": "Vlerësimi juaj u fshi me sukses",
+      "sr-Latn": "Vaša recenzija je uspešno obrisana"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "unableToDeleteReviewTryAgain",
+    "values": {
+      "en": "Unable to delete review. Please try again",
+      "sq": "Vlerësimi nuk mund të fshihet. Ju lutemi provoni përsëri",
+      "sr-Latn": "Recenzija nije mogla biti obrisana. Pokušajte ponovo"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "deletingReview",
+    "values": {
+      "en": "Deleting...",
+      "sq": "Duke fshirë...",
+      "sr-Latn": "Brisanje..."
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "cancelDelReview",
+    "values": {
+      "en": "Cancel",
+      "sq": "Anulo",
+      "sr-Latn": "Otkaži"
+    },
+    "context": null
+  },
+  {
+    "namespace": "account",
+    "key": "editDelReview",
+    "values": {
+      "en": "Edit Review",
+      "sq": "Ndrysho Vlerësimin",
+      "sr-Latn": "Izmeni Recenziju"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "management",
+    "values": {
+      "en": "Management",
+      "sq": "Menaxhimi",
+      "sr-Latn": "Upravljanje"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "catalogCinema",
+    "values": {
+      "en": "Cinema Catalog",
+      "sq": "Katalogu i Kinemasë",
+      "sr-Latn": "Katalog Bioskopa"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "sales",
+    "values": {
+      "en": "Sales",
+      "sq": "Shitjet",
+      "sr-Latn": "Prodaja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "staffOperations",
+    "values": {
+      "en": "Staff & Operations",
+      "sq": "Stafi & Operacionet",
+      "sr-Latn": "Osoblje & Operacije"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "analytics",
+    "values": {
+      "en": "Analytics",
+      "sq": "Analitika",
+      "sr-Latn": "Analitika"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "users",
+    "values": {
+      "en": "Users",
+      "sq": "Përdoruesit",
+      "sr-Latn": "Korisnici"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "roles",
+    "values": {
+      "en": "Roles",
+      "sq": "Rolet",
+      "sr-Latn": "Uloge"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "contacts",
+    "values": {
+      "en": "Contacts",
+      "sq": "Kontaktet",
+      "sr-Latn": "Kontakti"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "auditLogs",
+    "values": {
+      "en": "Audit Logs",
+      "sq": "Regjistrat e Auditimit",
+      "sr-Latn": "Dnevnici Revizije"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "translations",
+    "values": {
+      "en": "Translations",
+      "sq": "Përkthimet",
+      "sr-Latn": "Prevod"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "movies",
+    "values": {
+      "en": "Movies",
+      "sq": "Filmat",
+      "sr-Latn": "Filmovi"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "cinemas",
+    "values": {
+      "en": "Cinemas",
+      "sq": "Kinematë",
+      "sr-Latn": "Bioskopi"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "screens",
+    "values": {
+      "en": "Screens",
+      "sq": "Sallat",
+      "sr-Latn": "Sale"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "screenConfigs",
+    "values": {
+      "en": "Screen Configurations",
+      "sq": "Konfigurimet e Sallave",
+      "sr-Latn": "Konfiguracije Sala"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "seats",
+    "values": {
+      "en": "Seats",
+      "sq": "Ulëset",
+      "sr-Latn": "Sedišta"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "showtimes",
+    "values": {
+      "en": "Showtimes",
+      "sq": "Shfaqjet",
+      "sr-Latn": "Projekcije"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "seatHolds",
+    "values": {
+      "en": "Seat Holds",
+      "sq": "Rezervimet e Ulëseve",
+      "sr-Latn": "Rezervacije Sedišta"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "snacks",
+    "values": {
+      "en": "Snacks",
+      "sq": "Ushqimet",
+      "sr-Latn": "Grickalice"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "orders",
+    "values": {
+      "en": "Orders",
+      "sq": "Porositë",
+      "sr-Latn": "Porudžbine"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "staff",
+    "values": {
+      "en": "Staff",
+      "sq": "Stafi",
+      "sr-Latn": "Osoblje"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "shifts",
+    "values": {
+      "en": "Shifts",
+      "sq": "Ndërrimet",
+      "sr-Latn": "Smene"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "equipment",
+    "values": {
+      "en": "Equipment",
+      "sq": "Pajisjet",
+      "sr-Latn": "Oprema"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "maintenance",
+    "values": {
+      "en": "Maintenance",
+      "sq": "Mirëmbajtja",
+      "sr-Latn": "Održavanje"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "moviePerformance",
+    "values": {
+      "en": "Movie Performance",
+      "sq": "Performanca e Filmave",
+      "sr-Latn": "Performanse Filmova"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "customerAnalytics",
+    "values": {
+      "en": "Customer Analytics",
+      "sq": "Analitika e Klientëve",
+      "sr-Latn": "Analitika Korisnika"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "usersName",
+    "values": {
+      "en": "Name",
+      "sq": "Emri",
+      "sr-Latn": "Ime"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "usersEmail",
+    "values": {
+      "en": "Email",
+      "sq": "Email",
+      "sr-Latn": "E-pošta"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "usersRole",
+    "values": {
+      "en": "Role",
+      "sq": "Roli",
+      "sr-Latn": "Uloga"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "rolesRoleName",
+    "values": {
+      "en": "Role Name",
+      "sq": "Emri i Rolit",
+      "sr-Latn": "Naziv Uloge"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "rolesDescription",
+    "values": {
+      "en": "Description",
+      "sq": "Përshkrimi",
+      "sr-Latn": "Opis"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "contactsSenderName",
+    "values": {
+      "en": "Sender Name",
+      "sq": "Emri i Dërguesit",
+      "sr-Latn": "Ime Pošiljaoca"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "contactsEmail",
+    "values": {
+      "en": "Email",
+      "sq": "Email",
+      "sr-Latn": "E-pošta"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "contactsSubject",
+    "values": {
+      "en": "Subject",
+      "sq": "Subjekti",
+      "sr-Latn": "Naslov"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "contactsMessage",
+    "values": {
+      "en": "Message",
+      "sq": "Mesazhi",
+      "sr-Latn": "Poruka"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "contactsStatus",
+    "values": {
+      "en": "Status",
+      "sq": "Statusi",
+      "sr-Latn": "Status"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "auditLogsUser",
+    "values": {
+      "en": "User",
+      "sq": "Përdoruesi",
+      "sr-Latn": "Korisnik"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "auditLogsAction",
+    "values": {
+      "en": "Action",
+      "sq": "Veprimi",
+      "sr-Latn": "Radnja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "auditLogsTimestamp",
+    "values": {
+      "en": "Timestamp",
+      "sq": "Koha",
+      "sr-Latn": "Vremenska oznaka"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "auditLogsIpAddress",
+    "values": {
+      "en": "IP Address",
+      "sq": "Adresa IP",
+      "sr-Latn": "IP adresa"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "auditLogsUserAgent",
+    "values": {
+      "en": "User Agent",
+      "sq": "User Agent",
+      "sr-Latn": "User Agent"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "translationsNamespace",
+    "values": {
+      "en": "Namespace",
+      "sq": "Hapësira e emrave",
+      "sr-Latn": "Prostor imena"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "translationsKey",
+    "values": {
+      "en": "Key",
+      "sq": "Çelësi",
+      "sr-Latn": "Ključ"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "translationsEnglish",
+    "values": {
+      "en": "English",
+      "sq": "Anglisht",
+      "sr-Latn": "Engleski"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "translationsAlbanian",
+    "values": {
+      "en": "Albanian",
+      "sq": "Shqip",
+      "sr-Latn": "Albanski"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "translationsSerbianLatin",
+    "values": {
+      "en": "Serbian Latin",
+      "sq": "Serbisht Latin",
+      "sr-Latn": "Srpski Latinica"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "translationsTranslatorNotes",
+    "values": {
+      "en": "Translator Notes",
+      "sq": "Shënime për Përkthyesin",
+      "sr-Latn": "Napomene za Prevodioca"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "moviesTitle",
+    "values": {
+      "en": "Title",
+      "sq": "Titulli",
+      "sr-Latn": "Naslov"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "moviesGenres",
+    "values": {
+      "en": "Genres",
+      "sq": "Zhanret",
+      "sr-Latn": "Žanrovi"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "moviesDurationMins",
+    "values": {
+      "en": "Duration (mins)",
+      "sq": "Kohëzgjatja (min)",
+      "sr-Latn": "Trajanje (min)"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "moviesRatingExample",
+    "values": {
+      "en": "Rating",
+      "sq": "Vlerësimi",
+      "sr-Latn": "Ocena"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "moviesBasePrice",
+    "values": {
+      "en": "Base Price",
+      "sq": "Çmimi Bazë",
+      "sr-Latn": "Osnovna Cena"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "moviesReleaseDate",
+    "values": {
+      "en": "Release Date",
+      "sq": "Data e Publikimit",
+      "sr-Latn": "Datum Premijere"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "moviesSlug",
+    "values": {
+      "en": "Slug",
+      "sq": "Slug",
+      "sr-Latn": "Slug"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "moviesDescription",
+    "values": {
+      "en": "Description",
+      "sq": "Përshkrimi",
+      "sr-Latn": "Opis"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "moviesPosterUrl",
+    "values": {
+      "en": "Poster URL",
+      "sq": "URL e Posterit",
+      "sr-Latn": "URL Postera"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "moviesTrailerUrl",
+    "values": {
+      "en": "Trailer URL",
+      "sq": "URL e Trailerit",
+      "sr-Latn": "URL Trejlera"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "moviesRating",
+    "values": {
+      "en": "Rating",
+      "sq": "Vlerësimi",
+      "sr-Latn": "Ocena"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "moviesActive",
+    "values": {
+      "en": "Active",
+      "sq": "Aktiv",
+      "sr-Latn": "Aktivan"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "moviesAverageRating",
+    "values": {
+      "en": "Average Rating",
+      "sq": "Vlerësimi Mesatar",
+      "sr-Latn": "Prosečna Ocena"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "moviesReviewCount",
+    "values": {
+      "en": "Review Count",
+      "sq": "Numri i Vlerësimeve",
+      "sr-Latn": "Broj Recenzija"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "cinemasName",
+    "values": {
+      "en": "Cinema Name",
+      "sq": "Emri i Kinemasë",
+      "sr-Latn": "Naziv Bioskopa"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "cinemasAddress",
+    "values": {
+      "en": "Address",
+      "sq": "Adresa",
+      "sr-Latn": "Adresa"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "cinemasCountry",
+    "values": {
+      "en": "Country",
+      "sq": "Shteti",
+      "sr-Latn": "Država"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "cinemasCity",
+    "values": {
+      "en": "City",
+      "sq": "Qyteti",
+      "sr-Latn": "Grad"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "actionsTable",
+    "values": {
+      "en": "Actions",
+      "sq": "Veprimet",
+      "sr-Latn": "Radnje"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "moduleSubtitle",
+    "values": {
+      "en": "Manage your movie platform's {{label}} settings and records",
+      "sq": "Menaxho cilësimet dhe të dhënat e {{label}} për platformën tuaj të filmave",
+      "sr-Latn": "Upravljajte podešavanjima i zapisima za {{label}} na vašoj filmskoj platformi"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "deleteSelected",
+    "values": {
+      "en": "Delete Selected ({{count}})",
+      "sq": "Fshi të zgjedhurat ({{count}})",
+      "sr-Latn": "Obriši izabrano ({{count}})"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "addModule",
+    "values": {
+      "en": "Add {{label}}",
+      "sq": "Shto {{label}}",
+      "sr-Latn": "Dodaj {{label}}"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "searchPlaceholder",
+    "values": {
+      "en": "Search {{label}}...",
+      "sq": "Kërko {{label}}...",
+      "sr-Latn": "Pretraži {{label}}..."
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "filters",
+    "values": {
+      "en": "Filters",
+      "sq": "Filtrat",
+      "sr-Latn": "Filteri"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "noFiltersConfigured",
+    "values": {
+      "en": "No filters configured for this module",
+      "sq": "Nuk ka filtra të konfiguruar për këtë modul",
+      "sr-Latn": "Nema konfigurisanih filtera za ovaj modul"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "addFilterableFields",
+    "values": {
+      "en": "Add filterable fields to enable filtering",
+      "sq": "Shto fusha të filtrueshme për të mundësuar filtrimin",
+      "sr-Latn": "Dodajte polja za filtriranje da biste omogućili pretragu po filterima"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "activeFilters",
+    "values": {
+      "en": "Active:",
+      "sq": "Aktivë:",
+      "sr-Latn": "Aktivno:"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "searchBadge",
+    "values": {
+      "en": "Search: {{search}}",
+      "sq": "Kërkim: {{search}}",
+      "sr-Latn": "Pretraga: {{search}}"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "clearAll",
+    "values": {
+      "en": "Clear all",
+      "sq": "Pastro të gjitha",
+      "sr-Latn": "Obriši sve"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "loadingRecords",
+    "values": {
+      "en": "Loading {{label}} records...",
+      "sq": "Po ngarkohen të dhënat për {{label}}...",
+      "sr-Latn": "Učitavanje zapisa za {{label}}..."
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "selectAllRows",
+    "values": {
+      "en": "Select all rows",
+      "sq": "Zgjidh të gjitha rreshtat",
+      "sr-Latn": "Izaberi sve redove"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "noRecordsFound",
+    "values": {
+      "en": "No {{label}} found",
+      "sq": "Nuk u gjet asnjë {{label}}",
+      "sr-Latn": "Nisu pronađeni zapisi za {{label}}"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "selectRow",
+    "values": {
+      "en": "Select row {{id}}",
+      "sq": "Zgjidh rreshtin {{id}}",
+      "sr-Latn": "Izaberi red {{id}}"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "edit",
+    "values": {
+      "en": "Edit",
+      "sq": "Ndrysho",
+      "sr-Latn": "Izmeni"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "delete",
+    "values": {
+      "en": "Delete",
+      "sq": "Fshi",
+      "sr-Latn": "Obriši"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "paginationInfo",
+    "values": {
+      "en": "Page {{page}} of {{totalPages}}",
+      "sq": "Faqja {{page}} nga {{totalPages}}",
+      "sr-Latn": "Strana {{page}} od {{totalPages}}"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "previous",
+    "values": {
+      "en": "Previous",
+      "sq": "Mëparshme",
+      "sr-Latn": "Prethodna"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "next",
+    "values": {
+      "en": "Next",
+      "sq": "Tjetër",
+      "sr-Latn": "Sledeća"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "editModalTitle",
+    "values": {
+      "en": "Edit",
+      "sq": "Ndrysho",
+      "sr-Latn": "Izmeni"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "createModalTitle",
+    "values": {
+      "en": "Create",
+      "sq": "Krijo",
+      "sr-Latn": "Kreiraj"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "form.name",
+    "values": {
+      "en": "Name",
+      "sq": "Emri",
+      "sr-Latn": "Ime"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "form.email",
+    "values": {
+      "en": "Email",
+      "sq": "Email",
+      "sr-Latn": "E-pošta"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "form.role",
+    "values": {
+      "en": "Role",
+      "sq": "Roli",
+      "sr-Latn": "Uloga"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "success.updated",
+    "values": {
+      "en": "{{label}} updated successfully",
+      "sq": "{{label}} u përditësua me sukses",
+      "sr-Latn": "{{label}} je uspešno ažuriran"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "success.created",
+    "values": {
+      "en": "{{label}} created successfully",
+      "sq": "{{label}} u krijua me sukses",
+      "sr-Latn": "{{label}} uspešno kreirano"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "errors.fetchRoles",
+    "values": {
+      "en": "Error fetching roles: {{message}}",
+      "sq": "Error fetching roles: {{message}}",
+      "sr-Latn": "Greška pri preuzimanju uloga: {{message}}"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "errors.fetchModule",
+    "values": {
+      "en": "Error fetching {{label}}: {{message}}",
+      "sq": "Gabim gjatë marrjes së {{label}}: {{message}}",
+      "sr-Latn": "Greška pri preuzimanju {{label}}: {{message}}"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "errors.failedSave",
+    "values": {
+      "en": "Failed to save {{label}}",
+      "sq": "Failed to save {{label}}",
+      "sr-Latn": "Čuvanje {{label}} nije uspelo"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "errors.failedDelete",
+    "values": {
+      "en": "Failed to delete item(s): {{message}}",
+      "sq": "Fshirja e elementit/ve dështoi: {{message}}",
+      "sr-Latn": "Brisanje stavke/stavki nije uspelo: {{message}}"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "screensCinemaId",
+    "values": {
+      "en": "Cinema ID",
+      "sq": "ID e kinemasë",
+      "sr-Latn": "ID bioskopa"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "screensScreenNumber",
+    "values": {
+      "en": "Screen number",
+      "sq": "Numri i sallës",
+      "sr-Latn": "Broj sale"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "screensCinemaName",
+    "values": {
+      "en": "Cinema name",
+      "sq": "Emri i kinemasë",
+      "sr-Latn": "Naziv bioskopa"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "screenConfigsScreen",
+    "values": {
+      "en": "Screen",
+      "sq": "Salla",
+      "sr-Latn": "Sala"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "screenConfigsType",
+    "values": {
+      "en": "Type",
+      "sq": "Lloji",
+      "sr-Latn": "Tip"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "screenConfigsSoundSystem",
+    "values": {
+      "en": "Sound system",
+      "sq": "Sistemi i zërit",
+      "sr-Latn": "Zvučni sistem"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "screenConfigsProjector",
+    "values": {
+      "en": "Projector",
+      "sq": "Projektori",
+      "sr-Latn": "Projektor"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "screenConfigsThreeD",
+    "values": {
+      "en": "3D",
+      "sq": "3D",
+      "sr-Latn": "3D"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "screenConfigsHfr",
+    "values": {
+      "en": "HFR",
+      "sq": "HFR",
+      "sr-Latn": "HFR"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "seatsRowExample",
+    "values": {
+      "en": "Row",
+      "sq": "Rreshti",
+      "sr-Latn": "Red"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "seatsNumberExample",
+    "values": {
+      "en": "Seat number",
+      "sq": "Numri i ulëses",
+      "sr-Latn": "Broj sedišta"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "seatsStatus",
+    "values": {
+      "en": "Status",
+      "sq": "Statusi",
+      "sr-Latn": "Status"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "seatsType",
+    "values": {
+      "en": "Type",
+      "sq": "Lloji",
+      "sr-Latn": "Tip"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "seatsColumnIndex",
+    "values": {
+      "en": "Column index",
+      "sq": "Indeksi i kolonës",
+      "sr-Latn": "Indeks kolone"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "showtimesStartTime",
+    "values": {
+      "en": "Start time",
+      "sq": "Koha e fillimit",
+      "sr-Latn": "Vreme početka"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "showtimesMovieId",
+    "values": {
+      "en": "Movie ID",
+      "sq": "ID e filmit",
+      "sr-Latn": "ID filma"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "showtimesScreenId",
+    "values": {
+      "en": "Screen ID",
+      "sq": "ID e sallës",
+      "sr-Latn": "ID sale"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "showtimesTicketPrice",
+    "values": {
+      "en": "Ticket price",
+      "sq": "Çmimi i biletës",
+      "sr-Latn": "Cena karte"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "seatHoldsShowtimeId",
+    "values": {
+      "en": "Showtime ID",
+      "sq": "ID e shfaqjes",
+      "sr-Latn": "ID projekcije"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "seatHoldsUserId",
+    "values": {
+      "en": "User ID",
+      "sq": "ID e përdoruesit",
+      "sr-Latn": "ID korisnika"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "seatHoldsExpiresAt",
+    "values": {
+      "en": "Expires at",
+      "sq": "Skadon më",
+      "sr-Latn": "Ističe"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "snacksName",
+    "values": {
+      "en": "Snack name",
+      "sq": "Emri i ushqimit",
+      "sr-Latn": "Naziv grickalice"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "snacksCategory",
+    "values": {
+      "en": "Category",
+      "sq": "Kategoria",
+      "sr-Latn": "Kategorija"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "snacksAvailable",
+    "values": {
+      "en": "Available",
+      "sq": "I disponueshëm",
+      "sr-Latn": "Dostupno"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "snacksPrice",
+    "values": {
+      "en": "Price",
+      "sq": "Çmimi",
+      "sr-Latn": "Cena"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "snacksImage",
+    "values": {
+      "en": "Image",
+      "sq": "Imazhi",
+      "sr-Latn": "Slika"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "ordersUser",
+    "values": {
+      "en": "User",
+      "sq": "Përdoruesi",
+      "sr-Latn": "Korisnik"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "ordersMovie",
+    "values": {
+      "en": "Movie",
+      "sq": "Filmi",
+      "sr-Latn": "Film"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "ordersShowtime",
+    "values": {
+      "en": "Showtime",
+      "sq": "Shfaqja",
+      "sr-Latn": "Projekcija"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "ordersTotalAmount",
+    "values": {
+      "en": "Total amount",
+      "sq": "Shuma totale",
+      "sr-Latn": "Ukupan iznos"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "ordersPaymentStatus",
+    "values": {
+      "en": "Payment status",
+      "sq": "Statusi i pagesës",
+      "sr-Latn": "Status plaćanja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "ordersPaymentProvider",
+    "values": {
+      "en": "Payment provider",
+      "sq": "Ofruesi i pagesës",
+      "sr-Latn": "Pružalac plaćanja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "staffUser",
+    "values": {
+      "en": "User",
+      "sq": "Përdoruesi",
+      "sr-Latn": "Korisnik"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "staffEmployeeId",
+    "values": {
+      "en": "Employee ID",
+      "sq": "ID e punonjësit",
+      "sr-Latn": "ID zaposlenog"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "staffPosition",
+    "values": {
+      "en": "Position",
+      "sq": "Pozita",
+      "sr-Latn": "Pozicija"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "staffCinema",
+    "values": {
+      "en": "Cinema",
+      "sq": "Kinemaja",
+      "sr-Latn": "Bioskop"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "staffActive",
+    "values": {
+      "en": "Active",
+      "sq": "Aktiv",
+      "sr-Latn": "Aktivan"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "staffHireDate",
+    "values": {
+      "en": "Hire date",
+      "sq": "Data e punësimit",
+      "sr-Latn": "Datum zaposlenja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "staffHourlyRate",
+    "values": {
+      "en": "Hourly rate",
+      "sq": "Tarifa për orë",
+      "sr-Latn": "Satnica"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "shiftsStaff",
+    "values": {
+      "en": "Staff",
+      "sq": "Stafi",
+      "sr-Latn": "Osoblje"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "shiftsCinema",
+    "values": {
+      "en": "Cinema",
+      "sq": "Kinemaja",
+      "sr-Latn": "Bioskop"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "shiftsStart",
+    "values": {
+      "en": "Start",
+      "sq": "Fillimi",
+      "sr-Latn": "Početak"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "shiftsEnd",
+    "values": {
+      "en": "End",
+      "sq": "Mbarimi",
+      "sr-Latn": "Kraj"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "shiftsStatus",
+    "values": {
+      "en": "Status",
+      "sq": "Statusi",
+      "sr-Latn": "Status"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "shiftsRole",
+    "values": {
+      "en": "Role",
+      "sq": "Roli",
+      "sr-Latn": "Uloga"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "equipmentName",
+    "values": {
+      "en": "Name",
+      "sq": "Emri",
+      "sr-Latn": "Naziv"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "equipmentCinema",
+    "values": {
+      "en": "Cinema",
+      "sq": "Kinemaja",
+      "sr-Latn": "Bioskop"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "equipmentSerialNumber",
+    "values": {
+      "en": "Serial number",
+      "sq": "Numri serik",
+      "sr-Latn": "Serijski broj"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "equipmentPurchased",
+    "values": {
+      "en": "Purchased",
+      "sq": "Blerë më",
+      "sr-Latn": "Kupljeno"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "equipmentType",
+    "values": {
+      "en": "Type",
+      "sq": "Lloji",
+      "sr-Latn": "Tip"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "equipmentStatus",
+    "values": {
+      "en": "Status",
+      "sq": "Statusi",
+      "sr-Latn": "Status"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "maintenanceEquipment",
+    "values": {
+      "en": "Equipment",
+      "sq": "Pajisja",
+      "sr-Latn": "Oprema"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "maintenanceDescription",
+    "values": {
+      "en": "Description",
+      "sq": "Përshkrimi",
+      "sr-Latn": "Opis"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "maintenanceCost",
+    "values": {
+      "en": "Cost",
+      "sq": "Kostoja",
+      "sr-Latn": "Trošak"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "maintenanceType",
+    "values": {
+      "en": "Type",
+      "sq": "Lloji",
+      "sr-Latn": "Tip"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "maintenancePerformedBy",
+    "values": {
+      "en": "Performed by",
+      "sq": "Kryer nga",
+      "sr-Latn": "Izvršio"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "maintenancePerformedAt",
+    "values": {
+      "en": "Performed at",
+      "sq": "Kryer më",
+      "sr-Latn": "Izvršeno"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "moviePerformanceMovie",
+    "values": {
+      "en": "Movie",
+      "sq": "Filmi",
+      "sr-Latn": "Film"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "moviePerformanceDate",
+    "values": {
+      "en": "Date",
+      "sq": "Data",
+      "sr-Latn": "Datum"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "moviePerformanceShowtimes",
+    "values": {
+      "en": "Showtimes",
+      "sq": "Shfaqjet",
+      "sr-Latn": "Projekcije"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "moviePerformanceTicketsSold",
+    "values": {
+      "en": "Tickets sold",
+      "sq": "Biletat e shitura",
+      "sr-Latn": "Prodate karte"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "moviePerformanceRevenue",
+    "values": {
+      "en": "Revenue",
+      "sq": "Të ardhurat",
+      "sr-Latn": "Prihod"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "moviePerformanceAvgOccupancy",
+    "values": {
+      "en": "Average occupancy",
+      "sq": "Zënia mesatare",
+      "sr-Latn": "Prosečna"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "moviePerformanceRating",
+    "values": {
+      "en": "Rating",
+      "sq": "Vlerësimi",
+      "sr-Latn": "Ocena"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "customerAnalyticsUser",
+    "values": {
+      "en": "User",
+      "sq": "Përdoruesi",
+      "sr-Latn": "Korisnik"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "customerAnalyticsTotalSpent",
+    "values": {
+      "en": "Total spent",
+      "sq": "Shpenzimet totale",
+      "sr-Latn": "Ukupna potrošnja"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "customerAnalyticsVisits",
+    "values": {
+      "en": "Visits",
+      "sq": "Vizitat",
+      "sr-Latn": "Posete"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "customerAnalyticsFavouriteGenre",
+    "values": {
+      "en": "Favourite genre",
+      "sq": "Zhanri i preferuar",
+      "sr-Latn": "Omiljeni žanr"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "customerAnalyticsLastVisit",
+    "values": {
+      "en": "Last visit",
+      "sq": "Vizita e fundit",
+      "sr-Latn": "Poslednja poseta"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "customerAnalyticsLifetimeValue",
+    "values": {
+      "en": "Lifetime value",
+      "sq": "Vlera gjatë gjithë jetës",
+      "sr-Latn": "Doživotna vrednost"
+    },
+    "context": null
+  },
+  {
+    "namespace": "dashboard",
+    "key": "customerAnalyticsChurnRisk",
+    "values": {
+      "en": "Churn risk",
+      "sq": "Rreziku i largimit",
+      "sr-Latn": "Rizik od odlaska"
+    },
+    "context": null
+  }
+]

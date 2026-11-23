@@ -2,15 +2,48 @@ import axios from 'axios';
 import { reportClientLog } from './clientLogs';
 
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000/api',
+    baseURL: (import.meta.env.VITE_API_URL || 'http://localhost:4000/api').replace(/\/+$/, ''),
     withCredentials: true,
 });
 
 let refreshPromise = null;
+let refreshController = null;
 let roleSelectionEventDispatched = false;
+let authRequestState = 'unauthenticated';
+const SESSION_MARKER = 'goldcinema:session-active';
 
-function isAuthRequest(url = '') {
-    return /\/auth\/(login|register|refresh-token|select-role|switch-role|logout|logout-all)/.test(url);
+function isNonRefreshableAuthRequest(url = '') {
+    return /\/auth\/(login|register|refresh-token|select-role|switch-role|logout|logout-all)(?:[/?]|$)/.test(url);
+}
+
+export function setAuthRequestState(state) {
+    authRequestState = state;
+    try {
+        if (state === 'authenticated') window.localStorage.setItem(SESSION_MARKER, 'true');
+        if (state === 'unauthenticated' || state === 'logging-out') window.localStorage.removeItem(SESSION_MARKER);
+    } catch {
+        // Authentication remains cookie-backed when browser storage is unavailable.
+    }
+}
+
+export function getInitialAuthRequestState() {
+    try {
+        return window.localStorage.getItem(SESSION_MARKER) === 'true' ? 'checking' : 'unauthenticated';
+    } catch {
+        return 'unauthenticated';
+    }
+}
+
+export async function beginAuthLogout() {
+    setAuthRequestState('logging-out');
+    refreshController?.abort();
+    if (refreshPromise) {
+        try {
+            await refreshPromise;
+        } catch {
+            // A cancelled or rejected refresh must not delay local logout.
+        }
+    }
 }
 
 api.interceptors.response.use(
@@ -40,7 +73,7 @@ api.interceptors.response.use(
             return Promise.reject(error);
         }
 
-        if (!url.includes('/client-logs') && (!status || status >= 500)) {
+        if (error.code !== 'ERR_CANCELED' && !url.includes('/client-logs') && (!status || status >= 500)) {
             const message = responseData.error || responseData.message || error.message || 'Unexpected API failure';
             reportClientLog({
                 level: 'error',
@@ -52,24 +85,42 @@ api.interceptors.response.use(
 
         const isRefreshRequest = url.includes('/auth/refresh-token');
         if (status === 401 && isRefreshRequest) {
-            window.dispatchEvent(new Event('auth:logout'));
+            if (authRequestState === 'authenticated') {
+                window.dispatchEvent(new Event('auth:logout'));
+            }
             return Promise.reject(error);
         }
 
-        if (status === 401 && !originalRequest._retry && !isAuthRequest(url)) {
+        const isCurrentProfileRequest = /\/auth\/me(?:[/?]|$)/.test(url);
+        const canRefresh = authRequestState === 'authenticated' ||
+            (authRequestState === 'checking' && isCurrentProfileRequest);
+        if (
+            status === 401 &&
+            !originalRequest._retry &&
+            !isNonRefreshableAuthRequest(url) &&
+            authRequestState !== 'logging-out' &&
+            canRefresh
+        ) {
             originalRequest._retry = true;
             try {
                 if (!refreshPromise) {
+                    refreshController = new AbortController();
                     refreshPromise = axios.post(
                         `${api.defaults.baseURL}/auth/refresh-token`,
                         {},
-                        { withCredentials: true }
-                    ).finally(() => { refreshPromise = null; });
+                        { withCredentials: true, signal: refreshController.signal }
+                    ).finally(() => {
+                        refreshPromise = null;
+                        refreshController = null;
+                    });
                 }
                 await refreshPromise;
+                if (authRequestState === 'logging-out') return Promise.reject(error);
                 return api(originalRequest);
             } catch (refreshError) {
-                window.dispatchEvent(new Event('auth:logout'));
+                if (authRequestState === 'authenticated') {
+                    window.dispatchEvent(new Event('auth:logout'));
+                }
                 return Promise.reject(refreshError);
             }
         }

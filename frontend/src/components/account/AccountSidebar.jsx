@@ -21,6 +21,7 @@ import {
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
 
 const EXPANDED_WIDTH = 256;
@@ -109,9 +110,14 @@ export default function AccountSidebar() {
         }));
     };
 
-    const handleLogout = () => {
-        logout();
-        navigate('/');
+    const handleLogout = async () => {
+        try {
+            await logout();
+        } catch (error) {
+            toast.error(error.response?.data?.error || tNavbar('logoutError'));
+        } finally {
+            navigate('/');
+        }
     };
 
     return (

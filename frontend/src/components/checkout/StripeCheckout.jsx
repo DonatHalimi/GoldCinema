@@ -1,8 +1,8 @@
 import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { CreditCard, Lock, Plus, Star } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { confirmStripePayment, createStripePaymentIntent } from '../../api/payments';
+import { useCallback, useEffect, useState } from 'react';
+import { useConfirmStripePaymentMutation, useCreateStripePaymentIntentMutation } from '../../store/api/paymentsApiSlice';
 import AddPaymentMethodModal from '../payments/AddPaymentMethodModal';
 import SlideToConfirm from './SlideToConfirm';
 
@@ -211,7 +211,7 @@ function StripeForm({
       const data = await confirmPaymentFn(order, paymentIntent);
       onSuccess(data.order ?? data.giftCard);
     } catch (err) {
-      onError(err.response?.data?.error || err.message || 'Payment confirmation failed.');
+      onError(err.data?.error || err.response?.data?.error || err.message || 'Payment confirmation failed.');
       setSubmitting(false);
     }
   }
@@ -314,10 +314,24 @@ export default function StripeCheckout({
   paymentMethods = [],
   paymentMethodsLoading = false,
   onPaymentMethodAdded,
-  createIntentFn = createStripePaymentIntent,
-  confirmPaymentFn = confirmStripePayment,
+  createIntentFn: createIntentOverride,
+  confirmPaymentFn: confirmPaymentOverride,
   payError,
 }) {
+  const [createIntentRequest] = useCreateStripePaymentIntentMutation();
+  const [confirmPaymentRequest] = useConfirmStripePaymentMutation();
+  const createIntentFn = useCallback(
+    (request) => createIntentOverride
+      ? createIntentOverride(request)
+      : createIntentRequest(request).unwrap(),
+    [createIntentOverride, createIntentRequest]
+  );
+  const confirmPaymentFn = useCallback(
+    (order, paymentIntent) => confirmPaymentOverride
+      ? confirmPaymentOverride(order, paymentIntent)
+      : confirmPaymentRequest({ order, paymentIntent }).unwrap(),
+    [confirmPaymentOverride, confirmPaymentRequest]
+  );
   const [clientSecret, setClientSecret] = useState(null);
   const [loadError, setLoadError] = useState('');
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
@@ -351,7 +365,7 @@ export default function StripeCheckout({
         if (!cancelled) setClientSecret(data.clientSecret);
       } catch (err) {
         if (!cancelled) {
-          setLoadError(err.response?.data?.error || err.message || 'Failed to create payment');
+          setLoadError(err.data?.error || err.response?.data?.error || err.message || 'Failed to create payment');
         }
       }
     }

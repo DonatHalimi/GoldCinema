@@ -1,33 +1,15 @@
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { getMyFavourites, toggleFavourite as toggleFavouriteApi } from '../api/favourites';
+import { createContext, useCallback, useContext, useMemo } from 'react';
 import { useAuth } from './AuthContext';
+import { useGetMyFavouritesQuery, useToggleFavouriteMutation } from '../store/api/favouritesApiSlice';
 
 const FavouritesContext = createContext(null);
 
 export function FavouritesProvider({ children }) {
     const { user } = useAuth();
-    const [movieIds, setMovieIds] = useState(new Set());
-    const [cinemaIds, setCinemaIds] = useState(new Set());
-    const [loading, setLoading] = useState(false);
-
-    useEffect(() => {
-        if (!user) {
-            setMovieIds(new Set());
-            setCinemaIds(new Set());
-            return;
-        }
-
-        setLoading(true);
-        getMyFavourites()
-            .then(({ movies, cinemas }) => {
-                setMovieIds(new Set(movies.map((m) => m._id)));
-                setCinemaIds(new Set(cinemas.map((c) => c._id)));
-            })
-            .catch((err) => {
-                console.log(err)
-            })
-            .finally(() => setLoading(false));
-    }, [user]);
+    const { data, isFetching } = useGetMyFavouritesQuery(undefined, { skip: !user });
+    const [toggleRequest] = useToggleFavouriteMutation();
+    const movieIds = useMemo(() => new Set((data?.movies || []).map((movie) => movie._id)), [data?.movies]);
+    const cinemaIds = useMemo(() => new Set((data?.cinemas || []).map((cinema) => cinema._id)), [data?.cinemas]);
 
     const isFavourited = useCallback(
         (itemType, itemId) => (itemType === 'movie' ? movieIds : cinemaIds).has(itemId),
@@ -35,35 +17,12 @@ export function FavouritesProvider({ children }) {
     );
 
     const toggleFavourite = useCallback(async (itemType, itemId) => {
-        const setFn = itemType === 'movie' ? setMovieIds : setCinemaIds;
-        const wasFavourited = (itemType === 'movie' ? movieIds : cinemaIds).has(itemId);
-
-        setFn((prev) => {
-            const next = new Set(prev);
-            wasFavourited ? next.delete(itemId) : next.add(itemId);
-            return next;
-        });
-
-        try {
-            const { favourited } = await toggleFavouriteApi(itemType, itemId);
-            setFn((prev) => {
-                const next = new Set(prev);
-                favourited ? next.add(itemId) : next.delete(itemId);
-                return next;
-            });
-            return favourited;
-        } catch (err) {
-            setFn((prev) => {
-                const next = new Set(prev);
-                wasFavourited ? next.add(itemId) : next.delete(itemId);
-                return next;
-            });
-            throw err;
-        }
-    }, [movieIds, cinemaIds]);
+        const result = await toggleRequest({ itemType, itemId }).unwrap();
+        return result.favourited;
+    }, [toggleRequest]);
 
     return (
-        <FavouritesContext.Provider value={{ isFavourited, toggleFavourite, loading }}>
+        <FavouritesContext.Provider value={{ isFavourited, toggleFavourite, loading: Boolean(user && isFetching) }}>
             {children}
         </FavouritesContext.Provider>
     );

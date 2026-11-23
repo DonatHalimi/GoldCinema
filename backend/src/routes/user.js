@@ -6,11 +6,12 @@ const {
     updateUserStatus,
     deleteUser,
 } = require('../controllers/user');
-const { requireAuth, requireAdmin } = require('../middleware/auth');
+const { requireAuth } = require('../middleware/auth');
+const { requirePermission } = require('../middleware/roleAccess');
 
-router.post('/', requireAuth, requireAdmin, createUser);
-router.get('/', requireAuth, requireAdmin, getUsers);
-router.put('/:id', requireAuth, requireAdmin, updateUserStatus);
-router.delete('/:id', requireAuth, requireAdmin, deleteUser);
+router.post('/', requireAuth, requirePermission('users:manage'), createUser);
+router.get('/', requireAuth, requirePermission('users:read'), getUsers);
+router.put('/:id', requireAuth, requirePermission('users:manage'), updateUserStatus);
+router.delete('/:id', requireAuth, requirePermission('users:manage'), deleteUser);
 
 module.exports = router;

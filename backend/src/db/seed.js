@@ -18,6 +18,8 @@ const ScreenConfiguration = require('../models/screenConfiguration');
 const Equipment = require('../models/equipment');
 const MaintenanceLog = require('../models/maintenanceLog');
 const bcrypt = require('bcryptjs');
+const RolePermission = require('../models/rolePermission');
+const { seedPermissions } = require('../services/permissionService');
 
 function createSlug(text) {
   return text
@@ -282,12 +284,23 @@ async function seed() {
 
     console.log('👤 Creating roles...');
     const roles = await Role.insertMany([
-      { name: 'admin', description: 'Administrator role' },
-      { name: 'customer', description: 'Cinema customer role' },
+      { name: 'admin', description: 'Administrator role', isSystem: true, isProtected: true, unrestricted: false },
+      { name: 'customer', description: 'Cinema customer role', isSystem: true, isProtected: true, unrestricted: false },
     ]);
     const adminRole = roles.find((role) => role.name === 'admin');
     const customerRole = roles.find((role) => role.name === 'customer');
     console.log(`  ✅ ${roles.length} roles created\n`);
+    await seedPermissions();
+    const Permission = require('../models/permission');
+    const adminDefaults = await Permission.find({
+      key: { $in: [
+        'users:read','users:manage','roles:read','roles:manage','permissions:read','permissions:manage',
+        'movies:read','movies:manage','showtimes:read','showtimes:manage','staff:read','staff:manage',
+        'shifts:read','shifts:manage','analytics:read','analytics:manage','admin:access'
+      ] },
+      isDeleted: { $ne: true },
+    }).select('_id');
+    await RolePermission.insertMany(adminDefaults.map((permission) => ({ role: adminRole._id, permission: permission._id })), { ordered: false });
 
     console.log('👥 Creating users...');
     const passwordHash = await bcrypt.hash('Donathalimi1', 10);

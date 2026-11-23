@@ -2,6 +2,7 @@ const express = require('express');
 const { body, query, validationResult } = require('express-validator');
 const { requireAuth } = require('../middleware/auth');
 const { toggleFavourite, getMyFavourites } = require('../controllers/favourites');
+const { requirePermission } = require('../middleware/roleAccess');
 
 const router = express.Router();
 
@@ -13,11 +14,11 @@ function handleValidation(req, res, next) {
     next();
 }
 
-router.post('/toggle', requireAuth, [
+router.post('/toggle', requireAuth, requirePermission('favourites:manage'), [
     body('itemType').isIn(['movie', 'cinema']).withMessage('itemType must be "movie" or "cinema".'),
     body('itemId').isMongoId().withMessage('itemId must be a valid ID.'),
 ], handleValidation, toggleFavourite);
 
-router.get('/mine', requireAuth, [query('type').optional().isIn(['movie', 'cinema']).withMessage('type must be "movie" or "cinema".')], handleValidation, getMyFavourites);
+router.get('/mine', requireAuth, requirePermission('favourites:read'), [query('type').optional().isIn(['movie', 'cinema']).withMessage('type must be "movie" or "cinema".')], handleValidation, getMyFavourites);
 
 module.exports = router;

@@ -9,6 +9,7 @@ import {
     HardDrive,
     Languages,
     LayoutDashboard,
+    KeyRound,
     Lock,
     Mail,
     MonitorPlay,
@@ -49,6 +50,29 @@ export const getModuleSections = (t) => [
                         label: t('rolesDescription'),
                         type: 'textarea',
                     },
+                ],
+            },
+            {
+                key: 'permissions',
+                label: t('permissions', { defaultValue: 'Permissions' }),
+                icon: KeyRound,
+                fields: [
+                    { name: 'key', label: 'Permission key' },
+                    { name: 'resource', label: 'Resource' },
+                    { name: 'action', label: 'Action' },
+                    { name: 'category', label: 'Category' },
+                    { name: 'description', label: 'Description' },
+                ],
+            },
+            {
+                key: 'email-templates',
+                label: t('emailTemplatesNav'),
+                icon: Mail,
+                fields: [
+                    { name: 'name', label: t('emailTemplateName') },
+                    { name: 'slug', label: t('emailTemplateKey') },
+                    { name: 'subject', label: t('emailTemplateSubject') },
+                    { name: 'isActive', label: t('emailTemplateStatus') },
                 ],
             },
             {

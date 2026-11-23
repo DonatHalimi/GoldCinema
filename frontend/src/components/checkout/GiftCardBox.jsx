@@ -7,12 +7,14 @@ import {
     X,
 } from 'lucide-react';
 import { useState } from 'react';
-import { applyGiftCard, removeGiftCard } from '../../api/giftCard';
+import { useApplyGiftCardMutation, useRemoveGiftCardMutation } from '../../store/api/paymentsApiSlice';
 
 export default function GiftCardBox({ order, onOrderUpdated }) {
     const [code, setCode] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
+    const [applyGiftCardRequest] = useApplyGiftCardMutation();
+    const [removeGiftCardRequest] = useRemoveGiftCardMutation();
 
     const applied = Boolean(order.giftCardCode);
 
@@ -27,12 +29,12 @@ export default function GiftCardBox({ order, onOrderUpdated }) {
         setError('');
 
         try {
-            const data = await applyGiftCard(order._id, trimmedCode);
+            const data = await applyGiftCardRequest({ orderId: order._id, code: trimmedCode }).unwrap();
 
             onOrderUpdated(data.order);
             setCode('');
         } catch (err) {
-            setError(err.response?.data?.error || err.message || 'Failed to apply gift card.');
+            setError(err.data?.error || err.message || 'Failed to apply gift card.');
         } finally {
             setSubmitting(false);
         }
@@ -45,11 +47,11 @@ export default function GiftCardBox({ order, onOrderUpdated }) {
         setError('');
 
         try {
-            const data = await removeGiftCard(order._id);
+            const data = await removeGiftCardRequest(order._id).unwrap();
 
             onOrderUpdated(data.order);
         } catch (err) {
-            setError(err.response?.data?.error || err.message || 'Failed to remove gift card.');
+            setError(err.data?.error || err.message || 'Failed to remove gift card.');
         } finally {
             setSubmitting(false);
         }

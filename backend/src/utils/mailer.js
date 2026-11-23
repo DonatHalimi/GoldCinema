@@ -1,803 +1,200 @@
 const nodemailer = require('nodemailer');
+const { renderEmailTemplate } = require('../services/emailTemplateService');
 
 let cachedTransporter = null;
 
 function getTransporter() {
-  if (cachedTransporter) return cachedTransporter;
+    if (cachedTransporter) return cachedTransporter;
 
-  if (!process.env.SMTP_HOST) {
-    console.warn(
-      '[mailer] SMTP_HOST is not set — emails will be logged to the console instead of sent. ' +
-      'Run MailHog (see README) or set SMTP_* env vars to send real emails.'
-    );
-    cachedTransporter = {
-      sendMail: async (options) => {
-        console.log('\n[mailer] (dev mode, no SMTP configured) Would send email:');
-        console.log(`  To: ${options.to}`);
-        console.log(`  Subject: ${options.subject}`);
-        console.log(`  ${options.text || options.html}\n`);
-        return { messageId: 'dev-console-log' };
-      },
-    };
+    if (!process.env.SMTP_HOST) {
+        console.warn(
+            '[mailer] SMTP_HOST is not set — emails will be logged to the console instead of sent. ' +
+            'Run MailHog (see README) or set SMTP_* env vars to send real emails.'
+        );
+        cachedTransporter = {
+            sendMail: async (options) => {
+                console.log('\n[mailer] (dev mode, no SMTP configured) Would send email:');
+                console.log(`  To: ${options.to}`);
+                console.log(`  Subject: ${options.subject}`);
+                console.log(`  ${options.text || options.html}\n`);
+                return { messageId: 'dev-console-log' };
+            },
+        };
+        return cachedTransporter;
+    }
+
+    cachedTransporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: Number(process.env.SMTP_PORT) || 1025,
+        secure: process.env.SMTP_SECURE === 'true',
+        auth: process.env.SMTP_USER
+            ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD }
+            : undefined,
+    });
+
     return cachedTransporter;
-  }
+}
 
-  cachedTransporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT) || 1025,
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: process.env.SMTP_USER
-      ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD }
-      : undefined,
-  });
-
-  return cachedTransporter;
+async function sendTemplatedEmail({ slug, to, variables = {}, attachments, replyTo, useSamples = false }) {
+    if (!to) throw new Error('No email recipient provided');
+    const rendered = await renderEmailTemplate(slug, variables, { useSamples });
+    const message = {
+        from: process.env.SMTP_FROM || 'GoldCinema <no-reply@goldcinema.example>',
+        to,
+        subject: rendered.subject,
+        text: rendered.text,
+        html: rendered.html,
+    };
+    if (replyTo) message.replyTo = replyTo;
+    if (attachments) message.attachments = attachments;
+    return getTransporter().sendMail(message);
 }
 
 async function sendVerificationEmail({ to, name, verificationUrl }) {
-  if (!to) throw new Error('No email recipient provided');
-
-  const transporter = getTransporter();
-  await transporter.sendMail({
-    from: process.env.SMTP_FROM || 'GoldCinema <no-reply@goldcinema.example>',
-    to,
-    subject: 'Verify your GoldCinema account',
-    text: `Hi ${name},\n\nPlease verify your email to start booking tickets:\n${verificationUrl}\n\nThis link expires in 24 hours.`,
-    html: `
-      <p>Hi ${escapeHtml(name)},</p>
-      <p>Please verify your email to start booking tickets on GoldCinema:</p>
-      <p><a href="${verificationUrl}">${verificationUrl}</a></p>
-      <p>This link expires in 24 hours.</p>
-    `,
-  });
+    return sendTemplatedEmail({
+        slug: 'email_verification',
+        to,
+        variables: { name, verificationUrl, currentYear: String(new Date().getFullYear()) },
+    });
 }
 
 async function sendPasswordResetEmail({ to, name, resetUrl }) {
-  if (!to) throw new Error('No email recipient provided');
-
-  const transporter = getTransporter();
-  await transporter.sendMail({
-    from: process.env.SMTP_FROM || 'GoldCinema <no-reply@goldcinema.example>',
-    to,
-    subject: 'Reset your GoldCinema password',
-    text: `Hi ${name},\n\nWe received a request to reset your GoldCinema password.\n\nUse this secure link to choose a new password:\n${resetUrl}\n\nThis link expires in 1 hour. If you did not request this, you can ignore this email.`,
-    html: `
-      <p>Hi ${escapeHtml(name)},</p>
-      <p>We received a request to reset your GoldCinema password.</p>
-      <p>Use the secure link below to choose a new password:</p>
-      <p><a href="${resetUrl}">${resetUrl}</a></p>
-      <p>This link expires in 1 hour. If you did not request this, you can ignore this email.</p>
-    `,
-  });
+    return sendTemplatedEmail({
+        slug: 'password_reset',
+        to,
+        variables: { name, resetUrl, currentYear: String(new Date().getFullYear()) },
+    });
 }
 
-async function sendOrderEmail({ to, name, subject, text, html }) {
-  const transporter = getTransporter();
-  await transporter.sendMail({
-    from: process.env.SMTP_FROM || 'GoldCinema <no-reply@goldcinema.example>',
-    to,
-    subject,
-    text,
-    html,
-  });
+async function sendOrderEmail({ to, name, subject, text, html, templateKey = 'generic_order' }) {
+    return sendTemplatedEmail({
+        slug: templateKey,
+        to,
+        variables: { name: name || '', subject, text: text || '', html: html || '' },
+    });
 }
-
-function escapeHtml(str) {
-  return String(str).replace(/[&<>"']/g, (c) => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;',
-  })[c]);
-}
-
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || '127.0.0.1',
-  port: Number(process.env.SMTP_PORT) || 1025,
-  secure: false,
-  auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD } : undefined,
-});
 
 async function sendTicketEmail(to, order, qrDataUrl) {
-  const transporter = getTransporter();
+    const rawQrDataUrl = qrDataUrl || order.qrTicket?.dataUrl;
+    const startDate = order.showtime?.startTime ? new Date(order.showtime.startTime) : null;
+    const showtimeDate = startDate
+        ? startDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+        : '28.07.2026';
+    const showtimeTime = startDate
+        ? startDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+        : '17:30';
+    const seatsList = Array.isArray(order.seats) ? order.seats.join(', ') : '19';
+    const totalPaid = typeof order.totalAmount === 'number'
+        ? order.totalAmount.toFixed(2)
+        : (order.ticketAmount || 6.00).toFixed(2);
+    const attachments = [];
+    let qrImageSrc = '';
 
-  const rawQrDataUrl = qrDataUrl || order.qrTicket?.dataUrl;
-
-  const movieTitle = order.movie?.title || 'Your Movie';
-
-  const posterUrl = order.movie?.posterUrl || 'https://via.placeholder.com/300x450?text=GoldCinema';
-
-  const cinema = order.showtime?.cinema;
-
-  const cinemaName = cinema?.name || 'GoldCinema';
-  const location = cinema?.location ? `${cinema.location.address}, ${cinema.location.city}, ${cinema.location.country}` : '';
-  const screenName = order.showtime?.screen?.name || order.showtime?.hall || 'GoldCinema Hall';
-  const startDate = order.showtime?.startTime ? new Date(order.showtime.startTime) : null;
-
-  const showtimeDate = startDate ? startDate.toLocaleDateString('en-GB', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }) : '28.07.2026';
-
-  const showtimeTime = startDate ? startDate.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }) : '17:30';
-
-  const seatsList = Array.isArray(order.seats) ? order.seats.join(', ') : '19';
-  const totalPaid = typeof order.totalAmount === 'number' ? order.totalAmount.toFixed(2) : (order.ticketAmount || 6.00).toFixed(2);
-
-  const customerName = order.user?.name || 'Valued Customer';
-  const customerEmail = order.user?.email || to;
-  const paymentType = order.paymentType || 'CREDIT';
-  const purchaseDate = order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-GB') : '27.07.2026';
-
-  const rowName = order.row || 'C';
-  const ticketType = order.ticketType || `1 Regular VIP (${totalPaid})`;
-
-  const attachments = [];
-  let qrImgSrc = '';
-
-  if (rawQrDataUrl) {
-    const base64Data = rawQrDataUrl.replace(/^data:image\/\w+;base64,/, '');
-    const qrBuffer = Buffer.from(base64Data, 'base64');
-
-    attachments.push({
-      filename: 'qrcode.png',
-      content: qrBuffer,
-      cid: 'qrcode@goldcinema',
-    });
-    qrImgSrc = 'cid:qrcode@goldcinema';
-  }
-
-  const htmlContent = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <style>
-        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #0f0f12; color: #f3f3f5; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background-color: #18181c; border: 1px solid #2a2a32; border-radius: 12px; overflow: hidden; }
-        .header { background-color: #000000; text-align: center; padding: 24px; border-bottom: 2px solid #d4af37; }
-        .brand { font-size: 26px; font-weight: bold; letter-spacing: 2px; color: #d4af37; text-decoration: none; }
-        .content { padding: 30px; }
-        .movie-card { display: flex; gap: 20px; background-color: #222228; padding: 20px; border-radius: 8px; margin-bottom: 24px; }
-        .poster { width: 110px; height: 160px; object-fit: cover; border-radius: 6px; border: 1px solid #333; }
-        .movie-details { flex: 1; }
-        .movie-title { font-size: 22px; font-weight: bold; color: #ffffff; margin: 0 0 10px 0; }
-        .detail-line { font-size: 14px; color: #b3b3c2; margin: 6px 0; }
-        .detail-line strong { color: #f3f3f5; }
-        .qr-section { text-align: center; background-color: #ffffff; padding: 24px; border-radius: 10px; margin: 24px 0; }
-        .qr-image { width: 260px; height: 260px; display: block; margin: 0 auto; }
-        .qr-code-text { font-size: 16px; font-weight: bold; color: #111111; margin-top: 10px; letter-spacing: 2px; }
-        .instructions-box { background-color: #222228; border-left: 4px solid #d4af37; padding: 15px; border-radius: 0 8px 8px 0; margin: 20px 0; font-size: 13px; color: #b3b3c2; line-height: 1.6; }
-        .instructions-box h4 { color: #ffffff; margin: 0 0 8px 0; font-size: 14px; }
-        .instructions-box ul { margin: 0; padding-left: 18px; }
-        .instructions-box li { margin-bottom: 6px; }
-        .order-summary { border-top: 1px dashed #33333d; padding-top: 16px; margin-top: 20px; font-size: 14px; color: #b3b3c2; }
-        .footer { text-align: center; padding: 20px; font-size: 12px; color: #666677; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <div class="brand">GOLD<span style="color:#ffffff;">CINEMA</span></div>
-        </div>
-        <div class="content">
-          <h2 style="color: #ffffff; margin-top: 0;">Electronic Ticket</h2>
-          <p style="color: #b3b3c2; font-size: 15px;">This confirmation also serves as your receipt!</p>
-
-          <div class="movie-card">
-            <img src="${posterUrl}" alt="${escapeHtml(movieTitle)}" class="poster" />
-            <div class="movie-details">
-              <h3 class="movie-title">${escapeHtml(movieTitle)}</h3>
-              <p class="detail-line"><strong>Time:</strong> ${escapeHtml(showtimeTime)}</p>
-              <p class="detail-line"><strong>Date:</strong> ${escapeHtml(showtimeDate)}</p>
-              <p class="detail-line"><strong>Cinema:</strong> ${escapeHtml(cinemaName)} ${location ? `(${escapeHtml(location)})` : ''}</p>
-              <p class="detail-line"><strong>Screen / Hall:</strong> ${escapeHtml(screenName)}</p>
-              <p class="detail-line"><strong>Row:</strong> ${escapeHtml(rowName)}</p>
-              <p class="detail-line"><strong>Seats:</strong> <span style="color: #d4af37; font-weight: bold;">${escapeHtml(seatsList)}</span></p>
-              <p class="detail-line"><strong>Ticket:</strong> ${escapeHtml(ticketType)}</p>
-              <p class="detail-line"><strong>Price:</strong> ${totalPaid} EUR (all amounts include VAT)</p>
-            </div>
-          </div>
-
-          ${qrImgSrc
-      ? `<div class="qr-section">
-                   <img src="${qrImgSrc}" alt="Entry QR Code" class="qr-image" />
-                   <div class="qr-code-text">#${order._id || 'WPW2H73'}</div>
-                 </div>`
-      : ''
+    if (rawQrDataUrl) {
+        const base64Data = rawQrDataUrl.replace(/^data:image\/\w+;base64,/, '');
+        attachments.push({
+            filename: 'qrcode.png',
+            content: Buffer.from(base64Data, 'base64'),
+            cid: 'qrcode@goldcinema',
+        });
+        qrImageSrc = 'cid:qrcode@goldcinema';
     }
 
-          <div class="instructions-box">
-            <h4>What to do at the cinema?</h4>
-            <p style="margin: 0 0 10px 0; color: #f3f3f5;"><strong>Go straight to the entrance - skip the ticket control counter and show your QR Code.</strong></p>
-            <ul>
-              <li><strong>Via mobile phone:</strong> Display this confirmation email with the QR Code or use the mobile app and show the QR Code via the "My Tickets" section!</li>
-              <li><strong>Via print:</strong> Show the QR Code. Please do not fold the QR Code and protect it from moisture and dirt.</li>
-              <li><strong>Take care of your QR Code!</strong> After the first validation, this QR Code cannot be used for entry again.</li>
-              <li>If you purchased more than one seat, please note: All guests must enter together at the ticket check.</li>
-              <li>When buying food and drinks: It is also possible to get your printed tickets at the counter if preferred.</li>
-            </ul>
-          </div>
-
-          <p style="font-size: 13px; color: #b3b3c2; font-style: italic; margin-top: 15px;">
-            Please note that online tickets cannot be cancelled!
-          </p>
-
-          <div class="order-summary">
-            <p style="margin: 4px 0;"><strong>User:</strong> ${escapeHtml(customerName)}, ${escapeHtml(customerEmail)}</p>
-            <p style="margin: 4px 0;"><strong>Payment Type:</strong> ${escapeHtml(paymentType)}</p>
-            <p style="margin: 4px 0;"><strong>Price:</strong> ${totalPaid} EUR</p>
-            <p style="margin: 4px 0;"><strong>Purchase Date:</strong> ${escapeHtml(purchaseDate)}</p>
-          </div>
-        </div>
-        <div class="footer">
-          <p style="margin: 0 0 10px 0; color: #888899;">You can print your tickets using your booking code at GoldCinema kiosks.</p>
-          <p style="margin: 0 0 10px 0; color: #f3f3f5; font-weight: bold;">Enjoy your movie and your stay at GoldCinema!</p>
-          &copy; ${new Date().getFullYear()} GoldCinema Staff
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-
-  await transporter.sendMail({
-    from: process.env.SMTP_FROM || 'GoldCinema <no-reply@goldcinema.example>',
-    to,
-    subject: `🎟️ Electronic Ticket: ${movieTitle}`,
-    text: `Electronic ticket for ${movieTitle}. Time: ${showtimeTime}, Date: ${showtimeDate}. Screen: ${screenName}, Row: ${rowName}, Seat: ${seatsList}. Code: #${order._id || 'WPW2H73'}`,
-    html: htmlContent,
-    attachments,
-  });
+    return sendTemplatedEmail({
+        slug: 'ticket_confirmation',
+        to,
+        attachments,
+        variables: {
+            orderId: String(order._id || 'WPW2H73'),
+            movieTitle: order.movie?.title || 'Your Movie',
+            posterUrl: order.movie?.posterUrl || 'https://via.placeholder.com/300x450?text=GoldCinema',
+            showtimeDate,
+            showtimeTime,
+            cinemaName: order.showtime?.cinema?.name || 'GoldCinema',
+            address: order.showtime?.cinema?.location?.address || '',
+            city: order.showtime?.cinema?.location?.city || '',
+            country: order.showtime?.cinema?.location?.country || '',
+            screenName: order.showtime?.screen?.name || order.showtime?.hall || 'GoldCinema Hall',
+            row: order.row || 'C',
+            seats: seatsList,
+            ticketType: order.ticketType || `1 Regular VIP (${totalPaid})`,
+            totalPaid,
+            customerName: order.user?.name || 'Valued Customer',
+            customerEmail: order.user?.email || to,
+            paymentType: order.paymentType || 'CREDIT',
+            purchaseDate: order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-GB') : '27.07.2026',
+            qrImageSrc,
+            currentYear: String(new Date().getFullYear()),
+        },
+    });
 }
 
 async function sendTwoFactorCode({ to, name, code }) {
-  if (!to) throw new Error('No email recipient provided');
-
-  const safeName = escapeHtml(name || 'there');
-  const safeCode = escapeHtml(code);
-
-  const htmlContent = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <style>
-        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #0f0f12; color: #f3f3f5; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background-color: #18181c; border: 1px solid #2a2a32; border-radius: 12px; overflow: hidden; }
-        .header { background-color: #000000; text-align: center; padding: 24px; border-bottom: 2px solid #d4af37; }
-        .brand { font-size: 26px; font-weight: bold; letter-spacing: 2px; color: #d4af37; text-decoration: none; }
-        .content { padding: 30px; }
-        .code-card { background-color: #222228; padding: 24px; border-radius: 8px; text-align: center; margin: 24px 0; border: 1px solid #2a2a32; }
-        .code-display { font-family: monospace; font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #d4af37; margin: 10px 0; }
-        .detail-line { font-size: 14px; color: #b3b3c2; line-height: 1.5; }
-        .warning-text { border-top: 1px dashed #33333d; padding-top: 16px; margin-top: 20px; font-size: 13px; color: #666677; }
-        .footer { text-align: center; padding: 20px; font-size: 12px; color: #666677; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <div class="brand">GOLD<span style="color:#ffffff;">CINEMA</span></div>
-        </div>
-        <div class="content">
-          <h2 style="color: #ffffff; margin-top: 0;">Two-Factor Authentication</h2>
-          <p class="detail-line">Hi <strong>${safeName}</strong>,</p>
-          <p class="detail-line">Use the verification code below to complete your sign-in process.</p>
-
-          <div class="code-card">
-            <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #b3b3c2; margin-bottom: 6px;">Your Security Code</div>
-            <div class="code-display">${safeCode}</div>
-            <div style="font-size: 13px; color: #b3b3c2; margin-top: 6px;">Expires in <strong>10 minutes</strong></div>
-          </div>
-
-          <div class="warning-text">
-            If you did not request this code, please ignore this message or change your password to secure your account.
-          </div>
-        </div>
-        <div class="footer">
-          &copy; ${new Date().getFullYear()} GoldCinema. All rights reserved.
-        </div>
-      </div>
-    </body>
-    </html>
-    `;
-
-  const transporter = getTransporter();
-  await transporter.sendMail({
-    from: process.env.SMTP_FROM || 'GoldCinema <no-reply@goldcinema.example>',
-    to,
-    subject: `🔒 Your GoldCinema Verification Code: ${code}`,
-    text: `Hi ${name},\n\nYour verification code is: ${code}\n\nThis code expires in 10 minutes. If you didn't request this, secure your account immediately.`,
-    html: htmlContent,
-  });
+    if (!to) throw new Error('No email recipient provided');
+    return sendTemplatedEmail({
+        slug: 'two_factor_code',
+        to,
+        variables: { name: name || 'there', code, currentYear: String(new Date().getFullYear()) },
+    });
 }
 
 async function sendContactEmail({ name, email, subject, message }) {
-  if (!email || !message) throw new Error('Required contact fields are missing');
-
-  const safeName = escapeHtml(name);
-  const safeEmail = escapeHtml(email);
-  const safeSubject = escapeHtml(subject || 'General Inquiry');
-  const safeMessage = escapeHtml(message);
-
-  const htmlContent = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <style>
-        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #0f0f12; color: #f3f3f5; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background-color: #18181c; border: 1px solid #2a2a32; border-radius: 12px; overflow: hidden; }
-        .header { background-color: #000000; text-align: center; padding: 24px; border-bottom: 2px solid #d4af37; }
-        .brand { font-size: 26px; font-weight: bold; letter-spacing: 2px; color: #d4af37; text-decoration: none; }
-        .content { padding: 30px; }
-        .detail-line { font-size: 14px; color: #b3b3c2; margin: 8px 0; }
-        .detail-line strong { color: #f3f3f5; }
-        .message-box { background-color: #222228; padding: 16px; border-radius: 8px; margin-top: 16px; border: 1px solid #2a2a32; white-space: pre-wrap; color: #f3f3f5; }
-        .footer { text-align: center; padding: 20px; font-size: 12px; color: #666677; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <div class="brand">GOLD<span style="color:#ffffff;">CINEMA</span></div>
-        </div>
-        <div class="content">
-          <h2 style="color: #ffffff; margin-top: 0;">New Contact Message</h2>
-          <p class="detail-line"><strong>Name:</strong> ${safeName}</p>
-          <p class="detail-line"><strong>Email:</strong> ${safeEmail}</p>
-          <p class="detail-line"><strong>Subject:</strong> ${safeSubject}</p>
-          <div style="margin-top: 20px; font-size: 14px; color: #b3b3c2;">Message:</div>
-          <div class="message-box">${safeMessage}</div>
-        </div>
-        <div class="footer">
-          &copy; ${new Date().getFullYear()} GoldCinema Support System
-        </div>
-      </div>
-    </body>
-    </html>
-    `;
-
-  const transporter = getTransporter();
-  await transporter.sendMail({
-    from: process.env.SMTP_FROM || 'GoldCinema <no-reply@goldcinema.example>',
-    to: 'donat.halimi03@gmail.com',
-    replyTo: email,
-    subject: `[Contact Us] ${subject || 'New Message'}`,
-    text: `You have received a new message from ${name} (${email}):\n\n${message}`,
-    html: htmlContent,
-  });
+    if (!email || !message) throw new Error('Required contact fields are missing');
+    return sendTemplatedEmail({
+        slug: 'contact_notification',
+        to: 'donat.halimi03@gmail.com',
+        replyTo: email,
+        variables: {
+            name,
+            email,
+            displaySubject: subject || 'General Inquiry',
+            emailSubject: subject || 'New Message',
+            message,
+            currentYear: String(new Date().getFullYear()),
+        },
+    });
 }
 
 async function sendLoginAlertEmail({ to, name, time, ipAddress, loginMethod }) {
-  if (!to) throw new Error('No email recipient provided');
-
-  const safeName = escapeHtml(name || 'there');
-  const safeTime = escapeHtml(time || new Date().toUTCString());
-  const safeIp = escapeHtml(ipAddress || 'Unknown IP');
-  const safeMethod = escapeHtml(loginMethod || 'Standard Login');
-
-  const htmlContent = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <style>
-        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #0f0f12; color: #f3f3f5; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background-color: #18181c; border: 1px solid #2a2a32; border-radius: 12px; overflow: hidden; }
-        .header { background-color: #000000; text-align: center; padding: 24px; border-bottom: 2px solid #d4af37; }
-        .brand { font-size: 26px; font-weight: bold; letter-spacing: 2px; color: #d4af37; text-decoration: none; }
-        .content { padding: 30px; }
-        .alert-card { background-color: #222228; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #2a2a32; }
-        .detail-line { font-size: 14px; color: #b3b3c2; margin: 6px 0; }
-        .detail-line strong { color: #f3f3f5; }
-        .warning-text { border-top: 1px dashed #33333d; padding-top: 16px; margin-top: 20px; font-size: 13px; color: #e74c3c; }
-        .footer { text-align: center; padding: 20px; font-size: 12px; color: #666677; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <div class="brand">GOLD<span style="color:#ffffff;">CINEMA</span></div>
-        </div>
-        <div class="content">
-          <h2 style="color: #ffffff; margin-top: 0;">New Log-In Detected</h2>
-          <p class="detail-line">Hi <strong>${safeName}</strong>,</p>
-          <p class="detail-line">We noticed a new login to your GoldCinema account.</p>
-
-          <div class="alert-card">
-            <p class="detail-line"><strong>Method:</strong> ${safeMethod}</p>
-            <p class="detail-line"><strong>Time:</strong> ${safeTime}</p>
-            <p class="detail-line"><strong>IP Address:</strong> ${safeIp}</p>
-          </div>
-
-          <div class="warning-text">
-            If this was you, you can safely ignore this email. If you did not sign in recently, please change your password immediately to secure your account.
-          </div>
-        </div>
-        <div class="footer">
-          &copy; ${new Date().getFullYear()} GoldCinema Security Team
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-
-  const transporter = getTransporter();
-  await transporter.sendMail({
-    from: process.env.SMTP_FROM || 'GoldCinema <no-reply@goldcinema.example>',
-    to,
-    subject: '⚠️ New Log-In to your GoldCinema account',
-    text: `Hi ${name},\n\nWe noticed a new login to your GoldCinema account via ${loginMethod} at ${safeTime} from IP: ${safeIp}.\n\nIf this wasn't you, please secure your account immediately.`,
-    html: htmlContent,
-  });
+    if (!to) throw new Error('No email recipient provided');
+    return sendTemplatedEmail({
+        slug: 'login_alert',
+        to,
+        variables: {
+            name: name || 'there',
+            time: time || new Date().toUTCString(),
+            ipAddress: ipAddress || 'Unknown IP',
+            loginMethod: loginMethod || 'Standard Login',
+            currentYear: String(new Date().getFullYear()),
+        },
+    });
 }
 
 async function sendGiftCardEmail(giftCard) {
-  const transporter = getTransporter();
-
-  const amount = giftCard.initialValue.toFixed(2);
-
-  const htmlContent = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="utf-8">
-            <style>
-                body {
-                    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-                    background-color: #0f0f12;
-                    color: #f3f3f5;
-                    margin: 0;
-                    padding: 20px;
-                }
-
-                .container {
-                    max-width: 600px;
-                    margin: 0 auto;
-                    background-color: #18181c;
-                    border: 1px solid #2a2a32;
-                    border-radius: 12px;
-                    overflow: hidden;
-                }
-
-                .header {
-                    background-color: #000000;
-                    text-align: center;
-                    padding: 24px;
-                    border-bottom: 2px solid #d4af37;
-                }
-
-                .brand {
-                    font-size: 26px;
-                    font-weight: bold;
-                    letter-spacing: 2px;
-                    color: #d4af37;
-                }
-
-                .content {
-                    padding: 30px;
-                }
-
-                .eyebrow {
-                    text-align: center;
-                    color: #d4af37;
-                    font-size: 12px;
-                    font-weight: bold;
-                    letter-spacing: 2px;
-                    text-transform: uppercase;
-                    margin-bottom: 8px;
-                }
-
-                .title {
-                    color: #ffffff;
-                    text-align: center;
-                    font-size: 28px;
-                    margin: 0 0 10px 0;
-                }
-
-                .subtitle {
-                    color: #b3b3c2;
-                    text-align: center;
-                    font-size: 15px;
-                    line-height: 1.6;
-                    margin: 0 0 28px 0;
-                }
-
-                .gift-card {
-                    background: linear-gradient(135deg, #222228, #18181c);
-                    border: 1px solid #d4af37;
-                    border-radius: 12px;
-                    padding: 28px;
-                    text-align: center;
-                    margin-bottom: 24px;
-                }
-
-                .gift-label {
-                    color: #b3b3c2;
-                    font-size: 12px;
-                    text-transform: uppercase;
-                    letter-spacing: 2px;
-                    margin-bottom: 8px;
-                }
-
-                .gift-amount {
-                    color: #d4af37;
-                    font-size: 42px;
-                    font-weight: bold;
-                    margin: 0;
-                }
-
-                .gift-brand {
-                    color: #ffffff;
-                    font-size: 14px;
-                    letter-spacing: 2px;
-                    font-weight: bold;
-                    margin-top: 8px;
-                }
-
-                .message-box {
-                    background-color: #222228;
-                    border-left: 4px solid #d4af37;
-                    padding: 16px;
-                    border-radius: 0 8px 8px 0;
-                    margin: 24px 0;
-                }
-
-                .message-box p {
-                    margin: 0;
-                    color: #f3f3f5;
-                    font-size: 14px;
-                    line-height: 1.6;
-                    font-style: italic;
-                }
-
-                .code-section {
-                    background-color: #ffffff;
-                    border-radius: 10px;
-                    padding: 22px;
-                    text-align: center;
-                    margin: 24px 0;
-                }
-
-                .code-label {
-                    color: #666677;
-                    font-size: 11px;
-                    font-weight: bold;
-                    letter-spacing: 2px;
-                    text-transform: uppercase;
-                    margin-bottom: 10px;
-                }
-
-                .code {
-                    color: #111111;
-                    font-family: monospace;
-                    font-size: 25px;
-                    font-weight: bold;
-                    letter-spacing: 4px;
-                    margin: 0;
-                }
-
-                .instructions-box {
-                    background-color: #222228;
-                    border-left: 4px solid #d4af37;
-                    padding: 15px;
-                    border-radius: 0 8px 8px 0;
-                    margin: 20px 0;
-                    font-size: 13px;
-                    color: #b3b3c2;
-                    line-height: 1.6;
-                }
-
-                .instructions-box h4 {
-                    color: #ffffff;
-                    margin: 0 0 8px 0;
-                    font-size: 14px;
-                }
-
-                .instructions-box ul {
-                    margin: 0;
-                    padding-left: 18px;
-                }
-
-                .instructions-box li {
-                    margin-bottom: 6px;
-                }
-
-                .details {
-                    border-top: 1px dashed #33333d;
-                    padding-top: 16px;
-                    margin-top: 24px;
-                    font-size: 13px;
-                    color: #b3b3c2;
-                }
-
-                .details p {
-                    margin: 5px 0;
-                }
-
-                .details strong {
-                    color: #f3f3f5;
-                }
-
-                .footer {
-                    text-align: center;
-                    padding: 20px;
-                    font-size: 12px;
-                    color: #666677;
-                }
-            </style>
-        </head>
-
-        <body>
-            <div class="container">
-
-                <div class="header">
-                    <div class="brand">
-                        GOLD<span style="color:#ffffff;">CINEMA</span>
-                    </div>
-                </div>
-
-                <div class="content">
-
-                    <div class="eyebrow">🎁 A Gift For You</div>
-
-                    <h1 class="title">
-                        You've received a GoldCinema Gift Card!
-                    </h1>
-
-                    <p class="subtitle">
-                        ${escapeHtml(giftCard.senderName)} has sent you a gift
-                        worth €${amount} to enjoy your next movie experience at GoldCinema.
-                    </p>
-
-                    <div class="gift-card">
-                        <div class="gift-label">GoldCinema Gift Card</div>
-
-                        <p class="gift-amount">
-                            €${amount}
-                        </p>
-
-                        <div class="gift-brand">
-                            GOLD<span style="color:#d4af37;">CINEMA</span>
-                        </div>
-                    </div>
-
-                    ${giftCard.message
-      ? `
-                                <div class="message-box">
-                                    <p>
-                                        "${escapeHtml(giftCard.message)}"
-                                    </p>
-                                </div>
-                            `
-      : ''
-    }
-
-                    <div class="code-section">
-                        <div class="code-label">
-                            Your Gift Card Code
-                        </div>
-
-                        <p class="code">
-                            ${escapeHtml(giftCard.code)}
-                        </p>
-                    </div>
-
-                    <div class="instructions-box">
-                        <h4>How to use your gift card</h4>
-
-                        <ul>
-                            <li>
-                                Use the gift card code during checkout when purchasing your tickets.
-                            </li>
-
-                            <li>
-                                The gift card can be used until its available balance is fully redeemed.
-                            </li>
-
-                            <li>
-                                Keep this email safe so you can access your gift card code when needed.
-                            </li>
-
-                            <li>
-                                Do not share your gift card code with anyone you do not trust.
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="details">
-                        <p>
-                            <strong>Recipient:</strong>
-                            ${escapeHtml(giftCard.recipientName)}
-                        </p>
-
-                        <p>
-                            <strong>Sent by:</strong>
-                            ${escapeHtml(giftCard.senderName)}
-                        </p>
-
-                        <p>
-                            <strong>Value:</strong>
-                            €${amount}
-                        </p>
-
-                        <p>
-                            <strong>Gift Card Code:</strong>
-                            ${escapeHtml(giftCard.code)}
-                        </p>
-                    </div>
-
-                </div>
-
-                <div class="footer">
-                    <p style="margin: 0 0 10px 0; color: #888899;">
-                        Enjoy your next movie experience at GoldCinema.
-                    </p>
-
-                    <p style="margin: 0 0 10px 0; color: #f3f3f5; font-weight: bold;">
-                        Lights down. Movie on. 🎬
-                    </p>
-
-                    &copy; ${new Date().getFullYear()} GoldCinema Staff
-                </div>
-
-            </div>
-        </body>
-        </html>
-    `;
-
-  const textContent = `
-You've received a GoldCinema Gift Card!
-
-Hi ${giftCard.recipientName},
-
-${giftCard.senderName} has sent you a €${amount} GoldCinema gift card.
-
-${giftCard.message
-      ? `Personal message:\n"${giftCard.message}"\n\n`
-      : ''
-    }
-
-Gift Card Code: ${giftCard.code}
-
-Use this code during checkout when purchasing your tickets.
-
-Keep this email safe and do not share your gift card code with anyone you do not trust.
-
-Enjoy your next movie experience at GoldCinema!
-    `.trim();
-
-  await transporter.sendMail({
-    from:
-      process.env.SMTP_FROM ||
-      'GoldCinema <no-reply@goldcinema.example>',
-
-    to: giftCard.recipientEmail,
-
-    subject:
-      `🎁 ${giftCard.senderName} sent you a GoldCinema Gift Card!`,
-
-    text: textContent,
-
-    html: htmlContent,
-  });
+    const amount = giftCard.initialValue.toFixed(2);
+    return sendTemplatedEmail({
+        slug: 'gift_card_delivery',
+        to: giftCard.recipientEmail,
+        variables: {
+            recipientName: giftCard.recipientName,
+            senderName: giftCard.senderName,
+            amount,
+            giftCardCode: giftCard.code,
+            message: giftCard.message || '',
+            currentYear: String(new Date().getFullYear()),
+        },
+    });
 }
 
 module.exports = {
-  getTransporter,
-  sendVerificationEmail,
-  sendPasswordResetEmail,
-  sendOrderEmail,
-  sendTicketEmail,
-  sendTwoFactorCode,
-  sendContactEmail,
-  sendLoginAlertEmail,
-  sendGiftCardEmail,
+    getTransporter,
+    sendTemplatedEmail,
+    sendVerificationEmail,
+    sendPasswordResetEmail,
+    sendOrderEmail,
+    sendTicketEmail,
+    sendTwoFactorCode,
+    sendContactEmail,
+    sendLoginAlertEmail,
+    sendGiftCardEmail,
 };

@@ -7,13 +7,6 @@ export default function SocialLoginButtons({
     handleGithub,
     disabled,
 }) {
-    console.log('SocialLoginButtons props:', {
-        googleBtnRef,
-        onFacebookLogin,
-        handleGithub,
-        disabled,
-    });
-
     return (
         <>
             <div className="group relative h-[48px] w-full overflow-hidden rounded-full border border-marquee-gold">

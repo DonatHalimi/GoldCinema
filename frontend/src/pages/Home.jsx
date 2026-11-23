@@ -1,25 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useGetMoviesQuery } from '../store/api/moviesApiSlice';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-import api from '../api/client';
 import MovieCard from '../components/movies/MovieCard';
+import { useEffect } from 'react';
 
 export default function Home() {
   const { t } = useTranslation('home');
 
-  const [movies, setMovies] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { data: movies = [], isLoading: loading, error: queryError } = useGetMoviesQuery();
+  const error = queryError?.data?.error || queryError?.message || '';
 
-  useEffect(() => {
-    api
-      .get('/movies')
-      .then(({ data }) => setMovies(data.movies))
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, []);
-
-  useEffect(() => {
+  useEffect                                                                                                                                     (() => {
     if (location.state?.registered) {
       toast.success('Account created! Verification email has been sent. Check your inbox');
       window.history.replaceState({}, document.title);

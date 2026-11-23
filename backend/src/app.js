@@ -31,6 +31,9 @@ const screenConfigurationRoutes = require('./routes/screenConfigurations');
 const equipmentRoutes = require('./routes/equipment');
 const maintenanceLogRoutes = require('./routes/maintenanceLogs');
 const analyticsRoutes = require('./routes/analytics');
+const roleRoutes = require('./routes/roles');
+const permissionRoutes = require('./routes/permissions');
+const emailTemplateRoutes = require('./routes/emailTemplates');
 
 const errorHandler = require('./middleware/errorHandler');
 
@@ -120,6 +123,9 @@ app.use('/api/screen-configurations', screenConfigurationRoutes);
 app.use('/api/equipment', equipmentRoutes);
 app.use('/api/maintenance-logs', maintenanceLogRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/roles', roleRoutes);
+app.use('/api/permissions', permissionRoutes);
+app.use('/api/email-templates', emailTemplateRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found.' });

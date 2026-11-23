@@ -1,0 +1,404 @@
+[
+  {
+    "slug": "email_verification",
+    "name": "Account verification",
+    "description": "Verify a new GoldCinema account.",
+    "subject": "Verify your GoldCinema account",
+    "htmlBody": "\n      <p>Hi {{name}},</p>\n      <p>Please verify your email to start booking tickets on GoldCinema:</p>\n      <p><a href=\"{{verificationUrl}}\">{{verificationUrl}}</a></p>\n      <p>This link expires in 24 hours.</p>\n    ",
+    "textBody": "Hi {{name}},\n\nPlease verify your email to start booking tickets:\n{{verificationUrl}}\n\nThis link expires in 24 hours.",
+    "variables": [
+      {
+        "key": "name",
+        "description": "Recipient display name.",
+        "required": true,
+        "sampleValue": "Alex Morgan"
+      },
+      {
+        "key": "verificationUrl",
+        "description": "Short-lived account verification URL.",
+        "required": true
+      },
+      {
+        "key": "currentYear",
+        "description": "Current server year.",
+        "required": true,
+        "sampleValue": "2026"
+      }
+    ],
+    "isActive": true,
+    "isSystem": true,
+    "revision": 1
+  },
+  {
+    "slug": "password_reset",
+    "name": "Password reset",
+    "description": "Reset a GoldCinema account password.",
+    "subject": "Reset your GoldCinema password",
+    "htmlBody": "\n      <p>Hi {{name}},</p>\n      <p>We received a request to reset your GoldCinema password.</p>\n      <p>Use the secure link below to choose a new password:</p>\n      <p><a href=\"{{resetUrl}}\">{{resetUrl}}</a></p>\n      <p>This link expires in 1 hour. If you did not request this, you can ignore this email.</p>\n    ",
+    "textBody": "Hi {{name}},\n\nWe received a request to reset your GoldCinema password.\n\nUse this secure link to choose a new password:\n{{resetUrl}}\n\nThis link expires in 1 hour. If you did not request this, you can ignore this email.",
+    "variables": [
+      {
+        "key": "name",
+        "description": "Recipient display name.",
+        "required": true,
+        "sampleValue": "Alex Morgan"
+      },
+      {
+        "key": "resetUrl",
+        "description": "Short-lived password reset URL.",
+        "required": true
+      },
+      {
+        "key": "currentYear",
+        "description": "Current server year.",
+        "required": true,
+        "sampleValue": "2026"
+      }
+    ],
+    "isActive": true,
+    "isSystem": true,
+    "revision": 1
+  },
+  {
+    "slug": "ticket_confirmation",
+    "name": "Ticket confirmation",
+    "description": "Booking confirmation and electronic ticket with inline QR code.",
+    "subject": "🎟️ Electronic Ticket: {{movieTitle}}",
+    "htmlBody": "\n    <!DOCTYPE html>\n    <html>\n    <head>\n      <meta charset=\"utf-8\">\n      <style>\n        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #0f0f12; color: #f3f3f5; margin: 0; padding: 20px; }\n        .container { max-width: 600px; margin: 0 auto; background-color: #18181c; border: 1px solid #2a2a32; border-radius: 12px; overflow: hidden; }\n        .header { background-color: #000000; text-align: center; padding: 24px; border-bottom: 2px solid #d4af37; }\n        .brand { font-size: 26px; font-weight: bold; letter-spacing: 2px; color: #d4af37; text-decoration: none; }\n        .content { padding: 30px; }\n        .movie-card { display: flex; gap: 20px; background-color: #222228; padding: 20px; border-radius: 8px; margin-bottom: 24px; }\n        .poster { width: 110px; height: 160px; object-fit: cover; border-radius: 6px; border: 1px solid #333; }\n        .movie-details { flex: 1; }\n        .movie-title { font-size: 22px; font-weight: bold; color: #ffffff; margin: 0 0 10px 0; }\n        .detail-line { font-size: 14px; color: #b3b3c2; margin: 6px 0; }\n        .detail-line strong { color: #f3f3f5; }\n        .qr-section { text-align: center; background-color: #ffffff; padding: 24px; border-radius: 10px; margin: 24px 0; }\n        .qr-image { width: 260px; height: 260px; display: block; margin: 0 auto; }\n        .qr-code-text { font-size: 16px; font-weight: bold; color: #111111; margin-top: 10px; letter-spacing: 2px; }\n        .instructions-box { background-color: #222228; border-left: 4px solid #d4af37; padding: 15px; border-radius: 0 8px 8px 0; margin: 20px 0; font-size: 13px; color: #b3b3c2; line-height: 1.6; }\n        .instructions-box h4 { color: #ffffff; margin: 0 0 8px 0; font-size: 14px; }\n        .instructions-box ul { margin: 0; padding-left: 18px; }\n        .instructions-box li { margin-bottom: 6px; }\n        .order-summary { border-top: 1px dashed #33333d; padding-top: 16px; margin-top: 20px; font-size: 14px; color: #b3b3c2; }\n        .footer { text-align: center; padding: 20px; font-size: 12px; color: #666677; }\n      </style>\n    </head>\n    <body>\n      <div class=\"container\">\n        <div class=\"header\">\n          <div class=\"brand\">GOLD<span style=\"color:#ffffff;\">CINEMA</span></div>\n        </div>\n        <div class=\"content\">\n          <h2 style=\"color: #ffffff; margin-top: 0;\">Electronic Ticket</h2>\n          <p style=\"color: #b3b3c2; font-size: 15px;\">This confirmation also serves as your receipt!</p>\n\n          <div class=\"movie-card\">\n            <img src=\"{{posterUrl}}\" alt=\"{{movieTitle}}\" class=\"poster\" />\n            <div class=\"movie-details\">\n              <h3 class=\"movie-title\">{{movieTitle}}</h3>\n              <p class=\"detail-line\"><strong>Time:</strong> {{showtimeTime}}</p>\n              <p class=\"detail-line\"><strong>Date:</strong> {{showtimeDate}}</p>\n              <p class=\"detail-line\"><strong>Cinema:</strong> {{cinemaName}} ({{address}}, {{city}}, {{country}})</p>\n              <p class=\"detail-line\"><strong>Screen / Hall:</strong> {{screenName}}</p>\n              <p class=\"detail-line\"><strong>Row:</strong> {{row}}</p>\n              <p class=\"detail-line\"><strong>Seats:</strong> <span style=\"color: #d4af37; font-weight: bold;\">{{seats}}</span></p>\n              <p class=\"detail-line\"><strong>Ticket:</strong> {{ticketType}}</p>\n              <p class=\"detail-line\"><strong>Price:</strong> {{totalPaid}} EUR (all amounts include VAT)</p>\n            </div>\n          </div>\n\n          {{#if qrImageSrc}}<div class=\"qr-section\">\n                   <img src=\"{{qrImageSrc}}\" alt=\"Entry QR Code\" class=\"qr-image\" />\n                   <div class=\"qr-code-text\">#{{orderId}}</div>\n                 </div>{{/if}}\n\n          <div class=\"instructions-box\">\n            <h4>What to do at the cinema?</h4>\n            <p style=\"margin: 0 0 10px 0; color: #f3f3f5;\"><strong>Go straight to the entrance - skip the ticket control counter and show your QR Code.</strong></p>\n            <ul>\n              <li><strong>Via mobile phone:</strong> Display this confirmation email with the QR Code or use the mobile app and show the QR Code via the \"My Tickets\" section!</li>\n              <li><strong>Via print:</strong> Show the QR Code. Please do not fold the QR Code and protect it from moisture and dirt.</li>\n              <li><strong>Take care of your QR Code!</strong> After the first validation, this QR Code cannot be used for entry again.</li>\n              <li>If you purchased more than one seat, please note: All guests must enter together at the ticket check.</li>\n              <li>When buying food and drinks: It is also possible to get your printed tickets at the counter if preferred.</li>\n            </ul>\n          </div>\n\n          <p style=\"font-size: 13px; color: #b3b3c2; font-style: italic; margin-top: 15px;\">\n            Please note that online tickets cannot be cancelled!\n          </p>\n\n          <div class=\"order-summary\">\n            <p style=\"margin: 4px 0;\"><strong>User:</strong> {{customerName}}, {{customerEmail}}</p>\n            <p style=\"margin: 4px 0;\"><strong>Payment Type:</strong> {{paymentType}}</p>\n            <p style=\"margin: 4px 0;\"><strong>Price:</strong> {{totalPaid}} EUR</p>\n            <p style=\"margin: 4px 0;\"><strong>Purchase Date:</strong> {{purchaseDate}}</p>\n          </div>\n        </div>\n        <div class=\"footer\">\n          <p style=\"margin: 0 0 10px 0; color: #888899;\">You can print your tickets using your booking code at GoldCinema kiosks.</p>\n          <p style=\"margin: 0 0 10px 0; color: #f3f3f5; font-weight: bold;\">Enjoy your movie and your stay at GoldCinema!</p>\n          &copy; {{currentYear}} GoldCinema Staff\n        </div>\n      </div>\n    </body>\n    </html>\n  ",
+    "textBody": "Electronic ticket for {{movieTitle}}. Time: {{showtimeTime}}, Date: {{showtimeDate}}. Screen: {{screenName}}, Row: {{row}}, Seat: {{seats}}. Code: #{{orderId}}",
+    "variables": [
+      {
+        "key": "orderId",
+        "description": "Booking identifier.",
+        "required": true,
+        "sampleValue": "GC-12345"
+      },
+      {
+        "key": "movieTitle",
+        "description": "Movie title.",
+        "required": true,
+        "sampleValue": "Example Movie"
+      },
+      {
+        "key": "posterUrl",
+        "description": "Movie poster URL.",
+        "required": true,
+        "sampleValue": "https://example.test/poster.jpg"
+      },
+      {
+        "key": "showtimeDate",
+        "description": "Screening date.",
+        "required": true,
+        "sampleValue": "28/07/2026"
+      },
+      {
+        "key": "showtimeTime",
+        "description": "Screening time.",
+        "required": true,
+        "sampleValue": "17:30"
+      },
+      {
+        "key": "cinemaName",
+        "description": "Cinema name.",
+        "required": true,
+        "sampleValue": "GoldCinema"
+      },
+      {
+        "key": "address",
+        "description": "Cinema street address.",
+        "required": false,
+        "sampleValue": "1 Main Street"
+      },
+      {
+        "key": "city",
+        "description": "Cinema city.",
+        "required": false,
+        "sampleValue": "Tirana"
+      },
+      {
+        "key": "country",
+        "description": "Cinema country.",
+        "required": false,
+        "sampleValue": "Albania"
+      },
+      {
+        "key": "screenName",
+        "description": "Screen or hall name.",
+        "required": true,
+        "sampleValue": "Hall 1"
+      },
+      {
+        "key": "row",
+        "description": "Seat row.",
+        "required": true,
+        "sampleValue": "C"
+      },
+      {
+        "key": "seats",
+        "description": "Comma-separated seat numbers.",
+        "required": true,
+        "sampleValue": "1, 2"
+      },
+      {
+        "key": "ticketType",
+        "description": "Ticket type description.",
+        "required": true,
+        "sampleValue": "Regular"
+      },
+      {
+        "key": "totalPaid",
+        "description": "Total paid formatted to two decimals.",
+        "required": true,
+        "sampleValue": "123.45"
+      },
+      {
+        "key": "customerName",
+        "description": "Purchaser name.",
+        "required": true,
+        "sampleValue": "Alex Morgan"
+      },
+      {
+        "key": "customerEmail",
+        "description": "Purchaser email.",
+        "required": true,
+        "sampleValue": "alex@example.test"
+      },
+      {
+        "key": "paymentType",
+        "description": "Payment method.",
+        "required": true,
+        "sampleValue": "CREDIT"
+      },
+      {
+        "key": "purchaseDate",
+        "description": "Purchase date.",
+        "required": true,
+        "sampleValue": "27/07/2026"
+      },
+      {
+        "key": "qrImageSrc",
+        "description": "CID source for the inline QR image; empty if no code is available.",
+        "required": false,
+        "sampleValue": "cid:qrcode@goldcinema"
+      },
+      {
+        "key": "currentYear",
+        "description": "Current server year.",
+        "required": true,
+        "sampleValue": "2026"
+      }
+    ],
+    "isActive": true,
+    "isSystem": true,
+    "revision": 1
+  },
+  {
+    "slug": "two_factor_code",
+    "name": "Two-factor code",
+    "description": "Sign-in security code delivered to the account email.",
+    "subject": "🔒 Your GoldCinema Verification Code: {{code}}",
+    "htmlBody": "\n    <!DOCTYPE html>\n    <html>\n    <head>\n      <meta charset=\"utf-8\">\n      <style>\n        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #0f0f12; color: #f3f3f5; margin: 0; padding: 20px; }\n        .container { max-width: 600px; margin: 0 auto; background-color: #18181c; border: 1px solid #2a2a32; border-radius: 12px; overflow: hidden; }\n        .header { background-color: #000000; text-align: center; padding: 24px; border-bottom: 2px solid #d4af37; }\n        .brand { font-size: 26px; font-weight: bold; letter-spacing: 2px; color: #d4af37; text-decoration: none; }\n        .content { padding: 30px; }\n        .code-card { background-color: #222228; padding: 24px; border-radius: 8px; text-align: center; margin: 24px 0; border: 1px solid #2a2a32; }\n        .code-display { font-family: monospace; font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #d4af37; margin: 10px 0; }\n        .detail-line { font-size: 14px; color: #b3b3c2; line-height: 1.5; }\n        .warning-text { border-top: 1px dashed #33333d; padding-top: 16px; margin-top: 20px; font-size: 13px; color: #666677; }\n        .footer { text-align: center; padding: 20px; font-size: 12px; color: #666677; }\n      </style>\n    </head>\n    <body>\n      <div class=\"container\">\n        <div class=\"header\">\n          <div class=\"brand\">GOLD<span style=\"color:#ffffff;\">CINEMA</span></div>\n        </div>\n        <div class=\"content\">\n          <h2 style=\"color: #ffffff; margin-top: 0;\">Two-Factor Authentication</h2>\n          <p class=\"detail-line\">Hi <strong>{{name}}</strong>,</p>\n          <p class=\"detail-line\">Use the verification code below to complete your sign-in process.</p>\n\n          <div class=\"code-card\">\n            <div style=\"font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #b3b3c2; margin-bottom: 6px;\">Your Security Code</div>\n            <div class=\"code-display\">{{code}}</div>\n            <div style=\"font-size: 13px; color: #b3b3c2; margin-top: 6px;\">Expires in <strong>10 minutes</strong></div>\n          </div>\n\n          <div class=\"warning-text\">\n            If you did not request this code, please ignore this message or change your password to secure your account.\n          </div>\n        </div>\n        <div class=\"footer\">\n          &copy; {{currentYear}} GoldCinema. All rights reserved.\n        </div>\n      </div>\n    </body>\n    </html>\n    ",
+    "textBody": "Hi {{name}},\n\nYour verification code is: {{code}}\n\nThis code expires in 10 minutes. If you didn't request this, secure your account immediately.",
+    "variables": [
+      {
+        "key": "name",
+        "description": "Recipient display name.",
+        "required": true,
+        "sampleValue": "Alex Morgan"
+      },
+      {
+        "key": "code",
+        "description": "Short-lived authentication code; never stored in the template record.",
+        "required": true
+      },
+      {
+        "key": "currentYear",
+        "description": "Current server year.",
+        "required": true,
+        "sampleValue": "2026"
+      }
+    ],
+    "isActive": true,
+    "isSystem": true,
+    "revision": 1
+  },
+  {
+    "slug": "contact_notification",
+    "name": "Contact notification",
+    "description": "Internal notification for a submitted contact form.",
+    "subject": "[Contact Us] {{emailSubject}}",
+    "htmlBody": "\n    <!DOCTYPE html>\n    <html>\n    <head>\n      <meta charset=\"utf-8\">\n      <style>\n        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #0f0f12; color: #f3f3f5; margin: 0; padding: 20px; }\n        .container { max-width: 600px; margin: 0 auto; background-color: #18181c; border: 1px solid #2a2a32; border-radius: 12px; overflow: hidden; }\n        .header { background-color: #000000; text-align: center; padding: 24px; border-bottom: 2px solid #d4af37; }\n        .brand { font-size: 26px; font-weight: bold; letter-spacing: 2px; color: #d4af37; text-decoration: none; }\n        .content { padding: 30px; }\n        .detail-line { font-size: 14px; color: #b3b3c2; margin: 8px 0; }\n        .detail-line strong { color: #f3f3f5; }\n        .message-box { background-color: #222228; padding: 16px; border-radius: 8px; margin-top: 16px; border: 1px solid #2a2a32; white-space: pre-wrap; color: #f3f3f5; }\n        .footer { text-align: center; padding: 20px; font-size: 12px; color: #666677; }\n      </style>\n    </head>\n    <body>\n      <div class=\"container\">\n        <div class=\"header\">\n          <div class=\"brand\">GOLD<span style=\"color:#ffffff;\">CINEMA</span></div>\n        </div>\n        <div class=\"content\">\n          <h2 style=\"color: #ffffff; margin-top: 0;\">New Contact Message</h2>\n          <p class=\"detail-line\"><strong>Name:</strong> {{name}}</p>\n          <p class=\"detail-line\"><strong>Email:</strong> {{email}}</p>\n          <p class=\"detail-line\"><strong>Subject:</strong> {{displaySubject}}</p>\n          <div style=\"margin-top: 20px; font-size: 14px; color: #b3b3c2;\">Message:</div>\n          <div class=\"message-box\">{{message}}</div>\n        </div>\n        <div class=\"footer\">\n          &copy; {{currentYear}} GoldCinema Support System\n        </div>\n      </div>\n    </body>\n    </html>\n    ",
+    "textBody": "You have received a new message from {{name}} ({{email}}):\n\n{{message}}",
+    "variables": [
+      {
+        "key": "name",
+        "description": "Contact sender name.",
+        "required": true,
+        "sampleValue": "Alex Morgan"
+      },
+      {
+        "key": "email",
+        "description": "Contact sender email and reply-to address.",
+        "required": true,
+        "sampleValue": "alex@example.test"
+      },
+      {
+        "key": "displaySubject",
+        "description": "Subject displayed in the message body.",
+        "required": true,
+        "sampleValue": "General Inquiry"
+      },
+      {
+        "key": "emailSubject",
+        "description": "Subject appended to the contact notification email subject.",
+        "required": true,
+        "sampleValue": "New Message"
+      },
+      {
+        "key": "message",
+        "description": "Contact form message.",
+        "required": true,
+        "sampleValue": "I have a question."
+      },
+      {
+        "key": "currentYear",
+        "description": "Current server year.",
+        "required": true,
+        "sampleValue": "2026"
+      }
+    ],
+    "isActive": true,
+    "isSystem": true,
+    "revision": 1
+  },
+  {
+    "slug": "login_alert",
+    "name": "Login alert",
+    "description": "Security alert describing a recent account sign-in.",
+    "subject": "⚠️ New Log-In to your GoldCinema account",
+    "htmlBody": "\n    <!DOCTYPE html>\n    <html>\n    <head>\n      <meta charset=\"utf-8\">\n      <style>\n        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #0f0f12; color: #f3f3f5; margin: 0; padding: 20px; }\n        .container { max-width: 600px; margin: 0 auto; background-color: #18181c; border: 1px solid #2a2a32; border-radius: 12px; overflow: hidden; }\n        .header { background-color: #000000; text-align: center; padding: 24px; border-bottom: 2px solid #d4af37; }\n        .brand { font-size: 26px; font-weight: bold; letter-spacing: 2px; color: #d4af37; text-decoration: none; }\n        .content { padding: 30px; }\n        .alert-card { background-color: #222228; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #2a2a32; }\n        .detail-line { font-size: 14px; color: #b3b3c2; margin: 6px 0; }\n        .detail-line strong { color: #f3f3f5; }\n        .warning-text { border-top: 1px dashed #33333d; padding-top: 16px; margin-top: 20px; font-size: 13px; color: #e74c3c; }\n        .footer { text-align: center; padding: 20px; font-size: 12px; color: #666677; }\n      </style>\n    </head>\n    <body>\n      <div class=\"container\">\n        <div class=\"header\">\n          <div class=\"brand\">GOLD<span style=\"color:#ffffff;\">CINEMA</span></div>\n        </div>\n        <div class=\"content\">\n          <h2 style=\"color: #ffffff; margin-top: 0;\">New Log-In Detected</h2>\n          <p class=\"detail-line\">Hi <strong>{{name}}</strong>,</p>\n          <p class=\"detail-line\">We noticed a new login to your GoldCinema account.</p>\n\n          <div class=\"alert-card\">\n            <p class=\"detail-line\"><strong>Method:</strong> {{loginMethod}}</p>\n            <p class=\"detail-line\"><strong>Time:</strong> {{time}}</p>\n            <p class=\"detail-line\"><strong>IP Address:</strong> {{ipAddress}}</p>\n          </div>\n\n          <div class=\"warning-text\">\n            If this was you, you can safely ignore this email. If you did not sign in recently, please change your password immediately to secure your account.\n          </div>\n        </div>\n        <div class=\"footer\">\n          &copy; {{currentYear}} GoldCinema Security Team\n        </div>\n      </div>\n    </body>\n    </html>\n  ",
+    "textBody": "Hi {{name}},\n\nWe noticed a new login to your GoldCinema account via {{loginMethod}} at {{time}} from IP: {{ipAddress}}.\n\nIf this wasn't you, please secure your account immediately.",
+    "variables": [
+      {
+        "key": "name",
+        "description": "Account display name.",
+        "required": true,
+        "sampleValue": "Alex Morgan"
+      },
+      {
+        "key": "time",
+        "description": "Sign-in timestamp.",
+        "required": true,
+        "sampleValue": "28 Jul 2026 17:30 UTC"
+      },
+      {
+        "key": "ipAddress",
+        "description": "Source IP address.",
+        "required": true,
+        "sampleValue": "203.0.113.8"
+      },
+      {
+        "key": "loginMethod",
+        "description": "Authentication method.",
+        "required": true,
+        "sampleValue": "Password"
+      },
+      {
+        "key": "currentYear",
+        "description": "Current server year.",
+        "required": true,
+        "sampleValue": "2026"
+      }
+    ],
+    "isActive": true,
+    "isSystem": true,
+    "revision": 1
+  },
+  {
+    "slug": "gift_card_delivery",
+    "name": "Gift card delivery",
+    "description": "Gift card email with optional personal message and redemption details.",
+    "subject": "🎁 {{senderName}} sent you a GoldCinema Gift Card!",
+    "htmlBody": "\n        <!DOCTYPE html>\n        <html>\n        <head>\n            <meta charset=\"utf-8\">\n            <style>\n                body {\n                    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;\n                    background-color: #0f0f12;\n                    color: #f3f3f5;\n                    margin: 0;\n                    padding: 20px;\n                }\n\n                .container {\n                    max-width: 600px;\n                    margin: 0 auto;\n                    background-color: #18181c;\n                    border: 1px solid #2a2a32;\n                    border-radius: 12px;\n                    overflow: hidden;\n                }\n\n                .header {\n                    background-color: #000000;\n                    text-align: center;\n                    padding: 24px;\n                    border-bottom: 2px solid #d4af37;\n                }\n\n                .brand {\n                    font-size: 26px;\n                    font-weight: bold;\n                    letter-spacing: 2px;\n                    color: #d4af37;\n                }\n\n                .content {\n                    padding: 30px;\n                }\n\n                .eyebrow {\n                    text-align: center;\n                    color: #d4af37;\n                    font-size: 12px;\n                    font-weight: bold;\n                    letter-spacing: 2px;\n                    text-transform: uppercase;\n                    margin-bottom: 8px;\n                }\n\n                .title {\n                    color: #ffffff;\n                    text-align: center;\n                    font-size: 28px;\n                    margin: 0 0 10px 0;\n                }\n\n                .subtitle {\n                    color: #b3b3c2;\n                    text-align: center;\n                    font-size: 15px;\n                    line-height: 1.6;\n                    margin: 0 0 28px 0;\n                }\n\n                .gift-card {\n                    background: linear-gradient(135deg, #222228, #18181c);\n                    border: 1px solid #d4af37;\n                    border-radius: 12px;\n                    padding: 28px;\n                    text-align: center;\n                    margin-bottom: 24px;\n                }\n\n                .gift-label {\n                    color: #b3b3c2;\n                    font-size: 12px;\n                    text-transform: uppercase;\n                    letter-spacing: 2px;\n                    margin-bottom: 8px;\n                }\n\n                .gift-amount {\n                    color: #d4af37;\n                    font-size: 42px;\n                    font-weight: bold;\n                    margin: 0;\n                }\n\n                .gift-brand {\n                    color: #ffffff;\n                    font-size: 14px;\n                    letter-spacing: 2px;\n                    font-weight: bold;\n                    margin-top: 8px;\n                }\n\n                .message-box {\n                    background-color: #222228;\n                    border-left: 4px solid #d4af37;\n                    padding: 16px;\n                    border-radius: 0 8px 8px 0;\n                    margin: 24px 0;\n                }\n\n                .message-box p {\n                    margin: 0;\n                    color: #f3f3f5;\n                    font-size: 14px;\n                    line-height: 1.6;\n                    font-style: italic;\n                }\n\n                .code-section {\n                    background-color: #ffffff;\n                    border-radius: 10px;\n                    padding: 22px;\n                    text-align: center;\n                    margin: 24px 0;\n                }\n\n                .code-label {\n                    color: #666677;\n                    font-size: 11px;\n                    font-weight: bold;\n                    letter-spacing: 2px;\n                    text-transform: uppercase;\n                    margin-bottom: 10px;\n                }\n\n                .code {\n                    color: #111111;\n                    font-family: monospace;\n                    font-size: 25px;\n                    font-weight: bold;\n                    letter-spacing: 4px;\n                    margin: 0;\n                }\n\n                .instructions-box {\n                    background-color: #222228;\n                    border-left: 4px solid #d4af37;\n                    padding: 15px;\n                    border-radius: 0 8px 8px 0;\n                    margin: 20px 0;\n                    font-size: 13px;\n                    color: #b3b3c2;\n                    line-height: 1.6;\n                }\n\n                .instructions-box h4 {\n                    color: #ffffff;\n                    margin: 0 0 8px 0;\n                    font-size: 14px;\n                }\n\n                .instructions-box ul {\n                    margin: 0;\n                    padding-left: 18px;\n                }\n\n                .instructions-box li {\n                    margin-bottom: 6px;\n                }\n\n                .details {\n                    border-top: 1px dashed #33333d;\n                    padding-top: 16px;\n                    margin-top: 24px;\n                    font-size: 13px;\n                    color: #b3b3c2;\n                }\n\n                .details p {\n                    margin: 5px 0;\n                }\n\n                .details strong {\n                    color: #f3f3f5;\n                }\n\n                .footer {\n                    text-align: center;\n                    padding: 20px;\n                    font-size: 12px;\n                    color: #666677;\n                }\n            </style>\n        </head>\n\n        <body>\n            <div class=\"container\">\n\n                <div class=\"header\">\n                    <div class=\"brand\">\n                        GOLD<span style=\"color:#ffffff;\">CINEMA</span>\n                    </div>\n                </div>\n\n                <div class=\"content\">\n\n                    <div class=\"eyebrow\">🎁 A Gift For You</div>\n\n                    <h1 class=\"title\">\n                        You've received a GoldCinema Gift Card!\n                    </h1>\n\n                    <p class=\"subtitle\">\n                        {{senderName}} has sent you a gift\n                        worth €{{amount}} to enjoy your next movie experience at GoldCinema.\n                    </p>\n\n                    <div class=\"gift-card\">\n                        <div class=\"gift-label\">GoldCinema Gift Card</div>\n\n                        <p class=\"gift-amount\">\n                            €{{amount}}\n                        </p>\n\n                        <div class=\"gift-brand\">\n                            GOLD<span style=\"color:#d4af37;\">CINEMA</span>\n                        </div>\n                    </div>\n\n                    \n                                {{#if message}}<div class=\"message-box\">\n                                    <p>\n                                        \"{{message}}\"\n                                    </p>\n                                </div>{{/if}}\n                            \n\n                    <div class=\"code-section\">\n                        <div class=\"code-label\">\n                            Your Gift Card Code\n                        </div>\n\n                        <p class=\"code\">\n                            {{giftCardCode}}\n                        </p>\n                    </div>\n\n                    <div class=\"instructions-box\">\n                        <h4>How to use your gift card</h4>\n\n                        <ul>\n                            <li>\n                                Use the gift card code during checkout when purchasing your tickets.\n                            </li>\n\n                            <li>\n                                The gift card can be used until its available balance is fully redeemed.\n                            </li>\n\n                            <li>\n                                Keep this email safe so you can access your gift card code when needed.\n                            </li>\n\n                            <li>\n                                Do not share your gift card code with anyone you do not trust.\n                            </li>\n                        </ul>\n                    </div>\n\n                    <div class=\"details\">\n                        <p>\n                            <strong>Recipient:</strong>\n                            {{recipientName}}\n                        </p>\n\n                        <p>\n                            <strong>Sent by:</strong>\n                            {{senderName}}\n                        </p>\n\n                        <p>\n                            <strong>Value:</strong>\n                            €{{amount}}\n                        </p>\n\n                        <p>\n                            <strong>Gift Card Code:</strong>\n                            {{giftCardCode}}\n                        </p>\n                    </div>\n\n                </div>\n\n                <div class=\"footer\">\n                    <p style=\"margin: 0 0 10px 0; color: #888899;\">\n                        Enjoy your next movie experience at GoldCinema.\n                    </p>\n\n                    <p style=\"margin: 0 0 10px 0; color: #f3f3f5; font-weight: bold;\">\n                        Lights down. Movie on. 🎬\n                    </p>\n\n                    &copy; {{currentYear}} GoldCinema Staff\n                </div>\n\n            </div>\n        </body>\n        </html>\n    ",
+    "textBody": "You've received a GoldCinema Gift Card!\n\nHi {{recipientName}},\n\n{{senderName}} has sent you a €{{amount}} GoldCinema gift card.\n\n{{#if message}}Personal message:\n\"{{message}}\"\n\n{{/if}}\n\nGift Card Code: {{giftCardCode}}\n\nUse this code during checkout when purchasing your tickets.\n\nKeep this email safe and do not share your gift card code with anyone you do not trust.\n\nEnjoy your next movie experience at GoldCinema!",
+    "variables": [
+      {
+        "key": "recipientName",
+        "description": "Gift card recipient name.",
+        "required": true,
+        "sampleValue": "Alex Morgan"
+      },
+      {
+        "key": "senderName",
+        "description": "Gift card sender name.",
+        "required": true,
+        "sampleValue": "Sam Taylor"
+      },
+      {
+        "key": "amount",
+        "description": "Gift card initial value formatted to two decimals.",
+        "required": true,
+        "sampleValue": "52.35"
+      },
+      {
+        "key": "giftCardCode",
+        "description": "Gift card redemption code.",
+        "required": true,
+        "sampleValue": "GC-ABCD-1234"
+      },
+      {
+        "key": "message",
+        "description": "Optional personal message from the sender.",
+        "required": false,
+        "sampleValue": "Enjoy a movie!"
+      },
+      {
+        "key": "currentYear",
+        "description": "Current server year.",
+        "required": true,
+        "sampleValue": "2026"
+      }
+    ],
+    "isActive": true,
+    "isSystem": true,
+    "revision": 1
+  },
+  {
+    "slug": "generic_order",
+    "name": "Generic order email",
+    "description": "Generic reusable order email wrapper; there are no current call sites.",
+    "subject": "{{subject}}",
+    "htmlBody": "{{html}}",
+    "textBody": "{{text}}",
+    "variables": [
+      {
+        "key": "subject",
+        "description": "Subject supplied by the order dispatcher.",
+        "required": true,
+        "sampleValue": "Order update"
+      },
+      {
+        "key": "text",
+        "description": "Plain-text order content.",
+        "required": false,
+        "sampleValue": "Your order has been updated."
+      },
+      {
+        "key": "html",
+        "description": "Sanitized HTML order content.",
+        "required": false,
+        "sampleValue": "<p>Your order has been updated.</p>",
+        "type": "html"
+      },
+      {
+        "key": "name",
+        "description": "Optional recipient name.",
+        "required": false,
+        "sampleValue": "Alex Morgan"
+      }
+    ],
+    "isActive": true,
+    "isSystem": true,
+    "revision": 1
+  }
+]

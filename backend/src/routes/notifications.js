@@ -12,21 +12,22 @@ const {
     deleteNotification,
     clearArchived,
 } = require('../controllers/notifications');
+const { requirePermission } = require('../middleware/roleAccess');
 
 const router = express.Router();
 
-router.use(requireAuth);
+router.use(requireAuth, requirePermission('notifications:read'));
 
 router.get('/', getUserNotifications);
 router.get('/unread-count', getUnreadCount);
-router.patch('/read-all', markAllAsRead);
-router.patch('/archive-all', archiveAll);
-router.patch('/unarchive-all', unarchiveAll);
-router.patch('/archive-all-read', archiveAllRead);
-router.delete('/clear-archived', clearArchived);
+router.patch('/read-all', requirePermission('notifications:manage'), markAllAsRead);
+router.patch('/archive-all', requirePermission('notifications:manage'), archiveAll);
+router.patch('/unarchive-all', requirePermission('notifications:manage'), unarchiveAll);
+router.patch('/archive-all-read', requirePermission('notifications:manage'), archiveAllRead);
+router.delete('/clear-archived', requirePermission('notifications:manage'), clearArchived);
 
-router.patch('/:id/read', updateReadStatus);
-router.patch('/:id/archive', updateArchiveStatus);
-router.delete('/:id', deleteNotification);
+router.patch('/:id/read', requirePermission('notifications:manage'), updateReadStatus);
+router.patch('/:id/archive', requirePermission('notifications:manage'), updateArchiveStatus);
+router.delete('/:id', requirePermission('notifications:manage'), deleteNotification);
 
 module.exports = router;

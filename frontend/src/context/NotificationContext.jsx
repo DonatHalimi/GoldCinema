@@ -1,290 +1,138 @@
+import { createContext, useCallback, useContext, useState } from 'react';
+import { useAuth } from './AuthContext';
 import {
-    createContext,
-    useCallback,
-    useContext,
-    useEffect,
-    useState,
-} from 'react';
-import {
-    archiveAllReadNotifications,
-    clearArchivedNotifications,
-    deleteUserNotification,
-    getNotifications,
-    markAllNotificationsAsArchived,
-    markAllNotificationsAsRead,
-    markAllNotificationsAsUnarchived,
-    markNotificationAsRead,
-    updateNotificationArchive,
-} from '../api/notifications';
+    useArchiveAllNotificationsMutation,
+    useArchiveAllReadNotificationsMutation,
+    useClearArchivedNotificationsMutation,
+    useDeleteNotificationMutation,
+    useGetNotificationsQuery,
+    useMarkAllNotificationsAsReadMutation,
+    useMarkNotificationAsReadMutation,
+    useUnarchiveAllNotificationsMutation,
+    useUpdateNotificationArchiveMutation,
+} from '../store/api/notificationsApiSlice';
 
 const NotificationContext = createContext(null);
 
 export function NotificationProvider({ children }) {
-    const [notifications, setNotifications] = useState([]);
-    const [unreadCount, setUnreadCount] = useState(0);
-    const [totalCount, setTotalCount] = useState(0);
-    const [totalPages, setTotalPages] = useState(1);
-
+    const { user } = useAuth();
     const [filter, setFilter] = useState('all');
     const [page, setPage] = useState(1);
-    const [loading, setLoading] = useState(false);
+    const query = useGetNotificationsQuery(
+        { filter, page, limit: 20 },
+        { skip: !user }
+    );
+    const [markRead] = useMarkNotificationAsReadMutation();
+    const [markAllRead] = useMarkAllNotificationsAsReadMutation();
+    const [updateArchive] = useUpdateNotificationArchiveMutation();
+    const [archiveRead] = useArchiveAllReadNotificationsMutation();
+    const [archiveAllRequest] = useArchiveAllNotificationsMutation();
+    const [unarchiveAllRequest] = useUnarchiveAllNotificationsMutation();
+    const [deleteRequest] = useDeleteNotificationMutation();
+    const [clearArchivedRequest] = useClearArchivedNotificationsMutation();
 
-    const fetchNotifications = useCallback(async () => {
-        setLoading(true);
+    const result = query.data || {};
+    const notifications = result.notifications || [];
+    const unreadCount = result.unreadCount || 0;
+    const totalCount = result.totalCount || 0;
+    const totalPages = result.totalPages || 1;
+    const loading = Boolean(user && query.isFetching);
 
-        try {
-            const data = await getNotifications(filter, page, 20);
-
-            setNotifications(data.notifications || []);
-            setTotalCount(data.totalCount || 0);
-            setUnreadCount(data.unreadCount || 0);
-            setTotalPages(data.totalPages || 1);
-        } catch (error) {
-            console.error(
-                '[NOTIFICATIONS] Failed to fetch notifications:',
-                error.response?.data || error.message
-            );
-            setNotifications([]);
-            setTotalCount(0);
-            setTotalPages(1);
-        } finally {
-            setLoading(false);
-        }
-    }, [filter, page]);
-
-    useEffect(() => {
-        fetchNotifications();
-    }, [fetchNotifications]);
-
-    const handleSetFilter = useCallback((newFilter) => {
-        setFilter(newFilter);
+    const handleSetFilter = useCallback((nextFilter) => {
+        setFilter(nextFilter);
         setPage(1);
     }, []);
 
-    const handleSetPage = useCallback((newPage) => {
-        setPage(newPage);
-    }, []);
+    async function fetchNotifications() {
+        if (!user) return { data: {} };
+        const result = await query.refetch();
+        if (result.isError) throw result.error;
+        return result;
+    }
 
-    const markAsRead = useCallback(async (id, read = true) => {
-        try {
-            const data = await markNotificationAsRead(id, read);
-            const updatedNotification = data.notification;
-
-            setNotifications((current) =>
-                current.map((notification) => notification._id === id ? updatedNotification : notification
-                )
-            );
-
-            if (typeof data.unreadCount === 'number') {
-                setUnreadCount(data.unreadCount);
-            }
-        } catch (error) {
-            console.error(
-                '[NOTIFICATIONS] Failed to update read status:',
-                error.response?.data || error.message
-            );
-        }
-    }, []);
+    const markAsRead = useCallback((id, read = true) => (
+        markRead({ id, read }).unwrap()
+    ), [markRead]);
 
     const markAllAsRead = useCallback(async () => {
         try {
-            const data = await markAllNotificationsAsRead();
-
-            setUnreadCount(data.unreadCount ?? 0);
-
-            setNotifications((current) =>
-                current.map((notification) =>
-                    notification.archived === false
-                        ? { ...notification, read: true }
-                        : notification
-                )
-            );
-
-            await fetchNotifications();
+            await markAllRead().unwrap();
         } catch (error) {
-            console.error(
-                '[NOTIFICATIONS] Failed to mark all as read:',
-                error.response?.data || error.message
-            );
+            console.error('[NOTIFICATIONS] Failed to mark all as read:', error);
         }
-    }, [fetchNotifications]);
+    }, [markAllRead]);
 
-    const archiveNotification = useCallback(
-        async (id, archived = true) => {
-            if (!id) return false;
+    const archiveNotification = useCallback(async (id, archived = true) => {
+        if (!id) return false;
+        try {
+            await updateArchive({ id, archived }).unwrap();
+            return true;
+        } catch (error) {
+            console.error('[NOTIFICATIONS] Failed to update archive status:', error);
+            return false;
+        }
+    }, [updateArchive]);
 
-            const previous = notifications;
-
-            if (archived) {
-                setNotifications((current) =>
-                    current.filter((n) => String(n._id) !== String(id))
-                );
-
-                const item = previous.find(
-                    (n) => String(n._id) === String(id)
-                );
-                if (item && !item.read) {
-                    setUnreadCount((count) => Math.max(0, count - 1));
-                }
-            }
-
-            try {
-                const data = await updateNotificationArchive(id, archived);
-
-                if (typeof data?.unreadCount === 'number') {
-                    setUnreadCount(data.unreadCount);
-                }
-
-                await fetchNotifications();
-                return true;
-            } catch (error) {
-                setNotifications(previous);
-                console.error(
-                    '[NOTIFICATIONS] Failed to update archive status:',
-                    error.response?.data || error.message
-                );
-                return false;
-            }
-        },
-        [notifications, fetchNotifications]
-    );
-
-    const toggleArchive = archiveNotification;
-
-    const unarchiveNotification = useCallback(
-        (id) => archiveNotification(id, false),
-        [archiveNotification]
-    );
+    const unarchiveNotification = useCallback((id) => archiveNotification(id, false), [archiveNotification]);
 
     const archiveAllRead = useCallback(async () => {
         try {
-            const data = await archiveAllReadNotifications();
-
-            if (typeof data.unreadCount === 'number') {
-                setUnreadCount(data.unreadCount);
-            }
-
-            await fetchNotifications();
+            await archiveRead().unwrap();
         } catch (error) {
-            console.error(
-                '[NOTIFICATIONS] Failed to archive all read notifications:',
-                error.response?.data || error.message
-            );
+            console.error('[NOTIFICATIONS] Failed to archive all read notifications:', error);
         }
-    }, [fetchNotifications]);
+    }, [archiveRead]);
 
     const archiveAll = useCallback(async () => {
         try {
-            const data = await markAllNotificationsAsArchived();
-
-            if (typeof data.unreadCount === 'number') {
-                setUnreadCount(data.unreadCount);
-            }
-
-            await fetchNotifications();
+            await archiveAllRequest().unwrap();
         } catch (error) {
-            console.error(
-                '[NOTIFICATIONS] Failed to archive all notifications:',
-                error.response?.data || error.message
-            );
+            console.error('[NOTIFICATIONS] Failed to archive all notifications:', error);
         }
-    }, [fetchNotifications]);
+    }, [archiveAllRequest]);
 
     const unarchiveAll = useCallback(async () => {
         try {
-            const data = await markAllNotificationsAsUnarchived();
-
-            if (typeof data.unreadCount === 'number') {
-                setUnreadCount(data.unreadCount);
-            }
-
-            setFilter('all');
-            setPage(1);
+            await unarchiveAllRequest().unwrap();
+            handleSetFilter('all');
         } catch (error) {
-            console.error(
-                '[NOTIFICATIONS] Failed to unarchive all notifications:',
-                error.response?.data || error.message
-            );
+            console.error('[NOTIFICATIONS] Failed to unarchive all notifications:', error);
         }
-    }, []);
+    }, [handleSetFilter, unarchiveAllRequest]);
 
-    const deleteNotification = useCallback(
-        async (id) => {
-            if (!id) return false;
-
-            const previous = notifications;
-
-            setNotifications((current) =>
-                current.filter((n) => String(n._id) !== String(id))
-            );
-
-            try {
-                await deleteUserNotification(id);
-
-                const removed = previous.find(
-                    (n) => String(n._id) === String(id)
-                );
-
-                if (removed && !removed.read && !removed.archived) {
-                    setUnreadCount((count) => Math.max(0, count - 1));
-                }
-
-                await fetchNotifications();
-                return true;
-            } catch (error) {
-                setNotifications(previous);
-                console.error(
-                    '[NOTIFICATIONS] Failed to delete notification:',
-                    error.response?.data || error.message
-                );
-                throw error;
-            }
-        },
-        [notifications, fetchNotifications]
-    );
+    const deleteNotification = useCallback((id) => deleteRequest(id).unwrap(), [deleteRequest]);
 
     const clearArchived = useCallback(async () => {
         try {
-            await clearArchivedNotifications();
-            await fetchNotifications();
+            await clearArchivedRequest().unwrap();
         } catch (error) {
-            console.error(
-                '[NOTIFICATIONS] Failed to clear archived notifications:',
-                error.response?.data || error.message
-            );
+            console.error('[NOTIFICATIONS] Failed to clear archived notifications:', error);
         }
-    }, [fetchNotifications]);
-
-    const value = {
-        notifications,
-        unreadCount,
-        totalCount,
-        totalPages,
-        filter,
-        page,
-        loading,
-
-        setFilter: handleSetFilter,
-        setPage: handleSetPage,
-
-        markAsRead,
-        markAllAsRead,
-
-        archiveNotification,
-        unarchiveNotification,
-        toggleArchive,
-        archiveAllRead,
-        archiveAll,
-        unarchiveAll,
-
-        deleteNotification,
-        clearArchived,
-
-        fetchNotifications,
-    };
+    }, [clearArchivedRequest]);
 
     return (
-        <NotificationContext.Provider value={value}>
+        <NotificationContext.Provider value={{
+            notifications,
+            unreadCount,
+            totalCount,
+            totalPages,
+            filter,
+            page,
+            loading,
+            setFilter: handleSetFilter,
+            setPage,
+            markAsRead,
+            markAllAsRead,
+            archiveNotification,
+            unarchiveNotification,
+            toggleArchive: archiveNotification,
+            archiveAllRead,
+            archiveAll,
+            unarchiveAll,
+            deleteNotification,
+            clearArchived,
+            fetchNotifications,
+        }}>
             {children}
         </NotificationContext.Provider>
     );
@@ -292,9 +140,7 @@ export function NotificationProvider({ children }) {
 
 export function useNotifications() {
     const context = useContext(NotificationContext);
-    if (!context) {
-        throw new Error('useNotifications must be used inside NotificationProvider');
-    }
+    if (!context) throw new Error('useNotifications must be used inside NotificationProvider');
     return context;
 }
 

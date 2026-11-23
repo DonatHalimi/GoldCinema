@@ -3,7 +3,7 @@ const router = express.Router();
 const { getAll, getOne, createOne, updateOne, deleteOne, deleteMany } = require('../controllers/adminFactory');
 const { getUsers, getUser, createUser, updateUser, deleteUser, deleteUsersBulk } = require('../controllers/adminUsers');
 const { requirePermission } = require('../middleware/roleAccess');
-const { requireAuth, requireAdmin } = require('../middleware/auth');
+const { requireAuth } = require('../middleware/auth');
 const {
     getAllStaff,
     getStaffById,
@@ -37,6 +37,8 @@ const Equipment = require('../models/equipment');
 const MaintenanceLog = require('../models/maintenanceLog');
 const MoviePerformance = require('../models/moviePerformance');
 const CustomerAnalytics = require('../models/customerAnalytics');
+const { validateBody } = require('../validations/common');
+const { adminUserCreateSchema } = require('../validations/user');
 
 router.use(requireAuth);
 
@@ -52,10 +54,10 @@ const registerAdminResource = (path, Model, populateOpts = '') => {
 
 router.get('/users', requirePermission('users:read'), getUsers);
 router.get('/users/:id', requirePermission('users:read'), getUser);
-router.post('/users', requireAdmin, createUser);
-router.put('/users/:id', requireAdmin, updateUser);
-router.delete('/users/bulk-delete', requireAdmin, deleteUsersBulk);
-router.delete('/users/:id', requireAdmin, deleteUser);
+router.post('/users', requirePermission('users:manage'), validateBody(adminUserCreateSchema), createUser);
+router.put('/users/:id', requirePermission('users:manage'), updateUser);
+router.delete('/users/bulk-delete', requirePermission('users:manage'), deleteUsersBulk);
+router.delete('/users/:id', requirePermission('users:manage'), deleteUser);
 
 router.get('/staff', requirePermission('staff:read'), getAllStaff);
 router.get('/staff/:id', requirePermission('staff:read'), getStaffById);

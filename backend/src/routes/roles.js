@@ -3,18 +3,28 @@ const router = express.Router();
 const {
     getRoles,
     createRole,
+    getRole,
     updateRole,
     deleteRole,
-} = require('../controllers/role');
+    replacePermissions,
+    getPermissions,
+    getGroupedPermissions,
+} = require('../controllers/roles');
 const {
     validateBody,
     validateParams,
     role: { roleCreateSchema, roleUpdateSchema, roleIdSchema },
 } = require('../validations');
+const { requireAuth } = require('../middleware/auth');
+const { requirePermission } = require('../middleware/roleAccess');
 
-router.get('/', getRoles);
-router.post('/', validateBody(roleCreateSchema), createRole);
-router.put('/:id', validateParams(roleIdSchema), validateBody(roleUpdateSchema), updateRole);
-router.delete('/:id', validateParams(roleIdSchema), deleteRole);
+router.use(requireAuth);
+router.get('/', requirePermission('roles:read'), getRoles);
+router.post('/', requirePermission('roles:manage'), validateBody(roleCreateSchema), createRole);
+router.get('/:id', requirePermission('roles:read'), validateParams(roleIdSchema), getRole);
+router.put('/:id', requirePermission('roles:manage'), validateParams(roleIdSchema), validateBody(roleUpdateSchema), updateRole);
+router.put('/:id/permissions', requirePermission('roles:manage', 'permissions:manage', { mode: 'all' }), validateParams(roleIdSchema), replacePermissions);
+router.delete('/:id', requirePermission('roles:manage'), validateParams(roleIdSchema), deleteRole);
+
 
 module.exports = router;

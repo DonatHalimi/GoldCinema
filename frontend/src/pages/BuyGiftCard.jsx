@@ -1,14 +1,12 @@
 import { useEffect, useState } from 'react';
-
 import {
-    captureGiftCardPaypalOrder,
-    confirmGiftCardPayment,
-    createGiftCard,
-    createGiftCardPaymentIntent,
-    createGiftCardPaypalOrder,
-} from '../api/giftCard';
-
-import { getPaymentMethods } from '../api/payments';
+    useCaptureGiftCardPaypalOrderMutation,
+    useConfirmGiftCardPaymentMutation,
+    useCreateGiftCardMutation,
+    useCreateGiftCardPaymentIntentMutation,
+    useCreateGiftCardPaypalOrderMutation,
+    useGetPaymentMethodsQuery,
+} from '../store/api/paymentsApiSlice';
 
 import PaymentSection from '../components/checkout/PaymentSelection';
 import AmountPicker from '../components/giftcards/AmountPicker';
@@ -36,8 +34,12 @@ export default function BuyGiftCard() {
     const [giftCard, setGiftCard] = useState(null);
     const [provider, setProvider] = useState('stripe');
     const [payError, setPayError] = useState('');
-    const [paymentMethods, setPaymentMethods] = useState([]);
-    const [paymentMethodsLoading, setPaymentMethodsLoading] = useState(true);
+    const { data: paymentMethods = [], isLoading: paymentMethodsLoading } = useGetPaymentMethodsQuery(undefined, { skip: !user });
+    const [createGiftCardRequest] = useCreateGiftCardMutation();
+    const [createIntentRequest] = useCreateGiftCardPaymentIntentMutation();
+    const [confirmPaymentRequest] = useConfirmGiftCardPaymentMutation();
+    const [createPaypalOrderRequest] = useCreateGiftCardPaypalOrderMutation();
+    const [capturePaypalOrderRequest] = useCaptureGiftCardPaypalOrderMutation();
 
     useEffect(() => {
         if (!user) return;
@@ -47,10 +49,16 @@ export default function BuyGiftCard() {
     }, [user]);
 
     const createGiftCardIntentAdapter = (request = {}) =>
-        createGiftCardPaymentIntent({
+        createIntentRequest({
             giftCardId: giftCard._id,
             paymentMethodId: request.paymentMethodId,
-        });
+        }).unwrap();
+    const confirmGiftCardPaymentAdapter = (currentGiftCard, paymentIntent) =>
+        confirmPaymentRequest({ giftCard: currentGiftCard, paymentIntent }).unwrap();
+    const createGiftCardPaypalOrderAdapter = () =>
+        createPaypalOrderRequest(giftCard).unwrap();
+    const captureGiftCardPaypalOrderAdapter = (_giftCardId, orderID) =>
+        capturePaypalOrderRequest({ giftCard, orderID }).unwrap();
 
     function validate() {
         const errors = {};
@@ -68,26 +76,6 @@ export default function BuyGiftCard() {
         return errors;
     }
 
-    useEffect(() => {
-        async function loadPaymentMethods() {
-            try {
-                setPaymentMethodsLoading(true);
-
-                const data = await getPaymentMethods();
-
-                setPaymentMethods(data.paymentMethods || []);
-            } catch (err) {
-                console.error('PAYMENT METHODS LOAD ERROR:', err);
-
-                setPaymentMethods([]);
-            } finally {
-                setPaymentMethodsLoading(false);
-            }
-        }
-
-        loadPaymentMethods();
-    }, []);
-
     async function handleSubmit(e) {
         e.preventDefault();
         setFormError('');
@@ -98,7 +86,7 @@ export default function BuyGiftCard() {
 
         setSubmitting(true);
         try {
-            const data = await createGiftCard({
+            const data = await createGiftCardRequest({
                 amount: Number(amount),
                 backgroundTemplate: template,
                 senderName: senderName.trim(),
@@ -106,12 +94,12 @@ export default function BuyGiftCard() {
                 recipientName: recipientName.trim(),
                 recipientEmail: recipientEmail.trim().toLowerCase(),
                 message: message.trim() || undefined,
-            });
+            }).unwrap();
 
             setGiftCard(data.giftCard);
             setStep('payment');
         } catch (err) {
-            setFormError(err.response?.data?.error || err.message || 'Failed to start gift card purchase.');
+            setFormError(err.data?.error || err.message || 'Failed to start gift card purchase.');
         } finally {
             setSubmitting(false);
         }
@@ -160,9 +148,9 @@ export default function BuyGiftCard() {
                     paymentMethods={paymentMethods}
                     paymentMethodsLoading={paymentMethodsLoading}
                     createIntentFn={createGiftCardIntentAdapter}
-                    confirmPaymentFn={confirmGiftCardPayment}
-                    createPaypalOrderFn={createGiftCardPaypalOrder}
-                    capturePaypalOrderFn={captureGiftCardPaypalOrder}
+                    confirmPaymentFn={confirmGiftCardPaymentAdapter}
+                    createPaypalOrderFn={createGiftCardPaypalOrderAdapter}
+                    capturePaypalOrderFn={captureGiftCardPaypalOrderAdapter}
                 />
             </div>
         );

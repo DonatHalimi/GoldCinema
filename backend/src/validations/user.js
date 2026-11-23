@@ -48,6 +48,16 @@ const userCreateSchema = yup.object({
         .number().min(0, 'Total spent cannot be negative.').default(0),
 }).noUnknown(true);
 
+const adminUserCreateSchema = yup.object({
+    name: yup.string().trim().required('Name is required.').min(2, 'Name is too short.').max(100),
+    email: yup.string().trim().lowercase().required('Email is required.').email('A valid email is required.'),
+    password: yup.string().required('Password is required.').min(8, 'Password must be at least 8 characters.').max(128),
+    phoneNumber: yup.string().trim().transform((value) => value || null).nullable().max(32).optional(),
+    avatar: yup.string().trim().transform((value) => value || null).nullable().max(2048).optional(),
+    isActive: yup.boolean().default(true),
+    roles: yup.array().of(yup.string().trim().lowercase().required()).min(1).default(['customer']),
+}).noUnknown(true);
+
 const userUpdateSchema = yup.object({
     name: yup
         .string()
@@ -107,6 +117,7 @@ const userIdSchema = yup.object({
 
 module.exports = {
     userCreateSchema,
+    adminUserCreateSchema,
     userUpdateSchema,
     userIdSchema,
 };

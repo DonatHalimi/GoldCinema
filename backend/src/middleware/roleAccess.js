@@ -1,15 +1,10 @@
 const Staff = require('../models/staff');
+const {
+    resolveRolePermissions,
+    hasAnyPermission,
+} = require('../services/permissionService');
 
-const ROLE_PERMISSIONS = {
-    super_admin: ['*'],
-    admin: ['*'],
-    cinema_manager: [
-        'staff:self', 'staff:read', 'staff:manage',
-        'shifts:self', 'shifts:read', 'shifts:manage',
-    ],
-    staff: ['staff:self', 'shifts:self', 'tickets:scan'],
-    customer: ['customer:self'],
-};
+const ROLE_PERMISSIONS = {};
 
 function roleName(role) {
     if (!role) return null;
@@ -18,39 +13,37 @@ function roleName(role) {
 }
 
 function hasPermission(activeRole, permission) {
-    const name = roleName(activeRole);
-    const permissions = ROLE_PERMISSIONS[name] || [];
-    return permissions.includes('*') || permissions.includes(permission);
+    return false;
 }
 
-function requirePermission(permission) {
+function requirePermission(...args) {
+    const options = args.at(-1) && typeof args.at(-1) === 'object' ? args.pop() : {};
+    const permissions = args;
+    const mode = options.mode === 'all' ? 'all' : 'any';
     return async function permissionGuard(req, res, next) {
         try {
             if (!req.user || !req.activeRole) return res.status(401).json({ error: 'Authentication required.' });
-
-            if (!hasPermission(req.activeRole, permission)) {
+            const permissionSet = await resolveRolePermissions(req.activeRole._id || req.activeRole);
+            const allowed = mode === 'all'
+                ? require('../services/permissionService').hasAllPermissions(permissionSet, permissions)
+                : hasAnyPermission(permissionSet, permissions);
+            if (!allowed) {
                 return res.status(403).json({
                     error: 'You do not have permission to perform this action.',
                     code: 'INSUFFICIENT_ROLE_PERMISSION',
-                    requiredPermission: permission,
+                    requiredPermission: permissions,
+                    permissionMode: mode,
                     activeRole: roleName(req.activeRole),
                 });
             }
 
-            if (roleName(req.activeRole) === 'cinema_manager') {
+            if (allowed) {
                 const staffProfile = await Staff.findOne({
                     user: req.user._id,
                     isActive: true,
-                }).select('cinema position');
-
-                if (!staffProfile || String(staffProfile.position || '').toLowerCase() !== 'manager') {
-                    return res.status(403).json({
-                        error: 'A valid active cinema-manager staff profile is required.',
-                        code: 'MANAGER_PROFILE_REQUIRED',
-                    });
-                }
-
-                req.accessScope = { cinemaId: staffProfile.cinema };
+                    position: 'manager',
+                }).select('cinema');
+                if (staffProfile) req.accessScope = { cinemaId: staffProfile.cinema };
             }
 
             return next();

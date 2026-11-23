@@ -1,8 +1,25 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 import { createPortal } from 'react-dom';
 import useEscapeKey from '../../../hooks/useEscKey';
+
+let activeModalCount = 0;
+let originalBodyOverflow = '';
+
+function lockBodyScroll() {
+    if (activeModalCount === 0) originalBodyOverflow = document.body.style.overflow;
+    activeModalCount += 1;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+        activeModalCount = Math.max(0, activeModalCount - 1);
+        if (activeModalCount === 0) {
+            document.body.style.overflow = originalBodyOverflow;
+            originalBodyOverflow = '';
+        }
+    };
+}
 
 export default function Modal({
     isOpen,
@@ -14,6 +31,8 @@ export default function Modal({
     className = '',
     width = 'max-w-lg',
 }) {
+    const titleId = useId();
+
     useEscapeKey(
         () => {
             if (!closeDisabled) onClose();
@@ -23,14 +42,7 @@ export default function Modal({
 
     useEffect(() => {
         if (!isOpen) return;
-
-        const originalOverflow = document.body.style.overflow;
-
-        document.body.style.overflow = 'hidden';
-
-        return () => {
-            document.body.style.overflow = originalOverflow;
-        };
+        return lockBodyScroll();
     }, [isOpen]);
 
     if (!isOpen) {
@@ -52,6 +64,9 @@ export default function Modal({
                 className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
             >
                 <motion.div
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby={title ? titleId : undefined}
                     initial={{
                         opacity: 0,
                         scale: 0.95,
@@ -78,7 +93,7 @@ export default function Modal({
                     {(title || showCloseButton) && (
                         <div className="flex items-center justify-between border-b border-marquee-line/50 pb-3">
                             {title &&
-                                <h2 className="font-display text-2xl font-semibold tracking-wide text-marquee-goldBright">
+                                <h2 id={titleId} className="font-display text-2xl font-semibold tracking-wide text-marquee-goldBright">
                                     {title}
                                 </h2>
                             }

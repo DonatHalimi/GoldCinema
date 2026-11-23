@@ -2,6 +2,7 @@ const express = require('express');
 const rateLimit = require('express-rate-limit');
 const { requireAuth } = require('../middleware/auth');
 const { getMe, selectRole, switchRole, refreshSession } = require('../controllers/multiRole');
+const { resolveRolePermissions } = require('../services/permissionService');
 
 const router = express.Router();
 const roleActionLimiter = rateLimit({
@@ -28,6 +29,21 @@ function sameOrigin(req, res, next) {
 }
 
 router.get('/me', requireAuth, getMe);
+router.get('/permissions', requireAuth, async (req, res, next) => {
+    try {
+        const permissionSet = await resolveRolePermissions(req.activeRole?._id);
+        return res.json({
+            activeRole: req.activeRole ? {
+                id: req.activeRole._id,
+                name: req.activeRole.name,
+            } : null,
+            unrestricted: Boolean(permissionSet?.unrestricted),
+            permissions: permissionSet?.unrestricted ? ['*'] : [...(permissionSet?.keys || [])].sort(),
+        });
+    } catch (error) {
+        return next(error);
+    }
+});
 router.post('/select-role', sameOrigin, roleActionLimiter, requireAuth, selectRole);
 router.post('/switch-role', sameOrigin, roleActionLimiter, requireAuth, switchRole);
 router.post('/refresh-token', refreshSession);

@@ -1,11 +1,14 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronDown, Heart, LayoutDashboard, LogOut, Ticket, User2, ShieldCheck } from 'lucide-react';
+import { ChevronDown, Heart, LayoutDashboard, LogOut, Ticket, User2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
 import Avatar from '../ui/Avatar';
 import RoleSwitcher from './RoleSwitcher';
+import { usePermissions } from '../../hooks/usePermissions';
+import { hasPermission } from '../../utils/permissions';
 
 const panelVariants = {
     hidden: { opacity: 0, y: -12, scale: 0.92, filter: 'blur(6px)' },
@@ -22,15 +25,25 @@ function roleName(role) {
 export default function UserDropdown() {
     const { t } = useTranslation('navbar');
     const { user, logout } = useAuth();
+    const { permissions } = usePermissions();
     const navigate = useNavigate();
     const [open, setOpen] = useState(false);
     const dropdownRef = useRef(null);
 
     const displayName = user?.name ? user.name.split(' ')[0] : user?.email?.split('@')[0] || t('user');
     const activeRole = roleName(user?.activeRole || user?.role);
-    const isAdmin = ['admin', 'super_admin'].includes(activeRole);
-    const isSuperAdmin = activeRole === 'super_admin';
+    const isAdmin = hasPermission(permissions, 'admin:access') || hasPermission(permissions, 'users:read');
     const isCinemaManager = activeRole === 'cinema_manager';
+    const handleLogout = async () => {
+        setOpen(false);
+        try {
+            await logout();
+        } catch (error) {
+            toast.error(error.response?.data?.error || t('logoutError'));
+        } finally {
+            navigate('/');
+        }
+    };
 
     useEffect(() => {
         function handleClickOutside(event) {
@@ -44,7 +57,6 @@ export default function UserDropdown() {
         { label: t('account'), to: '/account', icon: User2 },
         ...(isAdmin ? [{ label: t('dashboard'), to: '/admin/users', icon: LayoutDashboard }] : []),
         ...(isCinemaManager ? [{ label: 'Cinema management', to: '/admin/staff', icon: LayoutDashboard }] : []),
-        ...(isSuperAdmin ? [{ label: 'Role assignments', to: '/admin/role-assignments', icon: ShieldCheck }] : []),
         { label: t('myTickets'), to: '/account/tickets', icon: Ticket },
         { label: t('favourites'), to: '/account/favourites', icon: Heart },
     ];
@@ -76,7 +88,7 @@ export default function UserDropdown() {
                                     </motion.div>
                                 ))}
                                 <motion.div variants={itemVariants}>
-                                    <button type="button" onClick={async () => { setOpen(false); await logout(); navigate('/'); }} className="flex w-full items-center gap-3 rounded-lg border-t border-marquee-line px-4 py-3 text-left text-sm text-red-400 transition hover:bg-red-500/10"><LogOut size={18} />{t('logOut')}</button>
+                                    <button type="button" onClick={handleLogout} className="flex w-full items-center gap-3 rounded-lg border-t border-marquee-line px-4 py-3 text-left text-sm text-red-400 transition hover:bg-red-500/10"><LogOut size={18} />{t('logOut')}</button>
                                 </motion.div>
                             </div>
                         </div>

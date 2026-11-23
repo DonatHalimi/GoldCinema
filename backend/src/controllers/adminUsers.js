@@ -2,8 +2,11 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 const Role = require('../models/role');
+const Staff = require('../models/staff');
+const Cinema = require('../models/cinema');
+const { resolveRolePermissions } = require('../services/permissionService');
 
-const SAFE_SELECT = 'name email role roles avatar emailVerified isActive createdAt updatedAt';
+const SAFE_SELECT = 'name email role roles avatar phoneNumber emailVerified isActive createdAt updatedAt';
 
 async function getUsers(req, res, next) {
     try {
@@ -42,19 +45,81 @@ async function getUser(req, res, next) {
 
 async function createUser(req, res, next) {
     try {
-        const { name, email, password } = req.body;
-        if (!name?.trim() || !email?.trim() || !password || password.length < 8) return res.status(400).json({ error: 'Name, valid email and a password of at least 8 characters are required.' });
+        const { name, email, password, phoneNumber, avatar, isActive = true } = req.body;
+        const names = [...new Set((req.body.roles?.length ? req.body.roles : ['customer']).map((role) => String(role).trim().toLowerCase()))];
+        const isStaffManager = names.includes('cinema_manager') || names.includes('staff_manager');
+        if (isStaffManager && !names.includes('staff')) names.push('staff');
+        const requiresStaffProfile = names.includes('staff') || isStaffManager;
 
         const normalizedEmail = email.trim().toLowerCase();
         if (await User.exists({ email: normalizedEmail })) return res.status(409).json({ error: 'Email is already in use.' });
 
-        const customerRole = await Role.findOne({ name: 'customer' });
-        if (!customerRole) return res.status(500).json({ error: 'Customer role is missing. Run the multi-role migration.' });
+        const roles = await Role.find({ name: { $in: names } });
+        if (roles.length !== names.length) return res.status(409).json({ error: 'One or more selected roles are no longer available.' });
+        const actorPermissions = await resolveRolePermissions(req.activeRole?._id);
+        if (!actorPermissions?.unrestricted && roles.some((role) => role.unrestricted)) {
+            return res.status(403).json({ error: 'Only an unrestricted administrator can assign unrestricted roles.' });
+        }
+
+        let staffCinema = null;
+        if (requiresStaffProfile) {
+            staffCinema = req.accessScope?.cinemaId
+                ? await Cinema.findById(req.accessScope.cinemaId)
+                : await Cinema.findOne().sort({ createdAt: 1 });
+            if (!staffCinema) {
+                return res.status(409).json({ error: 'A cinema must exist before assigning a staff role.' });
+            }
+        }
 
         const passwordHash = await bcrypt.hash(password, 12);
-        const user = await User.create({ name: name.trim(), email: normalizedEmail, passwordHash, role: customerRole._id, roles: [customerRole._id] });
+        const primaryRole = roles.find((role) => role.name === 'customer') || roles[0];
+        const user = await User.create({
+            name: name.trim(),
+            email: normalizedEmail,
+            passwordHash,
+            authProviders: ['password'],
+            role: primaryRole._id,
+            roles: roles.map((role) => role._id),
+            phoneNumber: phoneNumber || null,
+            avatar: avatar || null,
+            isActive,
+        });
 
-        return res.status(201).json({ success: true, data: { id: user._id, name: user.name, email: user.email, roles: [{ _id: customerRole._id, name: customerRole.name }] } });
+        let staffProfile = null;
+        if (requiresStaffProfile) {
+            try {
+                const employeePrefix = isStaffManager ? 'MGR' : 'STF';
+                staffProfile = await Staff.create({
+                    user: user._id,
+                    employeeId: `${employeePrefix}-${String(user._id).toUpperCase()}`,
+                    position: isStaffManager ? 'manager' : 'usher',
+                    cinema: staffCinema._id,
+                    isActive,
+                });
+            } catch (error) {
+                await user.deleteOne();
+                throw error;
+            }
+        }
+
+        return res.status(201).json({
+            success: true,
+            data: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                phoneNumber: user.phoneNumber,
+                avatar: user.avatar,
+                isActive: user.isActive,
+                roles: roles.map((role) => ({ _id: role._id, name: role.name, description: role.description || '' })),
+                staffProfile: staffProfile ? {
+                    id: staffProfile._id,
+                    employeeId: staffProfile.employeeId,
+                    position: staffProfile.position,
+                    cinema: staffProfile.cinema,
+                } : null,
+            },
+        });
     } catch (error) { return next(error); }
 }
 
@@ -62,7 +127,7 @@ async function updateUser(req, res, next) {
     try {
         if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(400).json({ error: 'Invalid user ID.' });
 
-        const allowed = ['name', 'email', 'isActive', 'emailVerified'];
+        const allowed = ['name', 'email', 'phoneNumber', 'avatar', 'isActive', 'emailVerified'];
         const keys = Object.keys(req.body || {});
         const invalid = keys.filter((key) => !allowed.includes(key));
 
@@ -80,6 +145,16 @@ async function updateUser(req, res, next) {
         if (String(user._id) === String(req.user._id) && req.body.isActive === false) return res.status(409).json({ error: 'You cannot deactivate your own account from this screen.' });
 
         if (req.body.name !== undefined) user.name = String(req.body.name).trim();
+        if (req.body.phoneNumber !== undefined) {
+            const phoneNumber = String(req.body.phoneNumber).trim();
+            if (phoneNumber.length > 32) return res.status(400).json({ error: 'Phone number must be 32 characters or fewer.' });
+            user.phoneNumber = phoneNumber || null;
+        }
+        if (req.body.avatar !== undefined) {
+            const avatar = String(req.body.avatar).trim();
+            if (avatar.length > 2048) return res.status(400).json({ error: 'Avatar path must be 2048 characters or fewer.' });
+            user.avatar = avatar || null;
+        }
 
         if (req.body.email !== undefined) {
             const email = String(req.body.email).trim().toLowerCase();
@@ -98,7 +173,7 @@ async function updateUser(req, res, next) {
         if (req.body.emailVerified !== undefined) user.emailVerified = req.body.emailVerified;
 
         await user.save();
-        return res.json({ success: true, data: { id: user._id, name: user.name, email: user.email, isActive: user.isActive, emailVerified: user.emailVerified } });
+        return res.json({ success: true, data: { id: user._id, name: user.name, email: user.email, phoneNumber: user.phoneNumber, avatar: user.avatar, isActive: user.isActive, emailVerified: user.emailVerified } });
     } catch (error) { return next(error); }
 }
 

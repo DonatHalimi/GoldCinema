@@ -1,28 +1,20 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { Film, MapPin, MonitorPlay } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { getMyFavourites } from '../api/favourites';
 import FavouriteButton from '../components/FavouriteButton';
+import { useGetMyFavouritesQuery } from '../store/api/favouritesApiSlice';
+import { useAuth } from '../context/AuthContext';
 
 export default function MyFavourites() {
     const { t } = useTranslation('account');
-    const [movies, setMovies] = useState([]);
-    const [cinemas, setCinemas] = useState([]);
     const [tab, setTab] = useState('movies');
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-
-    useEffect(() => {
-        getMyFavourites()
-            .then(({ movies, cinemas }) => {
-                setMovies(movies);
-                setCinemas(cinemas);
-            })
-            .catch((err) => setError(err.message))
-            .finally(() => setLoading(false));
-    }, []);
+    const { user } = useAuth();
+    const { data, isLoading: loading, error: queryError } = useGetMyFavouritesQuery(undefined, { skip: !user });
+    const movies = data?.movies || [];
+    const cinemas = data?.cinemas || [];
+    const error = queryError?.data?.error || queryError?.message || '';
 
     const list = tab === 'movies' ? movies : cinemas;
 
@@ -30,14 +22,6 @@ export default function MyFavourites() {
         { label: t('movies'), value: 'movies' },
         { label: t('cinemas'), value: 'cinemas' },
     ];
-
-    const handleRemoveFavourite = (itemType, itemId) => {
-        if (itemType === 'movie') {
-            setMovies((prev) => prev.filter((movie) => movie._id !== itemId));
-        } else {
-            setCinemas((prev) => prev.filter((cinema) => cinema._id !== itemId));
-        }
-    };
 
     return (
         <div>
@@ -210,9 +194,6 @@ export default function MyFavourites() {
                                     <FavouriteButton
                                         itemType={tab === 'movies' ? 'movie' : 'cinema'}
                                         itemId={item._id}
-                                        onToggle={(favourited) => {
-                                            if (!favourited) handleRemoveFavourite(tab === 'movies' ? 'movie' : 'cinema', item._id);
-                                        }}
                                         className="static shrink-0 bg-transparent hover:bg-marquee-panel2"
                                     />
                                 </motion.div>

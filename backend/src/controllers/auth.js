@@ -1574,19 +1574,27 @@ async function logoutAllDevices(req, res, next) {
     }
 }
 
-async function logout(req, res) {
-    const { refreshToken } = req.cookies;
+async function logout(req, res, next) {
+    const cookieOptions = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+    };
+    res.clearCookie('accessToken', cookieOptions);
+    res.clearCookie('refreshToken', cookieOptions);
 
-    if (refreshToken) {
-        await User.updateOne(
-            { 'refreshTokens.token': refreshToken },
-            { $pull: { refreshTokens: { token: refreshToken } } }
-        );
+    try {
+        const refreshToken = req.cookies?.refreshToken;
+        if (refreshToken) {
+            await User.updateOne(
+                { 'refreshTokens.token': refreshToken },
+                { $pull: { refreshTokens: { token: refreshToken } } }
+            );
+        }
+        return res.json({ message: 'Logged out successfully' });
+    } catch (error) {
+        return next(error);
     }
-
-    res.clearCookie('accessToken');
-    res.clearCookie('refreshToken');
-    res.json({ message: 'Logged out successfully' });
 }
 
 module.exports = {

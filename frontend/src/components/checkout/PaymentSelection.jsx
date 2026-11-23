@@ -1,6 +1,7 @@
 import PaymentTabs from './PaymentTabs';
 import PaypalCheckout from './PaypalCheckout';
 import StripeCheckout from './StripeCheckout';
+import { useCapturePaypalPaymentMutation, useCreatePaypalOrderMutation } from '../../store/api/paymentsApiSlice';
 
 export default function PaymentSection({
     provider,
@@ -16,6 +17,9 @@ export default function PaymentSection({
     createPaypalOrderFn,
     capturePaypalOrderFn,
 }) {
+    const [createPaypalOrder] = useCreatePaypalOrderMutation();
+    const [capturePaypalPayment] = useCapturePaypalPaymentMutation();
+
     return (
         <div className="rounded-xl border border-marquee-line bg-marquee-panel p-6">
             <PaymentTabs
@@ -44,8 +48,8 @@ export default function PaymentSection({
                     order={order}
                     onSuccess={onSuccess}
                     onError={onError}
-                    createOrderFn={createPaypalOrderFn}
-                    captureOrderFn={capturePaypalOrderFn}
+                    createOrderFn={createPaypalOrderFn || ((currentOrder) => createPaypalOrder(currentOrder._id).unwrap())}
+                    captureOrderFn={capturePaypalOrderFn || ((bookingId, orderID) => capturePaypalPayment({ bookingId, orderID }).unwrap())}
                 />
             )}
         </div>

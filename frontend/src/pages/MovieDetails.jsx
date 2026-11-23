@@ -2,56 +2,44 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import api from '../api/client';
-import { getMovieById, getMovieShowtimes } from '../api/movies';
-import { getMovieReviews } from '../api/reviews';
 import FavouriteButton from '../components/FavouriteButton';
 import EditReviewModal from '../components/reviews/EditReviewModal';
 import StarRating from '../components/reviews/StarRating';
 import WriteReviewModal from '../components/reviews/WriteReviewModal';
 import { useAuth } from '../context/AuthContext';
 import useEscapeKey from '../hooks/useEscKey';
+import { useGetMovieQuery, useGetMovieShowtimesQuery } from '../store/api/moviesApiSlice';
+import { useGetMovieReviewsQuery } from '../store/api/reviewsApiSlice';
+import { useGetMyOrdersQuery } from '../store/api/bookingsApiSlice';
+import { useDispatch } from 'react-redux';
+import { apiSlice } from '../store/api/apiSlice';
 
 const INITIAL_DATES = 4;
+const EMPTY_LIST = [];
 
 export default function MovieDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const dispatch = useDispatch();
 
-  const [movie, setMovie] = useState(null);
-  const [showtimes, setShowtimes] = useState([]);
+  const { currentData: movie, isLoading: movieLoading, error: movieError } = useGetMovieQuery(id);
+  const { currentData: showtimes = EMPTY_LIST, isLoading: showtimesLoading, error: showtimesError } = useGetMovieShowtimesQuery(id);
   const [selectedDate, setSelectedDate] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [showAllDates, setShowAllDates] = useState(false);
 
-  const [reviews, setReviews] = useState([]);
   const [reviewsPage, setReviewsPage] = useState(1);
-  const [reviewsPages, setReviewsPages] = useState(1);
-  const [reviewsLoading, setReviewsLoading] = useState(true);
-  const [reviewsError, setReviewsError] = useState('');
+  const { data: reviewsResult, isFetching: reviewsLoading, error: reviewsQueryError } = useGetMovieReviewsQuery({ movieId: id, page: reviewsPage });
+  const reviews = reviewsResult?.reviews || EMPTY_LIST;
+  const reviewsPages = reviewsResult?.pages || 1;
+  const reviewsError = reviewsQueryError?.data?.error || reviewsQueryError?.message || '';
+  const { data: myOrders = EMPTY_LIST, isLoading: ordersLoading } = useGetMyOrdersQuery(undefined, { skip: !user });
 
   const [eligible, setEligible] = useState(false);
   const [eligibilityChecked, setEligibilityChecked] = useState(false);
 
   const [showWriteModal, setShowWriteModal] = useState(false);
   const [editingOwnReview, setEditingOwnReview] = useState(null);
-
-  useEffect(() => {
-    setLoading(true);
-    Promise.all([getMovieById(id), getMovieShowtimes(id)])
-      .then(([movieData, showtimeData]) => {
-        setMovie(movieData.movie);
-        setShowtimes(showtimeData.showtimes);
-        const dates = [
-          ...new Set(showtimeData.showtimes.map((s) => s.date))
-        ].sort();
-        setSelectedDate(dates[0]);
-      })
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, [id]);
 
   useEscapeKey(
     () => {
@@ -66,60 +54,41 @@ export default function MovieDetail() {
   );
 
   useEffect(() => {
-    loadReviews(1);
-  }, [id]);
-
-  useEffect(() => {
     if (!user) {
       setEligible(false);
       setEligibilityChecked(true);
       return;
     }
 
-    api
-      .get('/orders/mine')
-      .then(({ data }) => {
-        const hasPaidOrder = (data.orders || []).some(
-          (order) => order.movie?._id === id && order.paymentStatus === 'paid'
-        );
-        setEligible(hasPaidOrder);
-      })
-      .catch(() => setEligible(false))
-      .finally(() => setEligibilityChecked(true));
-  }, [id, user]);
+    if (ordersLoading) return;
+    setEligible(myOrders.some((order) => order.movie?._id === id && order.paymentStatus === 'paid'));
+    setEligibilityChecked(true);
+  }, [id, user, myOrders, ordersLoading]);
 
-  async function loadReviews(page) {
-    setReviewsLoading(true);
-    setReviewsError('');
-    try {
-      const data = await getMovieReviews(id, page);
-      setReviews(data.reviews || []);
-      setReviewsPage(data.page);
-      setReviewsPages(data.pages || 1);
-    } catch (err) {
-      setReviewsError(
-        err.response?.data?.error || err.message || 'Unable to load reviews. Please try again.'
-      );
-    } finally {
-      setReviewsLoading(false);
-    }
-  }
+  useEffect(() => {
+    const dates = [...new Set(showtimes.map((showtime) => showtime.date))].sort();
+    if (!selectedDate || !dates.includes(selectedDate)) setSelectedDate(dates[0] || null);
+  }, [id, selectedDate, showtimes]);
 
   const myReview = useMemo(
     () => (user ? reviews.find((r) => r.user?._id === user.id) : null),
     [reviews, user]
   );
 
-  function handleReviewCreated(review) {
+  function handleReviewCreated() {
     setShowWriteModal(false);
-    setReviews((prev) => [review, ...prev]);
-    getMovieById(id).then(({ data }) => setMovie(data.movie));
+    dispatch(apiSlice.util.invalidateTags([
+      { type: 'Reviews', id: `MOVIE-${id}` },
+      { type: 'Movies', id },
+    ]));
   }
 
-  function handleReviewSaved(updated) {
+  function handleReviewSaved() {
     setEditingOwnReview(null);
-    setReviews((prev) => prev.map((r) => (r._id === updated._id ? updated : r)));
-    getMovieById(id).then(({ data }) => setMovie(data.movie));
+    dispatch(apiSlice.util.invalidateTags([
+      { type: 'Reviews', id: `MOVIE-${id}` },
+      { type: 'Movies', id },
+    ]));
   }
 
   const dates = useMemo(
@@ -132,11 +101,11 @@ export default function MovieDetail() {
 
   const showtimesForDate = showtimes.filter((s) => s.date === selectedDate);
 
-  if (loading) {
+  if (movieLoading || showtimesLoading) {
     return <p className="py-20 text-center text-marquee-muted">Loading...</p>;
   }
-  if (error || !movie) {
-    return <p className="py-20 text-center text-marquee-marquee">{error || 'Movie not found.'}</p>;
+  if (movieError || showtimesError || !movie) {
+    return <p className="py-20 text-center text-marquee-marquee">{movieError?.data?.error || showtimesError?.data?.error || 'Movie not found.'}</p>;
   }
 
   return (
@@ -314,7 +283,7 @@ export default function MovieDetail() {
           <div className="mt-6 flex items-center justify-center gap-3 text-sm text-marquee-muted">
             <button
               disabled={reviewsPage === 1}
-              onClick={() => loadReviews(reviewsPage - 1)}
+              onClick={() => setReviewsPage((page) => page - 1)}
               className="rounded-full border border-marquee-line px-4 py-1.5 disabled:opacity-40"
             >
               Previous
@@ -324,7 +293,7 @@ export default function MovieDetail() {
             </span>
             <button
               disabled={reviewsPage === reviewsPages}
-              onClick={() => loadReviews(reviewsPage + 1)}
+              onClick={() => setReviewsPage((page) => page + 1)}
               className="rounded-full border border-marquee-line px-4 py-1.5 disabled:opacity-40"
             >
               Next

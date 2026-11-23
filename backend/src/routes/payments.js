@@ -15,17 +15,18 @@ const {
   removePaymentMethod,
 } = require('../controllers/paymentMethods');
 const router = express.Router();
+const { requirePermission } = require('../middleware/roleAccess');
 
-router.post('/stripe/create-intent', requireAuth, createStripeIntent);
-router.post('/stripe/confirm', requireAuth, confirmStripePayment);
+router.post('/stripe/create-intent', requireAuth, requirePermission('payments:manage'), createStripeIntent);
+router.post('/stripe/confirm', requireAuth, requirePermission('payments:manage'), confirmStripePayment);
 router.post('/stripe/webhook', stripeWebhook);
-router.post('/paypal/create-order', requireAuth, createPaypalOrder);
-router.post('/paypal/capture-order', requireAuth, capturePaypalOrder);
+router.post('/paypal/create-order', requireAuth, requirePermission('payments:manage'), createPaypalOrder);
+router.post('/paypal/capture-order', requireAuth, requirePermission('payments:manage'), capturePaypalOrder);
 
-router.get('/methods', requireAuth, listPaymentMethods);
-router.post('/setup', requireAuth, createSetupIntent);
-router.post('/methods/:id/default', requireAuth, setDefaultPaymentMethod);
-router.delete('/methods/:id', requireAuth, removePaymentMethod);
+router.get('/methods', requireAuth, requirePermission('payments:read'), listPaymentMethods);
+router.post('/setup', requireAuth, requirePermission('payments:manage'), createSetupIntent);
+router.post('/methods/:id/default', requireAuth, requirePermission('payments:manage'), setDefaultPaymentMethod);
+router.delete('/methods/:id', requireAuth, requirePermission('payments:manage'), removePaymentMethod);
 
 
 module.exports = router;

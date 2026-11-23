@@ -1,5 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit";
-import i18next from 'i18next';
 
 const STORAGE_KEY = 'gc-locale';
 const SUPPORTED = ['en', 'sq', 'sr-Latn'];
@@ -18,9 +17,6 @@ const localeSlice = createSlice({
     reducers: {
         setLocale(state, action) {
             state.current = action.payload;
-            document.documentElement.setAttribute('lang', action.payload);
-            window.localStorage.setItem(STORAGE_KEY, action.payload);
-            i18next.changeLanguage(action.payload);
         },
     },
 });

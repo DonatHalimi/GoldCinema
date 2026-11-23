@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getOrderById } from '../api/orders';
-import { getPaymentMethods } from '../api/payments';
-import { extendSeatHold } from '../api/seatHolds';
 import CheckoutSummary from '../components/checkout/CheckoutSummary';
 import ExpiredHold from '../components/checkout/ExpiredHold';
 import GiftCardBox from '../components/checkout/GiftCardBox';
@@ -10,75 +8,36 @@ import GiftCardFullCoverage from '../components/checkout/GiftCardFullCoverage';
 import PaymentSection from '../components/checkout/PaymentSelection';
 import SeatHoldTimer from '../components/checkout/SeatHoldTimer';
 import { useNotifications } from '../context/NotificationContext';
+import { useExtendSeatHoldMutation, useGetOrderQuery } from '../store/api/bookingsApiSlice';
+import { useGetPaymentMethodsQuery } from '../store/api/paymentsApiSlice';
+import { clearBooking } from '../store/slices/bookingSlice';
+import { resetCheckout, setCheckoutOrder, setPaymentProvider } from '../store/slices/checkoutSlice';
+import { apiSlice } from '../store/api/apiSlice';
 
 export default function Checkout() {
   const { orderId } = useParams();
   const navigate = useNavigate();
   const { fetchNotifications } = useNotifications();
+  const dispatch = useDispatch();
+  const provider = useSelector((state) => state.checkout.provider);
+  const { currentData: order, isLoading: loading, error: orderError } = useGetOrderQuery(orderId);
+  const { data: paymentMethods = [], isLoading: paymentMethodsLoading } = useGetPaymentMethodsQuery();
+  const [extendHoldRequest, { isLoading: extending }] = useExtendSeatHoldMutation();
 
-  const [order, setOrder] = useState(null);
-  const [movie, setMovie] = useState(null);
-  const [showtime, setShowtime] = useState(null);
-
-  const [paymentMethods, setPaymentMethods] = useState([]);
-  const [paymentMethodsLoading, setPaymentMethodsLoading] = useState(true);
-
-  const [paymentReady, setPaymentReady] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState('');
   const [payError, setPayError] = useState('');
-  const [provider, setProvider] = useState('stripe');
   const [secondsLeft, setSecondsLeft] = useState(null);
-  const [extending, setExtending] = useState(false);
+  const movie = order?.movie;
+  const showtime = order?.showtime;
 
   useEffect(() => {
-    loadOrder();
-  }, [orderId]);
+    dispatch(setCheckoutOrder(orderId));
+  }, [dispatch, orderId]);
 
   useEffect(() => {
-    loadPaymentMethods();
-  }, []);
-
-  async function loadOrder() {
-    try {
-      const result = await getOrderById(orderId);
-
-      const data = result.data ?? result;
-
-      const loadedOrder = data.order;
-
-      if (!loadedOrder) throw new Error('Order was not returned by the API');
-
-      setOrder(loadedOrder);
-      setMovie(loadedOrder.movie);
-      setShowtime(loadedOrder.showtime);
-
-      if (loadedOrder.paymentStatus === 'paid') {
-        navigate(`/confirmation/${loadedOrder._id}`, {
-          replace: true,
-        });
-      }
-    } catch (err) {
-      setLoadError(err.response?.data?.error || err.message || 'Failed to load order');
-    } finally {
-      setLoading(false);
+    if (order?.paymentStatus === 'paid') {
+      navigate(`/confirmation/${order._id}`, { replace: true });
     }
-  }
-
-  async function loadPaymentMethods() {
-    try {
-      setPaymentMethodsLoading(true);
-
-      const data = await getPaymentMethods();
-
-      setPaymentMethods(data.paymentMethods || []);
-    } catch (err) {
-      console.error('Failed to load saved payment methods:', err);
-      setPaymentMethods([]);
-    } finally {
-      setPaymentMethodsLoading(false);
-    }
-  }
+  }, [navigate, order]);
 
   useEffect(() => {
     if (!order?.holdExpiresAt) return;
@@ -107,16 +66,12 @@ export default function Checkout() {
     try {
       setExtending(true);
 
-      const data = await extendSeatHold(order.holdId);
-
-      setOrder((prev) => ({
-        ...prev,
-        holdExpiresAt: data.hold.expiresAt,
+      const data = await extendHoldRequest(order.holdId).unwrap();
+      dispatch(apiSlice.util.updateQueryData('getOrder', orderId, (draft) => {
+        draft.holdExpiresAt = data.hold.expiresAt;
       }));
     } catch (err) {
-      setPayError(err.response?.data?.error || err.message || 'Failed to extend hold');
-    } finally {
-      setExtending(false);
+      setPayError(err.data?.error || err.message || 'Failed to extend hold');
     }
   }
 
@@ -128,8 +83,9 @@ export default function Checkout() {
       return;
     }
 
-    sessionStorage.removeItem(`selectedSeats-${order.showtime}`);
-
+    sessionStorage.removeItem(`selectedSeats-${order.showtime?._id || order.showtime}`);
+    dispatch(resetCheckout());
+    dispatch(clearBooking());
     await fetchNotifications();
 
     navigate(`/confirmation/${paidOrder._id}`);
@@ -143,10 +99,10 @@ export default function Checkout() {
     );
   }
 
-  if (loadError || !order) {
+  if (orderError || !order) {
     return (
       <p className="py-20 text-center text-marquee-marquee">
-        {loadError || 'Order not found'}
+        {orderError?.data?.error || 'Order not found'}
       </p>
     );
   }
@@ -172,7 +128,9 @@ export default function Checkout() {
 
         {!expired && order.totalAmount > 0 && (
           <div className="mt-8">
-            <GiftCardBox order={order} onOrderUpdated={setOrder} />
+            <GiftCardBox order={order} onOrderUpdated={(updatedOrder) => {
+              dispatch(apiSlice.util.updateQueryData('getOrder', orderId, () => updatedOrder));
+            }} />
           </div>
         )}
       </section>
@@ -204,7 +162,7 @@ export default function Checkout() {
           <PaymentSection
             key={order.totalAmount}
             provider={provider}
-            setProvider={setProvider}
+            setProvider={(value) => dispatch(setPaymentProvider(value))}
             order={order}
             onSuccess={handleSuccess}
             onError={setPayError}

@@ -1,10 +1,10 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
     changeUserPassword,
     deleteUserAccount,
     forgotUserPassword,
-    getProfile,
     loginUser,
     loginUserWithFacebook,
     loginUserWithGoogle,
@@ -13,60 +13,108 @@ import {
     resetUserPassword,
     verifyUserLogin,
 } from '../api/auth';
-import { selectActiveRole, switchActiveRole } from '../api/multiRole';
+import { beginAuthLogout, getInitialAuthRequestState, setAuthRequestState } from '../api/client';
+import { apiSlice } from '../store/api/apiSlice';
+import {
+    useGetCurrentProfileQuery,
+    useLazyGetCurrentProfileQuery,
+    useSelectActiveRoleMutation,
+    useSwitchActiveRoleMutation,
+} from '../store/api/usersApiSlice';
+import {
+    beginLogout,
+    beginSessionCheck,
+    completeSessionCheck,
+    disableSession,
+    enableSession,
+    finishLogout,
+} from '../store/slices/authSlice';
 import { LoadingAnimation } from '../components/ui/LoadingAnimation';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const dispatch = useDispatch();
+    const sessionEnabled = useSelector((state) => state.auth.sessionEnabled);
+    const sessionChecked = useSelector((state) => state.auth.sessionChecked);
+    const loggingOut = useSelector((state) => state.auth.loggingOut);
+    const { data: profileData, error: profileError, isLoading, isUninitialized } = useGetCurrentProfileQuery(undefined, { skip: !sessionEnabled });
+    const [refetchProfile] = useLazyGetCurrentProfileQuery();
+    const [selectRoleRequest] = useSelectActiveRoleMutation();
+    const [switchRoleRequest] = useSwitchActiveRoleMutation();
+    const invalidSession = profileError?.status === 401 || profileError?.status === 403;
+    const user = sessionEnabled && !loggingOut && !invalidSession ? profileData?.user || null : null;
+    const loading = !sessionChecked || (sessionEnabled && isLoading && !profileData);
     const navigate = useNavigate();
 
     async function refreshUser() {
-        const data = await getProfile();
-        setUser(data.user);
+        dispatch(enableSession());
+        const data = await refetchProfile(undefined, false).unwrap();
+        setAuthRequestState('authenticated');
+        dispatch(completeSessionCheck());
         return data.user;
     }
 
     useEffect(() => {
-        let mounted = true;
-        const restoreSession = async () => {
-            try {
-                const data = await getProfile();
-                if (!mounted) return;
-                setUser(data.user);
-                if (data.user?.roleSelectionRequired && window.location.pathname !== '/select-role') {
-                    navigate('/select-role', { replace: true });
-                }
-            } catch (error) {
-                if (mounted) setUser(null);
-            } finally {
-                if (mounted) setLoading(false);
-            }
-        };
-        restoreSession();
-        return () => { mounted = false; };
-    }, [navigate]);
+        setAuthRequestState(getInitialAuthRequestState());
+        dispatch(beginSessionCheck());
+    }, [dispatch]);
+
+    useEffect(() => {
+        if (!sessionEnabled || isLoading || isUninitialized) return;
+        const authenticated = Boolean(profileData?.user);
+        if (profileError?.data?.code === 'ROLE_SELECTION_REQUIRED') {
+            setAuthRequestState('authenticated');
+            dispatch(completeSessionCheck());
+            return;
+        }
+        setAuthRequestState(authenticated ? 'authenticated' : 'unauthenticated');
+        if (authenticated) dispatch(completeSessionCheck());
+        else dispatch(disableSession());
+    }, [dispatch, isLoading, isUninitialized, profileData, profileError, sessionEnabled]);
+
+    useEffect(() => {
+        if (user?.roleSelectionRequired && window.location.pathname !== '/select-role') {
+            navigate('/select-role', { replace: true });
+        }
+    }, [navigate, user?.roleSelectionRequired]);
+
+    function setUser(nextUser) {
+        const resolvedUser = typeof nextUser === 'function' ? nextUser(user) : nextUser;
+        if (!resolvedUser) {
+            setAuthRequestState('unauthenticated');
+            dispatch(disableSession());
+            dispatch(apiSlice.util.resetApiState());
+            return;
+        }
+        setAuthRequestState('authenticated');
+        dispatch(enableSession());
+        dispatch(apiSlice.util.upsertQueryData('getCurrentProfile', undefined, { user: resolvedUser }));
+    }
 
     useEffect(() => {
         const handleForcedLogout = () => {
-            setUser(null);
+            if (loggingOut) return;
+            setAuthRequestState('unauthenticated');
+            dispatch(disableSession());
+            dispatch(apiSlice.util.resetApiState());
             navigate('/login', { replace: true, state: { message: 'Your session has been revoked.' } });
         };
 
-                const handleRoleSelectionRequired = (event) => {
+        const handleRoleSelectionRequired = (event) => {
             const payloadUser = event?.detail?.user;
             const payloadRoles = Array.isArray(event?.detail?.roles) ? event.detail.roles : [];
 
-            setUser((currentUser) => ({
-                ...(currentUser || {}),
+            setAuthRequestState('authenticated');
+            dispatch(enableSession());
+            dispatch(apiSlice.util.upsertQueryData('getCurrentProfile', undefined, { user: {
+                ...(user || {}),
                 ...(payloadUser || {}),
-                roles: payloadRoles.length ? payloadRoles : (payloadUser?.roles || currentUser?.roles || []),
+                roles: payloadRoles.length ? payloadRoles : (payloadUser?.roles || user?.roles || []),
                 activeRole: null,
                 role: null,
                 roleSelectionRequired: true,
-            }));
+            } }));
 
             if (window.location.pathname !== '/select-role') {
                 navigate('/select-role', { replace: true });
@@ -79,7 +127,7 @@ export function AuthProvider({ children }) {
             window.removeEventListener('auth:logout', handleForcedLogout);
             window.removeEventListener('auth:role-selection-required', handleRoleSelectionRequired);
         };
-    }, [navigate]);
+    }, [dispatch, loggingOut, navigate, user]);
 
     async function register(name, email, password) {
         const { data } = await registerUser(name, email, password);
@@ -97,6 +145,9 @@ export function AuthProvider({ children }) {
     };
 
     async function finishLogin(data) {
+        setAuthRequestState('authenticated');
+        dispatch(apiSlice.util.resetApiState());
+        dispatch(beginSessionCheck());
         const profile = await refreshUser();
         return {
             ...data,
@@ -153,14 +204,19 @@ export function AuthProvider({ children }) {
     };
 
     const selectRole = async (role) => {
-        const result = await selectActiveRole(role);
-        setUser(result.user);
+        const result = await selectRoleRequest(role).unwrap();
+        setAuthRequestState('authenticated');
+        dispatch(apiSlice.util.resetApiState());
+        dispatch(enableSession());
+        dispatch(apiSlice.util.upsertQueryData('getCurrentProfile', undefined, { user: result.user }));
         return result;
     };
 
     const switchRole = async (role) => {
-        const result = await switchActiveRole(role);
-        setUser(result.user);
+        const result = await switchRoleRequest(role).unwrap();
+        setAuthRequestState('authenticated');
+        dispatch(apiSlice.util.resetApiState());
+        dispatch(enableSession());
         await refreshUser();
         return result;
     };
@@ -178,11 +234,22 @@ export function AuthProvider({ children }) {
     };
 
     const logout = async () => {
+        const refreshCancellation = beginAuthLogout();
+        dispatch(beginLogout());
+        dispatch(apiSlice.util.resetApiState());
         try {
+            await refreshCancellation;
             const { data } = await logoutUser();
             return data;
+        } catch (error) {
+            if (error.response?.status === 401 || error.response?.status === 403) {
+                return { message: 'Already logged out.' };
+            }
+            throw error;
         } finally {
-            setUser(null);
+            setAuthRequestState('unauthenticated');
+            dispatch(finishLogout());
+            dispatch(apiSlice.util.resetApiState());
         }
     };
 

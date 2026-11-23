@@ -1,5 +1,5 @@
 import { Check, ChevronDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Pencil, Plus, Search, SlidersHorizontal, Trash, Trash2, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { bulkDeleteItems, createItem, deleteItem, getItems, updateItem } from '../../api/admin';
@@ -7,6 +7,7 @@ import { getRoleCatalog, updateUserRoleAssignments } from '../../api/multiRole';
 import useEscapeKey from '../../hooks/useEscKey';
 import CrudModal from '../ui/modals/CrudModal';
 import DeleteConfirmModal from '../ui/modals/DeleteConfirmModal';
+import { tableBulkDeleteButtonClass, tableDeleteButtonClass } from '../../utils/adminTableStyles';
 
 const getNestedValue = (obj, path) => {
     return path.split('.').reduce((value, key) => value?.[key], obj);
@@ -46,20 +47,35 @@ export default function ModuleDataGrid({ moduleConfig }) {
 
         const fetchRoles = async () => {
             setLoadingRoles(true);
-
             try {
-                const [roles, cinemasResponse] = await Promise.all([
-                    getRoleCatalog(),
-                    getItems('cinemas', 1, 1000),
-                ]);
+                const roles = await getRoleCatalog();
+                const builtInRoleKeys = {
+                    customer: 'roleCustomer',
+                    staff: 'roleStaff',
+                    cinema_manager: 'roleCinemaManager',
+                    admin: 'roleAdmin',
+                    super_admin: 'roleSuperAdmin',
+                };
                 setRoleOptions(roles.map((role) => ({
-                    label: role.name.replaceAll('_', ' '),
+                    label: builtInRoleKeys[role.name]
+                        ? t(builtInRoleKeys[role.name])
+                        : role.name.replaceAll('_', ' '),
                     value: role.name,
+                    description: role.description,
+                    isProtected: role.isProtected,
                 })));
-                setCinemaOptions((cinemasResponse.data || []).map((cinema) => ({
-                    label: cinema.location?.city ? `${cinema.name} - ${cinema.location.city}` : cinema.name,
-                    value: cinema._id,
-                })));
+                if (roles.some((role) => role.name === 'cinema_manager')) {
+                    try {
+                        const cinemasResponse = await getItems('cinemas', 1, 1000);
+                        setCinemaOptions((cinemasResponse.data || []).map((cinema) => ({
+                            label: cinema.location?.city ? `${cinema.name} - ${cinema.location.city}` : cinema.name,
+                            value: cinema._id,
+                        })));
+                    } catch (error) {
+                        setCinemaOptions([]);
+                        toast.error(error.response?.data?.error || t('errors.fetchCinemas', { message: error.message }));
+                    }
+                }
             } catch (err) {
                 toast.error(t('errors.fetchRoles', { message: err.response?.data?.error || err.response?.data?.message || err.message }));
             } finally {
@@ -109,16 +125,15 @@ export default function ModuleDataGrid({ moduleConfig }) {
 
     const handleModalSubmit = async (formData) => {
         try {
+            if (moduleConfig.key === 'users' && (!Array.isArray(formData.roles) || formData.roles.length === 0)) {
+                throw new Error(t('userAtLeastOneRole'));
+            }
             if (selectedItem) {
                 if (moduleConfig.key === 'users') {
                     const roles = formData.roles;
-                    if (Array.isArray(roles) && roles.length === 0) {
-                        toast.error('At least one role must remain assigned.');
-                        return;
-                    }
 
                     const changedUserFields = Object.fromEntries(
-                        ['name', 'email']
+                        ['name', 'email', 'phoneNumber', 'avatar', 'isActive']
                             .filter((key) => formData[key] !== undefined)
                             .map((key) => [key, formData[key]])
                             .filter(([key, value]) => {
@@ -131,7 +146,14 @@ export default function ModuleDataGrid({ moduleConfig }) {
 
                     if (Object.keys(changedUserFields).length) await updateItem(moduleConfig.key, selectedItem._id, changedUserFields);
 
-                    if (roles) {
+                    const currentRoles = (selectedItem.roles?.length
+                        ? selectedItem.roles
+                        : (selectedItem.role ? [selectedItem.role] : [])
+                    ).map((role) => typeof role === 'object' ? role.name : role);
+                    const rolesChanged = roles && (
+                        [...roles].sort().join('|') !== [...currentRoles].sort().join('|')
+                    );
+                    if (rolesChanged) {
                         const result = await updateUserRoleAssignments(selectedItem._id, roles, formData.managerCinemaId);
                         setData((current) => current.map((item) => item._id === selectedItem._id
                             ? { ...item, roles: result.user.roles }
@@ -157,6 +179,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
                 err.message ||
                 t('errors.failedSave', { label: moduleConfig.label })
             );
+            throw err;
         }
     };
 
@@ -212,31 +235,56 @@ export default function ModuleDataGrid({ moduleConfig }) {
     const isAllSelected = data.length > 0 && selectedIds.length === data.length;
     const isSomeSelected = selectedIds.length > 0 && !isAllSelected;
 
-    const formFields =
-        moduleConfig.key === 'users'
-            ? [
+    const formFields = useMemo(() => moduleConfig.key === 'users'
+        ? [
                 { name: 'name', label: t('form.name'), type: 'text', required: true },
                 { name: 'email', label: t('form.email'), type: 'email', required: true },
-                ...(selectedItem ? [{
+                ...(!selectedItem ? [{
+                    name: 'password',
+                    label: t('userInitialPassword'),
+                    type: 'password',
+                    required: true,
+                    minLength: 8,
+                    placeholder: t('userInitialPasswordHelp'),
+                }] : []),
+                { name: 'phoneNumber', label: t('userPhoneNumber'), type: 'tel', placeholder: t('userPhonePlaceholder') },
+                { name: 'avatar', label: t('userAvatarUrl'), type: 'text', placeholder: t('userAvatarPlaceholder') },
+                {
+                    name: 'isActive',
+                    label: t('userAccountStatus'),
+                    type: 'checkbox',
+                    defaultValue: true,
+                    checkboxLabel: t('userAccountActive'),
+                },
+                {
                     name: 'roles',
-                    label: 'Roles (select multiple)',
-                    type: 'multiselect',
+                    label: t('userAssignedRoles'),
+                    type: 'role-cards',
                     options: roleOptions,
+                    defaultValue: selectedItem ? undefined : ['customer'],
+                    required: true,
                     disabled: loadingRoles || !roleOptions.length,
-                }, {
+                    helpText: loadingRoles
+                        ? t('userRolesLoading')
+                        : roleOptions.length
+                            ? t('userRoleAssignmentHelp')
+                            : t('userRolesUnavailable'),
+                },
+                ...(selectedItem ? [{
                     name: 'managerCinemaId',
-                    label: 'Cinema for cinema manager',
+                    label: t('userManagerCinema'),
                     type: 'marquee-select',
                     options: [
-                        { label: 'Select a cinema', value: '' },
+                        { label: t('userSelectCinema'), value: '' },
                         ...cinemaOptions,
                     ],
                     defaultValue: '',
                     visibleWhen: (formData) => formData.roles?.includes('cinema_manager'),
                     disabled: loadingRoles || !cinemaOptions.length,
                 }] : []),
-            ]
-            : moduleConfig?.formFields || fields;
+        ]
+        : moduleConfig?.formFields || moduleConfig?.fields || [],
+    [cinemaOptions, loadingRoles, moduleConfig?.fields, moduleConfig?.formFields, moduleConfig?.key, roleOptions, selectedItem, t]);
 
     return (
         <div className="flex-1 min-h-screen bg-marquee-bg px-10 pt-6 pb-12 text-marquee-cream">
@@ -257,7 +305,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
                             {selectedIds.length > 0 && (
                                 <button
                                     onClick={() => setDeleteTarget(selectedIds)}
-                                    className="flex items-center gap-2 rounded-lg border border-red-600/30 bg-red-600/10 px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-600/20 transition-all"
+                                    className={tableBulkDeleteButtonClass}
                                 >
                                     <Trash className="h-4 w-4" /> {t('deleteSelected', { count: selectedIds.length })}
                                 </button>
@@ -442,7 +490,7 @@ export default function ModuleDataGrid({ moduleConfig }) {
                                                     <button
                                                         onClick={() => setDeleteTarget(row._id)}
                                                         title={t('delete')}
-                                                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-600/30 bg-red-600/10 text-red-600 hover:bg-red-600/20 transition-all"
+                                                        className={tableDeleteButtonClass}
                                                     >
                                                         <Trash2 className="h-4 w-4" />
                                                     </button>

@@ -12,6 +12,11 @@ const roleCreateSchema = yup.object({
         .trim()
         .max(250, 'Description is too long.')
         .optional(),
+    permissionKeys: yup
+        .array()
+        .of(yup.string().trim().required())
+        .default([])
+        .optional(),
 }).noUnknown(true);
 
 const roleUpdateSchema = yup.object({

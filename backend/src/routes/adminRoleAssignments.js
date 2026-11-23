@@ -28,6 +28,6 @@ function sameOrigin(req, res, next) {
 router.use(requireAuth);
 router.get('/role-catalog', requirePermission('roles:read'), getRoleCatalog);
 router.get('/users/:id/roles', requirePermission('users:read'), getUserRoles);
-router.patch('/users/:id/roles', requirePermission('users:write'), sameOrigin, limiter, updateUserRoles);
+router.patch('/users/:id/roles', requirePermission('users:manage'), sameOrigin, limiter, updateUserRoles);
 
 module.exports = router;

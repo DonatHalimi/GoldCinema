@@ -2,9 +2,7 @@ const Shift = require('../models/shift');
 const Staff = require('../models/staff');
 
 function managerCinema(req) {
-    return String(req.activeRole?.name || '').toLowerCase() === 'cinema_manager'
-        ? req.accessScope?.cinemaId
-        : null;
+    return req.accessScope?.cinemaId || null;
 }
 
 async function getAllShifts(req, res, next) {

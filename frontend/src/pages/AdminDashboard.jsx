@@ -1,29 +1,41 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, Layout } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import ModuleDataGrid from '../components/auth/ModuleDataGrid';
 import AuditLogViewer from '../components/admin/AuditLogViewer';
-import RoleAssignmentsPage from './RoleAssignmentsPage';
+import RoleDashboardTable from '../components/admin/roles/RoleDashboardTable';
+import PermissionsDashboardTable from '../components/admin/roles/PermissionsDashboardTable';
+import EmailTemplatesDashboard from '../components/admin/EmailTemplatesDashboard';
 import { getAllModules, getModuleSections, renderAdminItems } from '../config/adminModules';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import { usePermissions } from '../hooks/usePermissions';
+import { hasPermission } from '../utils/permissions';
 
 export default function AdminDashboard() {
     const { t } = useTranslation('dashboard');
     const { user } = useAuth();
+    const { permissions } = usePermissions();
     const { moduleName } = useParams();
     const navigate = useNavigate();
     const roleName = String(user?.activeRole?.name || user?.role || '').toLowerCase();
     const isCinemaManager = roleName === 'cinema_manager';
-    const allSections = getModuleSections(t);
-    const MODULE_SECTIONS = isCinemaManager
-        ? allSections.map((section) => ({
+    const isEmailTemplateAdmin = ['admin', 'super_admin'].includes(roleName);
+    const allSections = useMemo(() => getModuleSections(t), [t]);
+    const MODULE_SECTIONS = allSections.map((section) => ({
             ...section,
-            items: section.items.filter((item) => ['staff', 'shifts'].includes(item.key)),
-        })).filter((section) => section.items.length > 0)
-        : allSections;
-    const ALL_MODULES = getAllModules(t);
+            items: section.items.filter((item) => {
+                if (isCinemaManager && !['staff', 'shifts'].includes(item.key)) return false;
+                if (item.key === 'roles') return hasPermission(permissions, 'roles:read');
+                if (item.key === 'permissions') return hasPermission(permissions, 'permissions:read');
+                if (item.key === 'email-templates') {
+                    return isEmailTemplateAdmin && hasPermission(permissions, 'email-templates:read');
+                }
+                return true;
+            }),
+        })).filter((section) => section.items.length > 0);
+    const ALL_MODULES = useMemo(() => getAllModules(t), [t]);
 
     const [openSections, setOpenSections] = useState(() => {
         const initialOpen = {};
@@ -34,11 +46,13 @@ export default function AdminDashboard() {
     const toggleSection = (title) => setOpenSections((prev) => ({ ...prev, [title]: !prev[title] }));
 
     const allowedManagerModules = ['staff', 'shifts'];
+    if (moduleName === 'email-templates' && (!isEmailTemplateAdmin || !hasPermission(permissions, 'email-templates:read'))) {
+        return <Navigate to="/admin/users" replace />;
+    }
     if (isCinemaManager && moduleName && !allowedManagerModules.includes(moduleName)) {
         return <Navigate to="/admin/staff" replace />;
     }
     if (!moduleName) return <Navigate to={isCinemaManager ? '/admin/staff' : '/admin/users'} replace />;
-    if (moduleName === 'role-assignments') return <div className="border-t border-marquee-line/50 bg-marquee-bg px-5 py-6 lg:px-7"><RoleAssignmentsPage /></div>;
 
     const activeModule = ALL_MODULES.find((mod) => mod.key === moduleName) || ALL_MODULES[0];
 
@@ -71,7 +85,17 @@ export default function AdminDashboard() {
                         })}
                     </nav>
                 </aside>
-                <main className="min-w-0 flex-1">{activeModule.key === 'auditlogs' ? <AuditLogViewer /> : <ModuleDataGrid moduleConfig={activeModule} />}</main>
+                <main className="min-w-0 flex-1">
+                    {activeModule.key === 'auditlogs'
+                        ? <AuditLogViewer />
+                        : activeModule.key === 'roles'
+                            ? <RoleDashboardTable />
+                            : activeModule.key === 'permissions'
+                                ? <PermissionsDashboardTable />
+                                : activeModule.key === 'email-templates'
+                                    ? <EmailTemplatesDashboard />
+                            : <ModuleDataGrid moduleConfig={activeModule} />}
+                </main>
             </div>
         </div>
     );
