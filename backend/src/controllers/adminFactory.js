@@ -2,19 +2,19 @@ const AuditLog = require('../models/auditLog');
 const mongoose = require('mongoose');
 const { redact } = require('../utils/redact');
 
-function getAll(Model, populateOpts = '') {
+function getAll(Model, populateOpts = '', filter = {}) {
     return async function getAllResource(req, res, next) {
         try {
             const page = parseInt(req.query.page, 10) || 1;
             const limit = parseInt(req.query.limit, 10) || 10;
             const skip = (page - 1) * limit;
 
-            const query = Model.find().skip(skip).limit(limit);
+            const query = Model.find(filter).skip(skip).limit(limit);
             if (populateOpts) query.populate(populateOpts);
 
             const [data, total] = await Promise.all([
                 query.exec(),
-                Model.countDocuments(),
+                Model.countDocuments(filter),
             ]);
 
             res.status(200).json({
@@ -30,10 +30,10 @@ function getAll(Model, populateOpts = '') {
     };
 }
 
-function getOne(Model, populateOpts = '') {
+function getOne(Model, populateOpts = '', filter = {}) {
     return async function getOneResource(req, res, next) {
         try {
-            const query = Model.findById(req.params.id);
+            const query = Model.findOne({ _id: req.params.id, ...filter });
             if (populateOpts) query.populate(populateOpts);
 
             const doc = await query.exec();
@@ -188,6 +188,69 @@ function deleteMany(Model) {
     };
 }
 
+function softDeleteOne(Model) {
+    return async function softDeleteOneResource(req, res, next) {
+        try {
+            const before = await Model.findById(req.params.id).lean();
+            if (!before || before.isDeleted) {
+                return res.status(404).json({ success: false, message: 'Resource not found' });
+            }
+
+            const doc = await Model.findByIdAndUpdate(req.params.id, {
+                $set: { isDeleted: true, available: false },
+            }, { new: true, runValidators: true });
+
+            recordAdminMutation({
+                req,
+                action: `${Model.modelName}.deleted`,
+                resourceType: Model.modelName,
+                resourceId: doc._id,
+                before,
+                after: doc.toObject(),
+            });
+
+            res.status(200).json({ success: true, data: null });
+        } catch (error) {
+            next(error);
+        }
+    };
+}
+
+function softDeleteMany(Model) {
+    return async function softDeleteManyResources(req, res, next) {
+        try {
+            const { ids } = req.body;
+            if (!Array.isArray(ids) || ids.length === 0) {
+                return res.status(400).json({ error: 'Please provide an array of IDs to delete' });
+            }
+
+            const validIds = ids.filter((id) => mongoose.Types.ObjectId.isValid(id));
+            const targets = await Model.find({
+                _id: { $in: validIds },
+                isDeleted: { $ne: true },
+            }).select('_id').lean();
+            const targetIds = targets.map((target) => target._id);
+            const result = await Model.updateMany(
+                { _id: { $in: targetIds } },
+                { $set: { isDeleted: true, available: false } },
+                { runValidators: true }
+            );
+
+            recordAdminMutation({
+                req,
+                action: `${Model.modelName}.bulk_deleted`,
+                resourceType: Model.modelName,
+                resourceId: 'bulk',
+                before: { ids: targetIds, count: result.modifiedCount },
+            });
+
+            res.status(200).json({ success: true, deletedCount: result.modifiedCount });
+        } catch (error) {
+            next(error);
+        }
+    };
+}
+
 module.exports = {
     getAll,
     getOne,
@@ -195,4 +258,6 @@ module.exports = {
     updateOne,
     deleteOne,
     deleteMany,
+    softDeleteOne,
+    softDeleteMany,
 };

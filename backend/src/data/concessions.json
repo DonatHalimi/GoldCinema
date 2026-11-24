@@ -1,0 +1,132 @@
+[
+  {
+    "id": "sweet-salty-combo",
+    "name": "Sweet & Salty Combo",
+    "category": "Combo Deals",
+    "description": "Medium popcorn, a Snickers bar, and a refreshing soda.",
+    "price": 11.49,
+    "originalPrice": 14.97,
+    "isCombo": true,
+    "image": "https://images.unsplash.com/photo-1585647347384-2593bc35786b?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    "id": "classic-duo",
+    "name": "Classic Duo",
+    "category": "Combo Deals",
+    "description": "Large popcorn and two refreshing drinks to share.",
+    "price": 13.99,
+    "originalPrice": 17.47,
+    "isCombo": true,
+    "image": "https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    "id": "movie-night-bundle",
+    "name": "Movie Night Bundle",
+    "category": "Combo Deals",
+    "description": "Two large popcorns, two drinks, and two candies for the whole group.",
+    "price": 24.99,
+    "originalPrice": 32.94,
+    "isCombo": true,
+    "image": "https://images.unsplash.com/photo-1585647347384-2593bc35786b?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    "id": "solo-treat",
+    "name": "Solo Treat",
+    "category": "Combo Deals",
+    "description": "Small popcorn, one candy, and a soda for your movie.",
+    "price": 8.49,
+    "originalPrice": 13.47,
+    "isCombo": true,
+    "image": "https://images.unsplash.com/photo-1582058091505-f87a2e55a40f?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    "id": "popcorn-small",
+    "name": "Small Popcorn",
+    "category": "Popcorn",
+    "description": "Freshly popped, lightly salted popcorn.",
+    "price": 5.49,
+    "originalPrice": null,
+    "isCombo": false,
+    "image": "https://images.unsplash.com/photo-1585647347384-2593bc35786b?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    "id": "popcorn-medium",
+    "name": "Medium Popcorn",
+    "category": "Popcorn",
+    "description": "A generous serving of warm, buttery popcorn.",
+    "price": 6.99,
+    "originalPrice": null,
+    "isCombo": false,
+    "image": "https://images.unsplash.com/photo-1585647347384-2593bc35786b?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    "id": "popcorn-large",
+    "name": "Large Popcorn",
+    "category": "Popcorn",
+    "description": "A shareable bucket of freshly popped cinema popcorn.",
+    "price": 8.49,
+    "originalPrice": null,
+    "isCombo": false,
+    "image": "https://images.unsplash.com/photo-1585647347384-2593bc35786b?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    "id": "soda",
+    "name": "Fountain Soda",
+    "category": "Drinks",
+    "description": "A chilled fountain drink. Choose your favorite at pickup.",
+    "price": 4.49,
+    "originalPrice": null,
+    "isCombo": false,
+    "image": "https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    "id": "bottled-water",
+    "name": "Bottled Water",
+    "category": "Drinks",
+    "description": "Still bottled water, served cold.",
+    "price": 3.49,
+    "originalPrice": null,
+    "isCombo": false,
+    "image": "https://images.unsplash.com/photo-1523362628745-0c100150b504?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    "id": "lemonade",
+    "name": "Classic Lemonade",
+    "category": "Drinks",
+    "description": "A bright, refreshing lemonade.",
+    "price": 4.99,
+    "originalPrice": null,
+    "isCombo": false,
+    "image": "https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    "id": "snickers",
+    "name": "Snickers",
+    "category": "Candy",
+    "description": "Milk chocolate, caramel, peanuts, and nougat.",
+    "price": 3.49,
+    "originalPrice": null,
+    "isCombo": false,
+    "image": "https://images.unsplash.com/photo-1582058091505-f87a2e55a40f?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    "id": "chocolate-candy",
+    "name": "Chocolate Candy",
+    "category": "Candy",
+    "description": "A colorful sharing box of chocolate candies.",
+    "price": 3.49,
+    "originalPrice": null,
+    "isCombo": false,
+    "image": "https://images.unsplash.com/photo-1582058091505-f87a2e55a40f?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    "id": "sour-gummies",
+    "name": "Sour Gummies",
+    "category": "Candy",
+    "description": "A chewy, tangy mix of fruit gummies.",
+    "price": 3.99,
+    "originalPrice": null,
+    "isCombo": false,
+    "image": "https://images.unsplash.com/photo-1582058091505-f87a2e55a40f?auto=format&fit=crop&w=800&q=80"
+  }
+]

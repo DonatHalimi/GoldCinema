@@ -1,6 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const { getAll, getOne, createOne, updateOne, deleteOne, deleteMany } = require('../controllers/adminFactory');
+const {
+    getAll,
+    getOne,
+    createOne,
+    updateOne,
+    deleteOne,
+    deleteMany,
+    softDeleteOne,
+    softDeleteMany,
+} = require('../controllers/adminFactory');
 const { getUsers, getUser, createUser, updateUser, deleteUser, deleteUsersBulk } = require('../controllers/adminUsers');
 const { requirePermission } = require('../middleware/roleAccess');
 const { requireAuth } = require('../middleware/auth');
@@ -39,6 +48,7 @@ const MoviePerformance = require('../models/moviePerformance');
 const CustomerAnalytics = require('../models/customerAnalytics');
 const { validateBody } = require('../validations/common');
 const { adminUserCreateSchema } = require('../validations/user');
+const { snackCreateSchema, snackUpdateSchema } = require('../validations/snack');
 
 router.use(requireAuth);
 
@@ -71,6 +81,15 @@ router.post('/shifts', requirePermission('shifts:manage'), createShift);
 router.put('/shifts/:id', requirePermission('shifts:manage'), updateShift);
 router.delete('/shifts/:id', requirePermission('shifts:manage'), deleteShift);
 
+const snackAdminAccess = requirePermission('admin:access');
+const activeSnacks = { isDeleted: { $ne: true } };
+router.get('/snacks', snackAdminAccess, getAll(Snack, '', activeSnacks));
+router.get('/snacks/:id', snackAdminAccess, getOne(Snack, '', activeSnacks));
+router.post('/snacks', snackAdminAccess, validateBody(snackCreateSchema), createOne(Snack));
+router.put('/snacks/:id', snackAdminAccess, validateBody(snackUpdateSchema), updateOne(Snack));
+router.delete('/snacks/bulk-delete', snackAdminAccess, softDeleteMany(Snack));
+router.delete('/snacks/:id', snackAdminAccess, softDeleteOne(Snack));
+
 registerAdminResource('roles', Role);
 registerAdminResource('movies', Movie);
 registerAdminResource('cinemas', Cinema);
@@ -78,7 +97,6 @@ registerAdminResource('screens', Screen);
 registerAdminResource('seats', Seat, 'screen');
 registerAdminResource('showtimes', Showtime, 'movie screen');
 registerAdminResource('seatholds', SeatHold, 'showtime user');
-registerAdminResource('snacks', Snack);
 registerAdminResource('orders', Order, [
     { path: 'user', select: 'name fullName' },
     { path: 'movie', select: 'title posterUrl' },

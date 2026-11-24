@@ -2,6 +2,10 @@ import { apiSlice } from './apiSlice';
 
 export const bookingsApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
+        getConcessions: builder.query({
+            query: () => ({ url: '/orders/concessions' }),
+            transformResponse: (response) => response.concessions || [],
+        }),
         holdSeats: builder.mutation({
             query: (request) => ({ url: '/hold-seat', method: 'POST', data: request }),
             invalidatesTags: (result, error, request) => [
@@ -17,6 +21,15 @@ export const bookingsApiSlice = apiSlice.injectEndpoints({
             query: (request) => ({ url: '/orders', method: 'POST', data: request }),
             transformResponse: (response) => response.order,
             invalidatesTags: [{ type: 'Orders', id: 'LIST' }, { type: 'Bookings', id: 'LIST' }],
+        }),
+        setOrderConcessions: builder.mutation({
+            query: ({ orderId, items }) => ({
+                url: `/orders/${orderId}/concessions`,
+                method: 'PUT',
+                data: { items },
+            }),
+            transformResponse: (response) => response.order,
+            invalidatesTags: (result, error, { orderId }) => [{ type: 'Orders', id: orderId }],
         }),
         getOrder: builder.query({
             query: (id) => ({ url: `/orders/${id}` }),
@@ -36,8 +49,10 @@ export const bookingsApiSlice = apiSlice.injectEndpoints({
 
 export const {
     useHoldSeatsMutation,
+    useGetConcessionsQuery,
     useExtendSeatHoldMutation,
     useCreateOrderMutation,
+    useSetOrderConcessionsMutation,
     useGetOrderQuery,
     useGetMyOrdersQuery,
 } = bookingsApiSlice;

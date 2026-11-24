@@ -1,11 +1,22 @@
 const QRCode = require('qrcode');
 
+function buildTicketPayload(ticketPayload) {
+    const concessions = (ticketPayload.concessions || []).map((item) => [
+        item.catalogId || item.snack?._id?.toString() || item.snack?.toString() || '',
+        item.name || item.snack?.name || 'Concession',
+        item.quantity,
+    ]);
+
+    return JSON.stringify([
+        ticketPayload.orderId,
+        ticketPayload.seats,
+        concessions,
+    ]);
+}
+
 const generateQRTicket = async (ticketPayload) => {
     try {
-        const compactPayload = JSON.stringify([
-            ticketPayload.orderId,
-            ticketPayload.seats,
-        ]);
+        const compactPayload = buildTicketPayload(ticketPayload);
 
         const dataUrl = await QRCode.toDataURL(compactPayload, {
             errorCorrectionLevel: 'L',
@@ -24,4 +35,4 @@ const generateQRTicket = async (ticketPayload) => {
     }
 };
 
-module.exports = { generateQRTicket };
+module.exports = { buildTicketPayload, generateQRTicket };

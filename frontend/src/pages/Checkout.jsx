@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import CheckoutSummary from '../components/checkout/CheckoutSummary';
+import ConcessionsStep from '../components/checkout/ConcessionsStep';
 import ExpiredHold from '../components/checkout/ExpiredHold';
 import GiftCardBox from '../components/checkout/GiftCardBox';
 import GiftCardFullCoverage from '../components/checkout/GiftCardFullCoverage';
@@ -107,49 +108,31 @@ export default function Checkout() {
     );
   }
 
-  const expired = secondsLeft === 0;
+  const expired = secondsLeft === 0 ||
+    (order.holdExpiresAt && new Date(order.holdExpiresAt).getTime() <= Date.now());
+  const concessionsSelected = order.concessionsSelected ||
+    order.paymentStatus === 'paid' ||
+    Boolean(order.stripePaymentIntentId || order.paypalOrderId || order.giftCardAmount);
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
       <h1 className="mb-2 text-center font-serif text-3xl font-bold text-marquee-cream">
-        Complete your purchase
+        {concessionsSelected ? 'Complete your purchase' : 'Complete your booking'}
       </h1>
 
       <p className="mb-12 text-center text-sm text-marquee-muted">
-        Review your order and complete payment before your seats are released
+        {concessionsSelected
+          ? 'Review your order and complete payment before your seats are released'
+          : 'Add snacks for pickup at the cinema, or skip this optional step'}
       </p>
 
-      <section>
-        <h2 className="mb-6 font-body text-sm uppercase tracking-widest text-marquee-muted">
-          Order summary
-        </h2>
-
-        <CheckoutSummary movie={movie} showtime={showtime} order={order} />
-
-        {!expired && order.totalAmount > 0 && (
-          <div className="mt-8">
-            <GiftCardBox order={order} onOrderUpdated={(updatedOrder) => {
-              dispatch(apiSlice.util.updateQueryData('getOrder', orderId, () => updatedOrder));
-            }} />
-          </div>
-        )}
-      </section>
-
       {expired ? (
-        <div className="mt-16 border-t border-marquee-line pt-10">
+        <div className="mt-8 border-t border-marquee-line pt-10">
           <ExpiredHold onBack={() => navigate(-1)} />
         </div>
-      ) : order.totalAmount === 0 ? (
-        <div className="mt-16 border-t border-marquee-line pt-10">
-          <GiftCardFullCoverage order={order} onSuccess={handleSuccess} />
-        </div>
-      ) : (
-        <section className="mt-16 border-t border-marquee-line pt-8">
-          <div className="mb-6 flex items-center justify-between gap-4">
-            <h2 className="font-body text-sm uppercase tracking-widest text-marquee-muted">
-              Payment
-            </h2>
-
+      ) : !concessionsSelected ? (
+        <>
+          <div className="mb-5 flex justify-end">
             <SeatHoldTimer
               secondsLeft={secondsLeft}
               expired={expired}
@@ -158,19 +141,60 @@ export default function Checkout() {
               inline
             />
           </div>
+          <ConcessionsStep orderId={order._id} />
+        </>
+      ) : (
+        <>
+          <section>
+            <h2 className="mb-6 font-body text-sm uppercase tracking-widest text-marquee-muted">
+              Order summary
+            </h2>
 
-          <PaymentSection
-            key={order.totalAmount}
-            provider={provider}
-            setProvider={(value) => dispatch(setPaymentProvider(value))}
-            order={order}
-            onSuccess={handleSuccess}
-            onError={setPayError}
-            payError={payError}
-            paymentMethods={paymentMethods}
-            paymentMethodsLoading={paymentMethodsLoading}
-          />
-        </section>
+            <CheckoutSummary movie={movie} showtime={showtime} order={order} />
+
+            {order.totalAmount > 0 && (
+              <div className="mt-8">
+                <GiftCardBox order={order} onOrderUpdated={(updatedOrder) => {
+                  dispatch(apiSlice.util.updateQueryData('getOrder', orderId, () => updatedOrder));
+                }} />
+              </div>
+            )}
+          </section>
+
+          {order.totalAmount === 0 ? (
+            <div className="mt-16 border-t border-marquee-line pt-10">
+              <GiftCardFullCoverage order={order} onSuccess={handleSuccess} />
+            </div>
+          ) : (
+            <section className="mt-16 border-t border-marquee-line pt-8">
+              <div className="mb-6 flex items-center justify-between gap-4">
+                <h2 className="font-body text-sm uppercase tracking-widest text-marquee-muted">
+                  Payment
+                </h2>
+
+                <SeatHoldTimer
+                  secondsLeft={secondsLeft}
+                  expired={expired}
+                  extending={extending}
+                  onExtend={extendHold}
+                  inline
+                />
+              </div>
+
+              <PaymentSection
+                key={order.totalAmount}
+                provider={provider}
+                setProvider={(value) => dispatch(setPaymentProvider(value))}
+                order={order}
+                onSuccess={handleSuccess}
+                onError={setPayError}
+                payError={payError}
+                paymentMethods={paymentMethods}
+                paymentMethodsLoading={paymentMethodsLoading}
+              />
+            </section>
+          )}
+        </>
       )}
     </div>
   );

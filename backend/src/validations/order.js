@@ -12,7 +12,7 @@ const orderCreateSchema = yup.object({
 
     ticketAmount: yup
         .number()
-        .required('Ticket amount is required')
+        .optional()
         .min(0, 'Ticket amount cannot be negative.'),
     snackAmount: yup
         .number()
@@ -36,7 +36,7 @@ const orderCreateSchema = yup.object({
 
     totalAmount: yup
         .number()
-        .required('Total amount is required')
+        .optional()
         .min(0, 'Total amount cannot be negative.'),
     holdId: objectId
         .optional()
@@ -47,11 +47,19 @@ const orderCreateSchema = yup.object({
         .optional(),
 }).noUnknown(true);
 
+const concessionSelectionSchema = yup.object({
+    items: yup.array().of(yup.object({
+        catalogId: yup.string().trim().required('A concession identifier is required.'),
+        quantity: yup.number().integer().required().min(1).max(20),
+    }).noUnknown(true)).required().max(25),
+}).noUnknown(true);
+
 const orderIdSchema = yup.object({
     id: objectId,
 }).noUnknown(true);
 
 module.exports = {
     orderCreateSchema,
+    concessionSelectionSchema,
     orderIdSchema,
 };

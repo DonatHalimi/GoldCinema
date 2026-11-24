@@ -168,6 +168,7 @@ export default function CrudModal({
             'w-full rounded-md border border-marquee-line bg-marquee-panel2 px-4 py-2.5 text-marquee-cream outline-none transition focus:border-marquee-gold';
 
         const fieldValue = getNestedValue(formData, field.name);
+        const isDisabled = field.disabled || (field.disabledOnEdit && Boolean(initialData));
 
         if (field.type === 'textarea') {
             return (
@@ -192,7 +193,7 @@ export default function CrudModal({
                     value={fieldValue ?? ''}
                     onChange={handleChange}
                     required={field.required}
-                    disabled={field.disabled}
+                    disabled={isDisabled}
                     className={commonClassName}
                 >
                     {field.options?.map((option) => {
@@ -217,7 +218,7 @@ export default function CrudModal({
                     value={fieldValue ?? ''}
                     options={field.options || []}
                     onChange={(value) => handleFieldChange(field.name, value)}
-                    disabled={field.disabled}
+                    disabled={isDisabled}
                     maxWidth="max-w-full"
                 />
             );
@@ -232,7 +233,7 @@ export default function CrudModal({
                     onChange={(value) => handleFieldChange(field.name, value)}
                     multiple
                     selectAll
-                    disabled={field.disabled}
+                    disabled={isDisabled}
                     maxWidth="max-w-full"
                 />
             );
@@ -246,7 +247,7 @@ export default function CrudModal({
                     <div className="grid gap-3 sm:grid-cols-2">
                         {(field.options || []).map((option) => {
                             const checked = selected.includes(option.value);
-                            const disabled = field.disabled || option.disabled;
+                            const disabled = isDisabled || option.disabled;
                             const inputId = `crud-${field.name}-${option.value}`;
                             return (
                                 <label
@@ -292,6 +293,7 @@ export default function CrudModal({
                         name={field.name}
                         checked={Boolean(fieldValue)}
                         onChange={handleChange}
+                        disabled={isDisabled}
                         className="h-4 w-4 accent-marquee-gold"
                     />
 
@@ -316,7 +318,7 @@ export default function CrudModal({
                 minLength={field.minLength}
                 maxLength={field.maxLength}
                 step={field.step}
-                disabled={field.disabled}
+                disabled={isDisabled}
                 className={commonClassName}
             />
         );

@@ -10,6 +10,22 @@ const { sendTicketEmail } = require('../utils/mailer');
 const { getOrCreateStripeCustomer } = require('./paymentMethods');
 const { notifyPurchase } = require('../utils/notifications');
 
+function buildOrderPaymentDetails(order, userId) {
+    return {
+        amount: Math.round(Number(order.totalAmount) * 100),
+        metadata: {
+            orderId: order._id.toString(),
+            userId,
+            ticketAmount: String(order.ticketAmount || 0),
+            snackAmount: String(order.snackAmount || 0),
+            concessions: JSON.stringify((order.snacks || []).map((item) => [
+                item.catalogId || item.snack?.toString() || '',
+                item.quantity,
+            ])),
+        },
+    };
+}
+
 async function getOwnedActiveHold(req, res) {
     const { holdId } = req.body;
     const hold = await SeatHold.findById(holdId);
@@ -87,6 +103,7 @@ async function createStripeIntent(req, res, next) {
 
         const user = await User.findById(req.user.id);
         const customerId = await getOrCreateStripeCustomer(user);
+        const { amount, metadata } = buildOrderPaymentDetails(order, req.user.id);
 
         let intent;
 
@@ -95,26 +112,29 @@ async function createStripeIntent(req, res, next) {
 
             if (intent.status === 'succeeded') return res.status(400).json({ error: 'This payment has already been completed.', });
 
-            if (paymentMethodId && ['requires_payment_method', 'requires_confirmation', 'requires_action'].includes(intent.status)) {
-                const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
+            const intentCanBeUpdated = ['requires_payment_method', 'requires_confirmation', 'requires_action'].includes(intent.status);
+            if (intentCanBeUpdated) {
+                const intentUpdates = { amount, metadata };
+                if (paymentMethodId) {
+                    const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
 
-                if (paymentMethod.customer && paymentMethod.customer.toString() !== customerId.toString()) {
-                    return res.status(403).json({ error: 'Payment method does not belong to your account.', });
+                    if (paymentMethod.customer && paymentMethod.customer.toString() !== customerId.toString()) {
+                        return res.status(403).json({ error: 'Payment method does not belong to your account.', });
+                    }
+
+                    intentUpdates.payment_method = paymentMethodId;
                 }
 
-                intent = await stripe.paymentIntents.update(intent.id, {
-                    payment_method: paymentMethodId,
-                });
+                intent = await stripe.paymentIntents.update(intent.id, intentUpdates);
+            } else if (intent.amount !== amount) {
+                return res.status(409).json({ error: 'An existing payment is still processing. Please wait before retrying.' });
             }
         } else {
             const intentParams = {
-                amount: Math.round(order.totalAmount * 100),
+                amount,
                 currency: order.currency?.toLowerCase() || 'usd',
                 customer: customerId,
-                metadata: {
-                    orderId: order._id.toString(),
-                    userId: req.user.id,
-                },
+                metadata,
             };
 
             if (paymentMethodId) {
@@ -167,6 +187,7 @@ async function confirmStripePayment(req, res, next) {
             orderId: order._id,
             userId: order.user._id,
             seats: order.seats,
+            concessions: order.snacks,
         });
 
         const now = new Date();
@@ -274,6 +295,7 @@ async function capturePaypalOrder(req, res, next) {
 }
 
 module.exports = {
+    buildOrderPaymentDetails,
     createStripeIntent,
     confirmStripePayment,
     stripeWebhook,

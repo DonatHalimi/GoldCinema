@@ -1,4 +1,4 @@
-export default function QRTicket({ qrTicket }) {
+export default function QRTicket({ qrTicket, hasConcessions = false }) {
     return (
         <div className="border-t border-dashed border-marquee-line px-6 py-6 text-center">
             {qrTicket?.dataUrl ? (
@@ -14,7 +14,9 @@ export default function QRTicket({ qrTicket }) {
                     />
 
                     <p className="mt-4 text-xs text-marquee-muted">
-                        Scan this QR code at the cinema entrance
+                        {hasConcessions
+                            ? 'Scan for entry and show this QR code at the concessions counter for pickup'
+                            : 'Scan this QR code at the cinema entrance'}
                     </p>
                 </>
             ) : (

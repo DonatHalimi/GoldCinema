@@ -187,7 +187,7 @@ export default function Confirmation() {
 
         {/* Entry QR code */}
         <div className="border-t border-dashed border-marquee-line">
-          <QRTicket qrTicket={order.qrTicket} />
+          <QRTicket qrTicket={order.qrTicket} hasConcessions={(order.snacks || []).length > 0} />
         </div>
 
         {/* Ticket footer */}

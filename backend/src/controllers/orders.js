@@ -4,6 +4,14 @@ const { generateQRTicket } = require('../utils/qr');
 const { SeatHold } = require('../models');
 const { sendTicketEmail } = require('../utils/mailer');
 const { notifyPurchase } = require('../utils/notifications');
+const Movie = require('../models/movie');
+const Showtime = require('../models/showtime');
+const {
+    ConcessionSelectionError,
+    getConcessionAmount,
+    getConcessionCatalog,
+    normalizeConcessions,
+} = require('../services/concessions');
 const MIN_CHARGEABLE_AMOUNT = 0.5;
 
 async function getMyOrders(req, res, next) {
@@ -46,31 +54,44 @@ async function getOrderById(req, res, next) {
 
 async function createOrder(req, res, next) {
     try {
-        const {
-            movie,
-            showtime,
-            seats,
-            ticketAmount,
-            snacks = [],
-            snackAmount = 0,
-            totalAmount,
-            holdId,
-            holdExpiresAt,
-        } = req.body;
+        const { movie, showtime, seats, holdId } = req.body;
+        const [movieRecord, showtimeRecord, hold] = await Promise.all([
+            Movie.findById(movie),
+            Showtime.findById(showtime),
+            SeatHold.findById(holdId),
+        ]);
 
-        const calculatedTotal = totalAmount ?? (Number(ticketAmount || 0) + Number(snackAmount || 0));
+        if (!movieRecord || !showtimeRecord || showtimeRecord.movie.toString() !== movieRecord.id) {
+            return res.status(400).json({ error: 'The selected movie and showtime do not match.' });
+        }
+
+        const selectedSeats = [...new Set(seats)];
+        if (
+            !hold ||
+            hold.user.toString() !== req.user.id ||
+            hold.showtime.toString() !== showtimeRecord.id ||
+            hold.expiresAt <= new Date() ||
+            selectedSeats.length !== seats.length ||
+            selectedSeats.length !== hold.seats.length ||
+            !selectedSeats.every((seatId) => hold.seats.includes(seatId))
+        ) {
+            return res.status(400).json({ error: 'An active seat hold matching this booking is required.' });
+        }
+
+        const ticketAmount = Math.round(Number(movieRecord.price) * seats.length * 100) / 100;
 
         const order = await Order.create({
             user: req.user.id,
-            movie,
-            showtime,
-            seats,
-            snacks,
+            movie: movieRecord._id,
+            showtime: showtimeRecord._id,
+            seats: selectedSeats,
+            snacks: [],
             ticketAmount,
-            snackAmount,
-            totalAmount: calculatedTotal,
+            snackAmount: 0,
+            totalAmount: ticketAmount,
+            concessionsSelected: false,
             holdId,
-            holdExpiresAt,
+            holdExpiresAt: hold.expiresAt,
             paymentStatus: 'pending',
         });
 
@@ -80,9 +101,68 @@ async function createOrder(req, res, next) {
     }
 }
 
+async function getConcessions(req, res, next) {
+    try {
+        res.json({ concessions: await getConcessionCatalog() });
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function updateOrderConcessions(req, res, next) {
+    try {
+        const order = await Order.findById(req.params.id);
+        if (!order || order.user.toString() !== req.user.id) {
+            return res.status(404).json({ error: 'Order not found.' });
+        }
+        if (order.paymentStatus !== 'pending') {
+            return res.status(400).json({ error: 'Concessions can only be selected for an unpaid order.' });
+        }
+        if (order.concessionsSelected) {
+            return res.status(409).json({ error: 'Concessions have already been selected for this order.' });
+        }
+        if (order.stripePaymentIntentId || order.paypalOrderId) {
+            return res.status(409).json({ error: 'Restart checkout before changing concessions.' });
+        }
+        if (order.giftCardAmount > 0) {
+            return res.status(409).json({ error: 'Remove the gift card before selecting concessions.' });
+        }
+
+        const hold = order.holdId && await SeatHold.findById(order.holdId);
+        if (
+            !hold ||
+            hold.user.toString() !== req.user.id ||
+            hold.expiresAt <= new Date() ||
+            hold.showtime.toString() !== order.showtime.toString() ||
+            order.seats.length !== hold.seats.length ||
+            !order.seats.every((seatId) => hold.seats.includes(seatId))
+        ) {
+            return res.status(410).json({ error: 'Your seat hold has expired. Please select seats again.' });
+        }
+
+        const snacks = await normalizeConcessions(req.body.items);
+        const snackAmount = getConcessionAmount(snacks);
+        const ticketCents = Math.round(Number(order.ticketAmount || 0) * 100);
+        const snackCents = Math.round(snackAmount * 100);
+
+        order.snacks = snacks;
+        order.snackAmount = snackAmount;
+        order.totalAmount = Math.max(0, ticketCents + snackCents - Math.round(Number(order.giftCardAmount || 0) * 100)) / 100;
+        order.concessionsSelected = true;
+        await order.save();
+
+        res.json({ order });
+    } catch (err) {
+        if (err instanceof ConcessionSelectionError) {
+            return res.status(err.statusCode).json({ error: err.message });
+        }
+        next(err);
+    }
+}
+
 function computeTotal(order) {
-    const base = Number(order.ticketAmount || 0) + Number(order.snackAmount || 0);
-    return Math.max(0, Number((base - Number(order.giftCardAmount || 0)).toFixed(2)));
+    const baseCents = Math.round(Number(order.ticketAmount || 0) * 100) + Math.round(Number(order.snackAmount || 0) * 100);
+    return Math.max(0, baseCents - Math.round(Number(order.giftCardAmount || 0) * 100)) / 100;
 }
 
 async function applyGiftCard(req, res, next) {
@@ -185,6 +265,7 @@ async function finalizeWithGiftCard(req, res, next) {
             orderId: order._id,
             userId: order.user._id,
             seats: order.seats,
+            concessions: order.snacks,
         });
 
         const now = new Date();
@@ -239,6 +320,8 @@ module.exports = {
     getMyOrders,
     getOrderById,
     createOrder,
+    getConcessions,
+    updateOrderConcessions,
     applyGiftCard,
     removeGiftCard,
     finalizeWithGiftCard,

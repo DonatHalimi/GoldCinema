@@ -3,9 +3,14 @@ const { Schema } = mongoose;
 
 const orderSnackSchema = new Schema(
     {
-        snack: { type: Schema.Types.ObjectId, ref: 'Snack', required: true },
+        snack: { type: Schema.Types.ObjectId, ref: 'Snack' },
+        catalogId: { type: String },
+        name: { type: String },
+        category: { type: String },
         quantity: { type: Number, required: true, min: 1 },
         unitPrice: { type: Number, required: true },
+        isCombo: { type: Boolean, default: false },
+        originalPrice: { type: Number, default: null },
     },
     { _id: false }
 );
@@ -17,6 +22,7 @@ const orderSchema = new Schema(
         showtime: { type: Schema.Types.ObjectId, ref: 'Showtime', required: true },
         seats: { type: [String], required: true },
         snacks: { type: [orderSnackSchema], default: [] },
+        concessionsSelected: { type: Boolean, default: false },
 
         ticketAmount: { type: Number, required: true },
         snackAmount: { type: Number, default: 0 },

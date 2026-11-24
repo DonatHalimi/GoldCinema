@@ -38,12 +38,25 @@ function OrderSummary({ order, paymentLabel }) {
   const currency = order.currency || 'USD';
   const ticketCount = order.seats?.length || 0;
   const total = formatMoney(order.totalAmount, currency);
+  const snacks = order.snacks || [];
 
   return (
     <dl className="divide-y divide-marquee-line/60 rounded-xl border border-marquee-line bg-marquee-panel2 px-4">
       <Row label={`Seats (${ticketCount})`} value={order.seats?.join(', ')} />
       <Row label="Tickets" value={formatMoney(order.ticketAmount, currency)} />
-      {order.snackAmount > 0 && <Row label="Snacks" value={formatMoney(order.snackAmount, currency)} />}
+      {order.snackAmount > 0 && snacks.length === 0 && (
+        <Row label="Snacks" value={formatMoney(order.snackAmount, currency)} />
+      )}
+      {snacks.map((item, index) => {
+        const name = item.name || item.snack?.name || 'Concession';
+        return (
+          <Row
+            key={`${item.catalogId || item.snack?._id || name}-${index}`}
+            label={`${name} × ${item.quantity}`}
+            value={formatMoney(Number(item.unitPrice || 0) * item.quantity, currency)}
+          />
+        );
+      })}
       {order.giftCardAmount > 0 && (
         <Row label={`Gift card ${order.giftCardCode || ''}`} value={`−${formatMoney(order.giftCardAmount, currency)}`} />
       )}
