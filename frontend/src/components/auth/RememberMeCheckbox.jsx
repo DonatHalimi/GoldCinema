@@ -1,9 +1,12 @@
 import { Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function RememberMeCheckbox({
     checked,
     onChange,
 }) {
+    const { t } = useTranslation('auth');
+
     return (
         <button
             type="button"
@@ -24,7 +27,7 @@ export default function RememberMeCheckbox({
                 )}
             </span>
             <span>
-                Keep me signed in
+                {t('rememberMe')}
             </span>
         </button>
     );

@@ -1545,6 +1545,77 @@ async function revokeAllOtherSessions(req, res, next) {
     }
 }
 
+async function issueLoginSession(user, req, res, { rememberMe = false } = {}) {
+    user.failedLoginAttempts = 0;
+    user.lockUntil = null;
+    user.lockStage = 0;
+
+    const trustedEntry = findTrustedDeviceEntry(user, req);
+
+    if (user.twoFactor?.enabled && user.twoFactor.methods?.length > 0 && !trustedEntry) {
+        const mfaToken = generateMfaPendingToken(user._id);
+        const methods = user.twoFactor.methods;
+
+        if (methods.includes('email')) await issueEmailOtp(user, { save: false });
+        if (methods.includes('sms')) await issueSmsOtp(user, { save: false });
+
+        await addSecurityEvent(user, {
+            type: 'login_recovery_mfa_pending',
+            title: 'Successful Login',
+            description: `IP: ${req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown'} - Reason: security_questions_mfa_pending`,
+        });
+        await user.save();
+
+        return { mfaRequired: true, methods, mfaToken, rememberMe };
+    }
+
+    if (trustedEntry) trustedEntry.lastUsedAt = new Date();
+
+    const refreshExpiresIn = rememberMe ? '30d' : '7d';
+    const refreshMaxAgeMs = rememberMe ? 30 * DAY_MS : 7 * DAY_MS;
+
+    const { accessToken, refreshToken } = generateTokens(user._id, refreshExpiresIn);
+
+    user.refreshTokens.push({
+        token: refreshToken,
+        expiresAt: new Date(Date.now() + refreshMaxAgeMs),
+        createdAt: new Date(),
+        rememberMe,
+        ...buildSessionMeta(req, 'security_questions'),
+    });
+
+    await addSecurityEvent(user, {
+        type: 'login_security_questions',
+        title: 'Successful Login',
+        description: `IP: ${req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown'} - Method: security_questions`,
+    });
+    await user.save();
+
+    setCookies(res, accessToken, refreshToken, refreshMaxAgeMs);
+
+    createNotification({
+        userId: user._id,
+        title: 'New Login Detected',
+        message: 'You successfully logged in to GoldCinema account.',
+        type: 'login',
+        link: '/account/security',
+        metadata: {
+            ip: req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '127.0.0.1',
+            time: new Date().toISOString(),
+        },
+    });
+
+    return {
+        message: 'Logged in successfully',
+        user: {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+        },
+    };
+}
+
 async function logoutAllDevices(req, res, next) {
     try {
         const user = await User.findById(req.user.id).select('refreshTokens');
@@ -1635,6 +1706,7 @@ module.exports = {
     getSessions,
     revokeSession,
     revokeAllOtherSessions,
+    issueLoginSession,
     logoutAllDevices,
     logout,
 };

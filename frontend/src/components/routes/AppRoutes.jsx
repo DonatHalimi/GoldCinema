@@ -7,6 +7,7 @@ import Settings from '../../components/account/settings/Settings';
 import ProfileSettings from '../../components/account/settings/ProfileSettings';
 import SecuritySettings from '../../components/account/settings/SecuritySettings';
 import Account from '../../pages/Account';
+import AccountRecovery from '../../pages/AccountRecovery';
 import AdminDashboard from '../../pages/AdminDashboard';
 import BuyGiftCard from '../../pages/BuyGiftCard';
 import Checkout from '../../pages/Checkout';
@@ -50,6 +51,7 @@ export default function AppRoutes() {
                 <Route path="/login" element={<RequireGuest><Login /></RequireGuest>} />
                 <Route path="/register" element={<RequireGuest><Register /></RequireGuest>} />
                 <Route path="/verify-email" element={<RequireGuest><VerifyEmail /></RequireGuest>} />
+                <Route path="/recover-account" element={<RequireGuest><AccountRecovery /></RequireGuest>} />
                 <Route path="/reset-password" element={<RequireGuest><ResetPassword /></RequireGuest>} />
                 <Route path="/select-role" element={<RequireAuth allowRoleSelection><RoleSelectionPage /></RequireAuth>} />
 

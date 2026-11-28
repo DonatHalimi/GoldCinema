@@ -1,6 +1,6 @@
 import { Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { PasswordField, PasswordStrength } from '../components/ui/FormUI';
 import { useAuth } from '../context/AuthContext';
 import { resetPasswordSchema, validateForm } from '../validations';
@@ -9,8 +9,12 @@ export default function ResetPassword() {
     const navigate = useNavigate();
     const { resetPassword } = useAuth();
     const [searchParams] = useSearchParams();
+    const location = useLocation();
 
-    const token = useMemo(() => searchParams.get('token') || '', [searchParams]);
+    const token = useMemo(
+        () => location.state?.recoveryToken || searchParams.get('token') || '',
+        [location.state, searchParams]
+    );
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');

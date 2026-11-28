@@ -6,6 +6,8 @@ const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
 const { auditRequestLogger } = require('./middleware/auditLogger');
 const authRoutes = require('./routes/auth');
+const accountSecurityQuestionsRoutes = require('./routes/accountSecurityQuestions');
+const securityQuestionRecoveryRoutes = require('./routes/securityQuestionRecovery');
 const multiRoleRoutes = require('./routes/multiRole');
 const userRoutes = require('./routes/user');
 const movieRoutes = require('./routes/movies');
@@ -76,30 +78,37 @@ app.use(cookieParser());
 app.use(auditRequestLogger);
 
 const authApiLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    limit: 300,
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: { error: 'Too many authentication API requests. Please try again later.' },
+  windowMs: 15 * 60 * 1000,
+  limit: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many authentication API requests. Please try again later.', },
 });
 
 const paymentLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    limit: 50,
-    standardHeaders: true,
-    legacyHeaders: false,
+  windowMs: 15 * 60 * 1000,
+  limit: 50,
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 app.use('/api/auth', authApiLimiter);
 app.use('/api/payments', paymentLimiter);
 
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+  });
 });
 
 app.use('/api/auth', multiRoleRoutes);
+app.use('/api/auth', securityQuestionRecoveryRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/auth', passkeyRoutes);
+
+app.use('/api/account', accountSecurityQuestionsRoutes);
+
 app.use('/api/users', userRoutes);
 app.use('/api/movies', movieRoutes);
 app.use('/api/showtimes', showtimeRoutes);

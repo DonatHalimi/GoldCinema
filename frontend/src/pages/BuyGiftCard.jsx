@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     useCaptureGiftCardPaypalOrderMutation,
     useConfirmGiftCardPaymentMutation,
@@ -16,6 +17,7 @@ import { useAuth } from '../context/AuthContext';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function BuyGiftCard() {
+    const { t } = useTranslation('giftCards');
     const { user } = useAuth();
 
     const [step, setStep] = useState('form');
@@ -64,14 +66,16 @@ export default function BuyGiftCard() {
         const errors = {};
         const numericAmount = Number(amount);
 
-        if (!Number.isFinite(numericAmount) || numericAmount < 5 || numericAmount > 500) errors.amount = 'Enter an amount between $5 and $500.';
+        if (!Number.isFinite(numericAmount) || numericAmount < 5 || numericAmount > 500) {
+            errors.amount = t('buy.errors.amountRange');
+        }
 
-        if (!template) errors.template = 'Please choose a design.';
-        if (!senderName.trim()) errors.senderName = 'Your name is required.';
-        if (!EMAIL_RE.test(senderEmail)) errors.senderEmail = 'Enter a valid email.';
-        if (!recipientName.trim()) errors.recipientName = "Recipient's name is required.";
-        if (!EMAIL_RE.test(recipientEmail)) errors.recipientEmail = 'Enter a valid recipient email.';
-        if (message.length > 500) errors.message = 'Message must be 500 characters or fewer.';
+        if (!template) errors.template = t('buy.errors.templateRequired');
+        if (!senderName.trim()) errors.senderName = t('buy.errors.senderNameRequired');
+        if (!EMAIL_RE.test(senderEmail)) errors.senderEmail = t('buy.errors.senderEmailInvalid');
+        if (!recipientName.trim()) errors.recipientName = t('buy.errors.recipientNameRequired');
+        if (!EMAIL_RE.test(recipientEmail)) errors.recipientEmail = t('buy.errors.recipientEmailInvalid');
+        if (message.length > 500) errors.message = t('buy.errors.messageTooLong');
 
         return errors;
     }
@@ -99,7 +103,9 @@ export default function BuyGiftCard() {
             setGiftCard(data.giftCard);
             setStep('payment');
         } catch (err) {
-            setFormError(err.data?.error || err.message || 'Failed to start gift card purchase.');
+            setFormError(
+                err.data?.error || err.message || t('buy.errors.startFailed')
+            );
         } finally {
             setSubmitting(false);
         }
@@ -110,17 +116,31 @@ export default function BuyGiftCard() {
         setStep('done');
     }
 
+    const formattedAmount = (value) =>
+        `$${Number(value || 0).toFixed(2)}`;
+
     if (step === 'done' && giftCard) {
         return (
             <div className="mx-auto max-w-lg px-6 py-16 text-center">
-                <p className="font-display text-4xl tracking-wide text-marquee-goldBright">GIFT SENT 🎁</p>
+                <p className="font-display text-4xl tracking-wide text-marquee-goldBright">
+                    {t('buy.done.heading')}
+                </p>
                 <p className="mt-3 text-marquee-muted">
-                    Your ${giftCard.initialValue.toFixed(2)} gift card has been emailed to {giftCard.recipientEmail}.
+                    {t('buy.done.description', {
+                        amount: formattedAmount(giftCard.initialValue),
+                        email: giftCard.recipientEmail,
+                    })}
                 </p>
                 <div className="mt-8 rounded-xl border border-marquee-line bg-marquee-panel p-6">
-                    <p className="text-xs uppercase tracking-widest text-marquee-goldDim">Gift card code</p>
-                    <p className="mt-2 font-mono text-2xl tracking-widest text-marquee-cream">{giftCard.code}</p>
-                    <p className="mt-3 text-xs text-marquee-muted">Keep this for your records in case the email doesn't arrive.</p>
+                    <p className="text-xs uppercase tracking-widest text-marquee-goldDim">
+                        {t('buy.done.codeLabel')}
+                    </p>
+                    <p className="mt-2 font-mono text-2xl tracking-widest text-marquee-cream">
+                        {giftCard.code}
+                    </p>
+                    <p className="mt-3 text-xs text-marquee-muted">
+                        {t('buy.done.codeNote')}
+                    </p>
                 </div>
             </div>
         );
@@ -129,9 +149,14 @@ export default function BuyGiftCard() {
     if (step === 'payment' && giftCard) {
         return (
             <div className="mx-auto max-w-2xl px-6 py-12">
-                <h1 className="mb-2 text-center font-serif text-3xl font-bold text-marquee-cream">Complete your purchase</h1>
+                <h1 className="mb-2 text-center font-serif text-3xl font-bold text-marquee-cream">
+                    {t('buy.payment.title')}
+                </h1>
                 <p className="mb-8 text-center text-marquee-muted">
-                    ${giftCard.initialValue.toFixed(2)} gift card for {giftCard.recipientName}
+                    {t('buy.payment.subtitle', {
+                        amount: formattedAmount(giftCard.initialValue),
+                        name: giftCard.recipientName,
+                    })}
                 </p>
 
                 <PaymentSection
@@ -160,8 +185,12 @@ export default function BuyGiftCard() {
         <div className="mx-auto mt-20 max-w-2xl px-6">
             <form onSubmit={handleSubmit} className="space-y-8 rounded-xl border border-marquee-line bg-marquee-panel p-6">
                 <div className='space-y-4'>
-                    <h1 className="text-center font-serif text-3xl font-bold text-marquee-cream">Give the gift of movies</h1>
-                    <p className="text-center text-marquee-muted">Send a GoldCinema gift card to anyone, instantly.</p>
+                    <h1 className="text-center font-serif text-3xl font-bold text-marquee-cream">
+                        {t('buy.form.title')}
+                    </h1>
+                    <p className="text-center text-marquee-muted">
+                        {t('buy.form.subtitle')}
+                    </p>
                 </div>
 
                 <AmountPicker
@@ -178,14 +207,14 @@ export default function BuyGiftCard() {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                     <TextField
-                        label="Your name *"
+                        label={t('buy.form.senderNameLabel')}
                         value={senderName}
                         onChange={setSenderName}
                         error={fieldErrors.senderName}
                     />
 
                     <TextField
-                        label="Your email *"
+                        label={t('buy.form.senderEmailLabel')}
                         type="email"
                         value={senderEmail}
                         onChange={setSenderEmail}
@@ -193,14 +222,14 @@ export default function BuyGiftCard() {
                     />
 
                     <TextField
-                        label="Recipient's name *"
+                        label={t('buy.form.recipientNameLabel')}
                         value={recipientName}
                         onChange={setRecipientName}
                         error={fieldErrors.recipientName}
                     />
 
                     <TextField
-                        label="Recipient's email *"
+                        label={t('buy.form.recipientEmailLabel')}
                         type="email"
                         value={recipientEmail}
                         onChange={setRecipientEmail}
@@ -210,7 +239,7 @@ export default function BuyGiftCard() {
 
                 <div>
                     <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-marquee-muted">
-                        Personal message
+                        {t('buy.form.messageLabel')}
                     </label>
 
                     <textarea
@@ -235,7 +264,11 @@ export default function BuyGiftCard() {
                     disabled={submitting}
                     className="w-full rounded-full bg-marquee-gold px-6 py-3 font-semibold text-marquee-bg transition hover:bg-marquee-goldBright disabled:opacity-40"
                 >
-                    {submitting ? 'Preparing checkout...' : `Continue to payment — $${Number(amount || 0).toFixed(2)}`}
+                    {submitting
+                        ? t('buy.form.submitPreparing')
+                        : t('buy.form.submitContinue', {
+                            amount: formattedAmount(amount),
+                        })}
                 </button>
             </form>
         </div>

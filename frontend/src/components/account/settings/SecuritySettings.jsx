@@ -8,6 +8,7 @@ import EnableEmail2faModal from '../../ui/modals/EnableEmail2faModal.jsx';
 import EnableTotpModal from '../../ui/modals/EnableTotpModal.jsx';
 import SecurityLogExportCard from '../../ui/SecurityLogExportCard.jsx';
 import SecurityActivityCard from '../SecurityActivityCard.jsx';
+import SecurityQuestionsCard from './SecurityQuestionsCard.jsx';
 import LoginAlertsSettings from './LoginAlertsSettings.jsx';
 import PasskeySettings from './PasskeySettings.jsx';
 import TrustedDevicesSettings from './TrustedDeviceSettings.jsx';
@@ -103,6 +104,8 @@ export default function SecuritySettings() {
                 <BackupCodesCard twoFactor={twoFactor} />
 
                 <PasskeySettings twoFactor={twoFactor} />
+
+                <SecurityQuestionsCard />
 
                 <SecurityActivityCard />
 

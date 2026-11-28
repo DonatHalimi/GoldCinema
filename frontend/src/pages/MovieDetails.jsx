@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import FavouriteButton from '../components/FavouriteButton';
 import EditReviewModal from '../components/reviews/EditReviewModal';
@@ -18,6 +19,7 @@ const INITIAL_DATES = 4;
 const EMPTY_LIST = [];
 
 export default function MovieDetail() {
+  const { t, i18n } = useTranslation('movieDetail');
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -101,11 +103,18 @@ export default function MovieDetail() {
 
   const showtimesForDate = showtimes.filter((s) => s.date === selectedDate);
 
+  const reviewCount = movie?.reviewCount || 0;
+  const basedOnKey = reviewCount === 1 ? 'reviews.basedOn' : 'reviews.basedOn_plural';
+
   if (movieLoading || showtimesLoading) {
-    return <p className="py-20 text-center text-marquee-muted">Loading...</p>;
+    return <p className="py-20 text-center text-marquee-muted">{t('loading')}</p>;
   }
   if (movieError || showtimesError || !movie) {
-    return <p className="py-20 text-center text-marquee-marquee">{movieError?.data?.error || showtimesError?.data?.error || 'Movie not found.'}</p>;
+    return (
+      <p className="py-20 text-center text-marquee-marquee">
+        {movieError?.data?.error || showtimesError?.data?.error || t('notFound')}
+      </p>
+    );
   }
 
   return (
@@ -114,7 +123,7 @@ export default function MovieDetail() {
         <div className="relative">
           <img
             src={movie.posterUrl}
-            alt={`${movie.title} poster`}
+            alt={t('posterAlt', { title: movie.title })}
             className="aspect-[2/3] w-full rounded-lg border border-marquee-line object-cover shadow-glow"
           />
 
@@ -129,17 +138,18 @@ export default function MovieDetail() {
             <span aria-hidden="true">&middot;</span>
             <span>{movie.rating}</span>
             <span aria-hidden="true">&middot;</span>
-            <span>{movie.duration} min</span>
+            <span>{t('minutes', { count: movie.duration })}</span>
           </div>
           <h1 className="font-serif text-4xl font-bold text-marquee-cream">{movie.title}</h1>
           <p className="mt-4 max-w-xl leading-relaxed text-marquee-muted">{movie.synopsis}</p>
           <p className="mt-4 font-display text-2xl tracking-wide text-marquee-gold">
-            ${movie.price.toFixed(2)} <span className="font-body text-sm text-marquee-muted">per seat</span>
+            ${movie.price.toFixed(2)}{' '}
+            <span className="font-body text-sm text-marquee-muted">{t('pricePerSeat')}</span>
           </p>
 
           <div className="mt-10">
             <h2 className="mb-3 font-body text-sm uppercase tracking-widest text-marquee-muted">
-              Select a date
+              {t('selectDate')}
             </h2>
 
             <motion.div layout className="space-y-3">
@@ -159,7 +169,7 @@ export default function MovieDetail() {
                         : 'border-marquee-line text-marquee-muted hover:border-marquee-gold hover:text-marquee-gold'
                         }`}
                     >
-                      {formatDate(date)}
+                      {formatDate(date, i18n.language)}
                     </motion.button>
                   ))}
                 </AnimatePresence>
@@ -173,12 +183,12 @@ export default function MovieDetail() {
                 >
                   {showAllDates ? (
                     <>
-                      <span>See less</span>
+                      <span>{t('seeLess')}</span>
                       <ChevronUp className="h-4 w-4" />
                     </>
                   ) : (
                     <>
-                      <span>See more ({hiddenDateCount} more)</span>
+                      <span>{t('seeMore', { count: hiddenDateCount })}</span>
                       <ChevronDown className="h-4 w-4" />
                     </>
                   )}
@@ -187,7 +197,7 @@ export default function MovieDetail() {
             </motion.div>
 
             <h2 className="mb-3 mt-8 font-body text-sm uppercase tracking-widest text-marquee-muted">
-              Select a showtime
+              {t('selectShowtime')}
             </h2>
             <div className="flex flex-wrap gap-3">
               {showtimesForDate.map((s) => (
@@ -199,12 +209,15 @@ export default function MovieDetail() {
                 >
                   <span className="font-display text-xl tracking-wide">{s.time}</span>
                   <span className="text-xs text-marquee-muted">
-                    {s.hall} &middot; {s.seatsAvailable === 0 ? 'Sold out' : `${s.seatsAvailable} left`}
+                    {s.hall} &middot;{' '}
+                    {s.seatsAvailable === 0
+                      ? t('soldOut')
+                      : t('seatsLeft', { count: s.seatsAvailable })}
                   </span>
                 </button>
               ))}
               {showtimesForDate.length === 0 && (
-                <p className="text-sm text-marquee-muted">No showtimes on this date.</p>
+                <p className="text-sm text-marquee-muted">{t('noShowtimes')}</p>
               )}
             </div>
           </div>
@@ -214,12 +227,14 @@ export default function MovieDetail() {
       <div className="mt-16 border-t border-marquee-line pt-10">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h2 className="font-serif text-2xl font-bold text-marquee-cream">Reviews</h2>
+            <h2 className="font-serif text-2xl font-bold text-marquee-cream">
+              {t('reviews.title')}
+            </h2>
             <div className="mt-2 flex items-center gap-2">
               <StarRating value={Math.round(movie.averageRating || 0)} readOnly size={18} />
               <span className="text-marquee-gold">{(movie.averageRating || 0).toFixed(1)}</span>
               <span className="text-sm text-marquee-muted">
-                Based on {movie.reviewCount || 0} review{movie.reviewCount === 1 ? '' : 's'}
+                {t(basedOnKey, { count: reviewCount })}
               </span>
             </div>
           </div>
@@ -231,18 +246,18 @@ export default function MovieDetail() {
                   onClick={() => setEditingOwnReview(myReview)}
                   className="rounded-full border border-marquee-gold px-5 py-2 text-sm text-marquee-gold hover:bg-marquee-gold hover:text-marquee-bg"
                 >
-                  Edit Your Review
+                  {t('reviews.editYourReview')}
                 </button>
               ) : eligible ? (
                 <button
                   onClick={() => setShowWriteModal(true)}
                   className="rounded-full bg-marquee-gold px-5 py-2 text-sm font-semibold text-marquee-bg hover:bg-marquee-goldBright"
                 >
-                  Write a Review
+                  {t('reviews.writeReview')}
                 </button>
               ) : (
                 <p className="max-w-xs text-right text-xs text-marquee-muted">
-                  Only ticket buyers can review this movie.
+                  {t('reviews.onlyBuyers')}
                 </p>
               )}
             </div>
@@ -250,11 +265,11 @@ export default function MovieDetail() {
         </div>
 
         <div className="mt-8 space-y-6">
-          {reviewsLoading && <p className="text-marquee-muted">Loading reviews...</p>}
+          {reviewsLoading && <p className="text-marquee-muted">{t('reviews.loading')}</p>}
           {reviewsError && <p className="text-marquee-marquee">{reviewsError}</p>}
 
           {!reviewsLoading && !reviewsError && reviews.length === 0 && (
-            <p className="text-marquee-muted">No reviews yet. Be the first to share your thoughts.</p>
+            <p className="text-marquee-muted">{t('reviews.empty')}</p>
           )}
 
           {!reviewsLoading &&
@@ -262,9 +277,11 @@ export default function MovieDetail() {
             reviews.map((review) => (
               <div key={review._id} className="border-b border-marquee-line/50 pb-6">
                 <div className="flex items-center justify-between">
-                  <p className="font-semibold text-marquee-cream">{review.user?.name || 'GoldCinema patron'}</p>
+                  <p className="font-semibold text-marquee-cream">
+                    {review.user?.name || t('reviews.patron')}
+                  </p>
                   <span className="text-xs text-marquee-muted">
-                    {new Date(review.createdAt).toLocaleDateString(undefined, {
+                    {new Date(review.createdAt).toLocaleDateString(i18n.language, {
                       month: 'short',
                       day: 'numeric',
                       year: 'numeric',
@@ -286,17 +303,15 @@ export default function MovieDetail() {
               onClick={() => setReviewsPage((page) => page - 1)}
               className="rounded-full border border-marquee-line px-4 py-1.5 disabled:opacity-40"
             >
-              Previous
+              {t('reviews.previous')}
             </button>
-            <span>
-              Page {reviewsPage} of {reviewsPages}
-            </span>
+            <span>{t('reviews.page', { current: reviewsPage, total: reviewsPages })}</span>
             <button
               disabled={reviewsPage === reviewsPages}
               onClick={() => setReviewsPage((page) => page + 1)}
               className="rounded-full border border-marquee-line px-4 py-1.5 disabled:opacity-40"
             >
-              Next
+              {t('reviews.next')}
             </button>
           </div>
         )}
@@ -322,7 +337,11 @@ export default function MovieDetail() {
   );
 }
 
-function formatDate(dateStr) {
+function formatDate(dateStr, locale) {
   const date = new Date(`${dateStr}T00:00:00`);
-  return date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  return date.toLocaleDateString(locale || undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  });
 }

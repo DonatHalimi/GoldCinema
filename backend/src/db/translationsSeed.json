@@ -1,0 +1,132 @@
+[
+  {
+    "namespace": "auth",
+    "key": "joinUs",
+    "values": {
+      "en": "Join us",
+      "sq": "Bashkohuni me ne",
+      "sr-Latn": "Pridružite nam se"
+    },
+    "context": null
+  },
+  {
+    "namespace": "auth",
+    "key": "createAccountTitle",
+    "values": {
+      "en": "Create your account",
+      "sq": "Krijoni llogarinë tuaj",
+      "sr-Latn": "Kreirajte svoj nalog"
+    },
+    "context": null
+  },
+  {
+    "namespace": "auth",
+    "key": "createAccountDescription",
+    "values": {
+      "en": "Start your cinematic journey in under a minute.",
+      "sq": "Filloni udhëtimin tuaj kinematografik në më pak se një minutë.",
+      "sr-Latn": "Započnite svoje bioskopsko putovanje za manje od jednog minuta."
+    },
+    "context": null
+  },
+  {
+    "namespace": "auth",
+    "key": "name",
+    "values": {
+      "en": "Full name",
+      "sq": "Emri i plotë",
+      "sr-Latn": "Puno ime"
+    },
+    "context": null
+  },
+  {
+    "namespace": "auth",
+    "key": "confirmPassword",
+    "values": {
+      "en": "Confirm Password",
+      "sq": "Konfirmo fjalëkalimin",
+      "sr-Latn": "Potvrdite lozinku"
+    },
+    "context": null
+  },
+  {
+    "namespace": "auth",
+    "key": "passwordsMatch",
+    "values": {
+      "en": "Passwords match",
+      "sq": "Fjalëkalimet përputhen",
+      "sr-Latn": "Lozinke se poklapaju"
+    },
+    "context": null
+  },
+  {
+    "namespace": "auth",
+    "key": "passwordsNoMatch",
+    "values": {
+      "en": "Passwords do not match",
+      "sq": "Fjalëkalimet nuk përputhen",
+      "sr-Latn": "Lozinke se ne poklapaju"
+    },
+    "context": null
+  },
+  {
+    "namespace": "auth",
+    "key": "creatingAccount",
+    "values": {
+      "en": "Creating account...",
+      "sq": "Duke krijuar llogarinë...",
+      "sr-Latn": "Kreiranje naloga..."
+    },
+    "context": null
+  },
+  {
+    "namespace": "auth",
+    "key": "createAccount",
+    "values": {
+      "en": "Create account",
+      "sq": "Krijo llogari",
+      "sr-Latn": "Kreiraj nalog"
+    },
+    "context": null
+  },
+  {
+    "namespace": "auth",
+    "key": "alreadyHaveAccount",
+    "values": {
+      "en": "Already have an account?",
+      "sq": "Keni tashmë një llogari?",
+      "sr-Latn": "Već imate nalog?"
+    },
+    "context": null
+  },
+  {
+    "namespace": "auth",
+    "key": "toast.registerSuccess",
+    "values": {
+      "en": "Account created successfully!",
+      "sq": "Llogaria u krijua me sukses!",
+      "sr-Latn": "Nalog je uspešno kreiran!"
+    },
+    "context": null
+  },
+  {
+    "namespace": "auth",
+    "key": "toast.registerFailed",
+    "values": {
+      "en": "Registration failed!",
+      "sq": "Regjistrimi dështoi!",
+      "sr-Latn": "Registracija nije uspela!"
+    },
+    "context": null
+  },
+  {
+    "namespace": "auth",
+    "key": "errors.facebookMissingAppId",
+    "values": {
+      "en": "Facebook login is not configured.",
+      "sq": "Kyçja me Facebook nuk është konfiguruar.",
+      "sr-Latn": "Prijava putem Facebook naloga nije konfigurisana."
+    },
+    "context": null
+  }
+]

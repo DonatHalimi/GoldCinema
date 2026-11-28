@@ -8,7 +8,12 @@ const RETENTION_DAYS = {
     payment: 2555,
 };
 
-const BODY_EXCLUDED_PATHS = ['/api/payments/stripe/webhook'];
+const BODY_EXCLUDED_PATHS = [
+    '/api/payments/stripe/webhook',
+    '/api/account/security-questions',
+    '/api/auth/recovery/questions/init',
+    '/api/auth/recovery/questions/verify',
+];
 
 function classify(path) {
     if (path.startsWith('/api/auth')) return 'auth';
@@ -65,11 +70,12 @@ function auditRequestLogger(req, res, next) {
     res.on('finish', () => {
         try {
             const path = req.originalUrl.split('?')[0];
+            const normalizedPath = path.toLowerCase().replace(/\/+$/, '');
             const category = classify(path);
 
             const shouldCaptureBody =
                 req.method !== 'GET' &&
-                !BODY_EXCLUDED_PATHS.includes(path) &&
+                !BODY_EXCLUDED_PATHS.includes(normalizedPath) &&
                 req.is('application/json');
 
             const doc = {

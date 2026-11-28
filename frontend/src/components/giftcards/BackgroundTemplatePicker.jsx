@@ -1,77 +1,78 @@
 import { animate, motion, useMotionValue } from 'framer-motion';
 import { Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const TEMPLATES = [
     {
         id: 'classic-gold',
-        label: 'Classic Gold',
+        labelKey: 'templates.classic-gold',
         imageUrl:
             'https://images.unsplash.com/photo-1721209697441-9b9d17fdb646?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     },
     {
         id: 'birthday',
-        label: 'Happy Birthday',
+        labelKey: 'templates.birthday',
         imageUrl:
             'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=1000&q=80',
     },
     {
         id: 'vip-access',
-        label: 'VIP Access',
+        labelKey: 'templates.vip-access',
         imageUrl:
             'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=1000&q=80',
     },
     {
         id: 'holiday',
-        label: 'Christmas',
+        labelKey: 'templates.holiday',
         imageUrl:
             'https://images.unsplash.com/photo-1482517967863-00e15c9b44be?auto=format&fit=crop&w=1000&q=80',
     },
     {
         id: 'popcorn-treat',
-        label: 'Popcorn & Soda',
+        labelKey: 'templates.popcorn-treat',
         imageUrl:
             'https://images.unsplash.com/photo-1582639230945-bd2926ad7862?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     },
     {
         id: 'thank-you',
-        label: 'Thank You',
+        labelKey: 'templates.thank-you',
         imageUrl:
             'https://images.unsplash.com/photo-1502355984-b735cb2550ce?q=80&w=1469&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     },
     {
         id: 'valentines',
-        label: "Valentine's Day",
+        labelKey: 'templates.valentines',
         imageUrl:
             'https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=1000&q=80',
     },
     {
         id: 'movie-night',
-        label: 'Movie Night',
+        labelKey: 'templates.movie-night',
         imageUrl:
             'https://images.unsplash.com/photo-1596445836561-991bcd39a86d?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     },
     {
         id: 'midnight-screening',
-        label: 'Midnight Screening',
+        labelKey: 'templates.midnight-screening',
         imageUrl:
             'https://images.unsplash.com/photo-1608170825938-a8ea0305d46c?q=80&w=1025&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     },
     {
         id: 'you-deserve-it',
-        label: 'You Deserve It',
+        labelKey: 'templates.you-deserve-it',
         imageUrl:
             'https://images.unsplash.com/photo-1640127249305-793865c2efe1?q=80&w=1103&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     },
     {
         id: 'red-carpet',
-        label: 'Red Carpet',
+        labelKey: 'templates.red-carpet',
         imageUrl:
             'https://images.unsplash.com/photo-1614115866447-c9a299154650?q=80&w=1471&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     },
     {
         id: 'treat-yourself',
-        label: 'Treat Yourself',
+        labelKey: 'templates.treat-yourself',
         imageUrl:
             'https://images.unsplash.com/photo-1702308719585-c23a691d0de5?q=80&w=764&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     },
@@ -93,12 +94,15 @@ const SLIDE_TRANSITION = {
 };
 
 function TemplateSlide({ template }) {
+    const { t } = useTranslation('giftCards');
+    const label = t(template.labelKey);
+
     return (
         <div className="absolute inset-0 select-none">
             {template.imageUrl ? (
                 <img
                     src={template.imageUrl}
-                    alt={template.label}
+                    alt={label}
                     draggable={false}
                     className="h-full w-full object-cover pointer-events-none"
                 />
@@ -111,11 +115,11 @@ function TemplateSlide({ template }) {
             <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between p-4 pointer-events-none">
                 <div>
                     <p className="text-lg font-semibold text-white">
-                        {template.label}
+                        {label}
                     </p>
 
                     <p className="text-xs text-white/70">
-                        Your gift deserves a good look
+                        {t('templatePicker.slide.tagline')}
                     </p>
                 </div>
 
@@ -132,6 +136,8 @@ export default function BackgroundTemplatePicker({
     onChange,
     error,
 }) {
+    const { t } = useTranslation('giftCards');
+
     const initialIndex = Math.max(
         0,
         TEMPLATES.findIndex((template) => template.id === value)
@@ -237,11 +243,14 @@ export default function BackgroundTemplatePicker({
         <div>
             <div className="mb-2 flex items-center justify-between">
                 <label className="block text-xs font-semibold uppercase tracking-wider text-marquee-muted">
-                    Choose a design
+                    {t('templatePicker.label')}
                 </label>
 
                 <span className="text-xs text-marquee-muted">
-                    {currentIndex + 1} / {TEMPLATES.length}
+                    {t('templatePicker.counter', {
+                        current: currentIndex + 1,
+                        total: TEMPLATES.length,
+                    })}
                 </span>
             </div>
 
@@ -292,7 +301,7 @@ export default function BackgroundTemplatePicker({
                         type="button"
                         onClick={previousSlide}
                         className="absolute left-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-sm transition hover:bg-black/60"
-                        aria-label="Previous design"
+                        aria-label={t('templatePicker.previous')}
                     >
                         <ChevronLeft className="h-5 w-5" />
                     </button>
@@ -301,7 +310,7 @@ export default function BackgroundTemplatePicker({
                         type="button"
                         onClick={nextSlide}
                         className="absolute right-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-sm transition hover:bg-black/60"
-                        aria-label="Next design"
+                        aria-label={t('templatePicker.next')}
                     >
                         <ChevronRight className="h-5 w-5" />
                     </button>
@@ -313,7 +322,9 @@ export default function BackgroundTemplatePicker({
                             key={template.id}
                             type="button"
                             onClick={() => goToSlide(index)}
-                            aria-label={`Select ${template.label}`}
+                            aria-label={t('templatePicker.select', {
+                                name: t(template.labelKey),
+                            })}
                             className="flex h-5 items-center justify-center"
                         >
                             <motion.span

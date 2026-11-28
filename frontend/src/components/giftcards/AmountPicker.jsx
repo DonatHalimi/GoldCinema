@@ -1,12 +1,15 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { DollarSign, Sparkles } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const PRESETS = [25, 50, 100, 150, 200];
 const MIN_AMOUNT = 5;
 const MAX_AMOUNT = 500;
 
 export default function AmountPicker({ value, onChange, error }) {
+    const { t } = useTranslation('giftCards');
+
     const isCustom = value !== null && !PRESETS.includes(value);
     const [showCustomInput, setShowCustomInput] = useState(isCustom || value === '');
 
@@ -27,11 +30,11 @@ export default function AmountPicker({ value, onChange, error }) {
         <div>
             <div className="mb-2 flex items-center justify-between">
                 <label className="block text-xs font-semibold uppercase tracking-wider text-marquee-muted">
-                    Card amount
+                    {t('amountPicker.label')}
                 </label>
                 {value && (
                     <span className="text-xs font-medium text-marquee-gold">
-                        Selected: ${value}
+                        {t('amountPicker.selected', { amount: `$${value}` })}
                     </span>
                 )}
             </div>
@@ -74,7 +77,7 @@ export default function AmountPicker({ value, onChange, error }) {
                         }`}
                 >
                     <Sparkles className="h-3.5 w-3.5" />
-                    Custom
+                    {t('amountPicker.custom')}
                 </motion.button>
             </div>
 
@@ -90,7 +93,7 @@ export default function AmountPicker({ value, onChange, error }) {
                         <div className="mt-4 rounded-xl border border-marquee-line bg-marquee-panel2 p-6 flex flex-col items-center text-center">
 
                             <span className="text-xs text-marquee-muted uppercase tracking-wider mb-3">
-                                Enter custom amount or use slider
+                                {t('amountPicker.customHint')}
                             </span>
 
                             <div className="relative w-44 group mb-6">
@@ -115,7 +118,7 @@ export default function AmountPicker({ value, onChange, error }) {
                                         className="w-20 bg-transparent text-xl font-bold text-marquee-cream text-center outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                     />
                                     <span className="text-xs font-semibold text-marquee-muted/60 uppercase tracking-widest pl-1 select-none">
-                                        USD
+                                        {t('amountPicker.currency')}
                                     </span>
                                 </div>
                             </div>

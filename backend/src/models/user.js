@@ -20,6 +20,7 @@ const refreshTokenSchema = new Schema(
                 'passkey',
                 'mfa',
                 'register',
+                'security_questions',
                 null,
             ],
             default: null,
@@ -263,6 +264,43 @@ userSchema.index(
         },
     }
 );
+
+async function deleteUserSecurityQuestionArtifacts(userIds) {
+    const ids = (Array.isArray(userIds) ? userIds : [userIds]).filter(Boolean);
+    if (!ids.length) return;
+    const UserSecurityQuestions = mongoose.models.UserSecurityQuestions || require('./userSecurityQuestions');
+    const SecurityQuestionRecoveryToken = mongoose.models.SecurityQuestionRecoveryToken || require('./securityQuestionRecoveryToken');
+    await Promise.all([
+        UserSecurityQuestions.deleteMany({ user: { $in: ids } }),
+        SecurityQuestionRecoveryToken.deleteMany({ user: { $in: ids } }),
+    ]);
+}
+
+// Keep dependent recovery records aligned with user deletion and account deactivation.
+userSchema.pre('save', async function cleanupRecoveryDataOnDeactivation() {
+    if (this.isModified('deletedAt') && this.deletedAt) {
+        await deleteUserSecurityQuestionArtifacts(this._id);
+    }
+});
+
+userSchema.pre('deleteOne', { document: true, query: false }, async function cleanupRecoveryDataOnDelete() {
+    await deleteUserSecurityQuestionArtifacts(this._id);
+});
+
+userSchema.pre('deleteOne', { document: false, query: true }, async function cleanupRecoveryDataOnQueryDelete() {
+    const existing = await this.model.findOne(this.getQuery()).select('_id').lean();
+    if (existing?._id) await deleteUserSecurityQuestionArtifacts(existing._id);
+});
+
+userSchema.pre('findOneAndDelete', async function cleanupRecoveryDataOnFindDelete() {
+    const existing = await this.model.findOne(this.getQuery()).select('_id').lean();
+    if (existing?._id) await deleteUserSecurityQuestionArtifacts(existing._id);
+});
+
+userSchema.pre('deleteMany', async function cleanupRecoveryDataOnBulkDelete() {
+    const ids = await this.model.distinct('_id', this.getQuery());
+    if (ids.length) await deleteUserSecurityQuestionArtifacts(ids);
+});
 
 userSchema.methods.toPublicJSON = function toPublicJSON() {
     return {

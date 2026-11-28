@@ -1,0 +1,327 @@
+import { startAuthentication } from '@simplewebauthn/browser';
+import { KeyRound } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { getPasskeyLoginOptions, verifyPasskeyLogin } from '../api/auth';
+import { ForgotPasswordModal } from '../components/auth/ForgotPasswordModal';
+import MfaVerifyStep from '../components/auth/MfaVerifyStep';
+import RememberMeCheckbox from '../components/auth/RememberMeCheckbox';
+import SocialLoginButtons from '../components/auth/SocialLoginButtons';
+import { Field, PasswordField } from '../components/ui/FormUI';
+import { useAuth } from '../context/AuthContext';
+import { OAUTH_ERROR_MESSAGES } from '../utils/oAuthErrors';
+import { loginSchema, validateForm } from '../validations';
+
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+const facebookAppId = import.meta.env.VITE_FACEBOOK_APP_ID;
+
+export default function Login() {
+  const { login, loginWithGoogle, loginWithFacebook, loginWithGithub, refreshUser } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || '/';
+
+  const googleBtnRef = useRef(null);
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  const [googleReady, setGoogleReady] = useState(false);
+  const [facebookReady, setFacebookReady] = useState(false);
+  const [mfaState, setMfaState] = useState(null);
+  const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+
+  const isFormValid =
+    email.trim() !== '' &&
+    password.trim() !== '' &&
+    !fieldErrors.email &&
+    !fieldErrors.password;
+
+  useEffect(() => {
+    if (!googleClientId) return;
+    const loadGoogleScript = () => {
+      if (document.getElementById('google-gsi-script')) {
+        initializeGoogle();
+        return;
+      }
+      const script = document.createElement('script');
+      script.id = 'google-gsi-script';
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = initializeGoogle;
+      document.body.appendChild(script);
+    };
+
+    const initializeGoogle = () => {
+      if (!window.google?.accounts?.id) return;
+      window.google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: ({ credential }) => handleGoogleLogin(credential),
+      });
+
+      if (googleBtnRef.current) {
+        googleBtnRef.current.innerHTML = '';
+        window.google.accounts.id.renderButton(googleBtnRef.current, {
+          type: 'standard',
+          size: 'large',
+          width: '350',
+        });
+        setGoogleReady(true);
+      }
+    };
+    loadGoogleScript();
+  }, [googleClientId]);
+
+  async function handlePasskeyLogin() {
+    setError('');
+    setSubmitting(true);
+
+    try {
+      const optionsJSON = await getPasskeyLoginOptions();
+
+      const authResponse = await startAuthentication({ optionsJSON });
+
+      const verifyRes = await verifyPasskeyLogin(rememberMe, authResponse);
+
+      if (verifyRes?.mfaRequired) {
+        setMfaState({
+          mfaToken: verifyRes.data.mfaToken,
+          methods: verifyRes.data.methods || [],
+          rememberMe: rememberMe,
+        });
+        return;
+      }
+
+      const profile = await refreshUser();
+      toast.success('Passkey login successful!');
+      navigate(profile?.roleSelectionRequired ? '/select-role' : from, { replace: true });
+    } catch (err) {
+      if (err.name === 'NotAllowedError') {
+        toast.info('Passkey sign-in cancelled or timed out.');
+      } else {
+        toast.error('Passkey login failed!');
+        setError(err.response?.data?.error || err.response?.data?.message || err.message || 'Passkey login failed.');
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleGoogleLogin(credential) {
+    setSubmitting(true);
+    setError('');
+
+    try {
+      const result = await loginWithGoogle(credential);
+      if (result?.mfaRequired) {
+        setMfaState({
+          mfaToken: result.mfaToken,
+          methods: result.methods || [],
+          rememberMe: result.rememberMe ?? rememberMe,
+        });
+        return;
+      }
+      navigate(result?.roleSelectionRequired ? '/select-role' : from, { replace: true });
+      toast.success('Google login successful!');
+    } catch (err) {
+      toast.error('Google login failed!');
+      setError(err.response?.data?.error || err.message || 'Google login failed.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleFacebookLogin() {
+    if (!window.FB) {
+      setError('Facebook SDK is still loading. Please try again.');
+      return;
+    }
+    setSubmitting(true);
+    setError('');
+    try {
+      const response = await new Promise((resolve) => {
+        window.FB.login((fbResponse) => resolve(fbResponse), { scope: 'public_profile,email' });
+      });
+      if (!response?.authResponse?.accessToken) {
+        throw new Error('Facebook login cancelled.');
+      }
+      const result = await loginWithFacebook(response.authResponse.accessToken);
+
+      if (result?.mfaRequired) {
+        setMfaState({ mfaToken: result.mfaToken, methods: result.methods || [], rememberMe: result.rememberMe ?? rememberMe });
+        return;
+      }
+
+      navigate(result?.roleSelectionRequired ? '/select-role' : from, { replace: true });
+      toast.success('Facebook login successful!');
+    } catch (err) {
+      toast.error('Facebook login failed!');
+      setError(err.response?.data?.error || err.message || 'Facebook login failed.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  useEffect(() => {
+    const errorCode = new URLSearchParams(location.search).get('error');
+    const fragment = new URLSearchParams(location.hash.slice(1));
+    const mfaToken = fragment.get('mfaToken');
+
+    if (mfaToken) {
+      setMfaState({
+        mfaToken,
+        methods: (fragment.get('methods') || '').split(',').filter(Boolean),
+        rememberMe: false,
+      });
+    }
+
+    if (errorCode) toast.error(OAUTH_ERROR_MESSAGES[errorCode] || OAUTH_ERROR_MESSAGES.github_failed);
+
+    if (errorCode || mfaToken) navigate(location.pathname, { replace: true });
+  }, []);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setSubmitting(true);
+    setError('');
+    setFieldErrors({});
+
+    const { valid, errors } = await validateForm(loginSchema, { email, password });
+    if (!valid) {
+      setFieldErrors(errors);
+      setSubmitting(false);
+      return;
+    }
+
+    try {
+      const result = await login(email, password, rememberMe);
+      if (result?.mfaRequired) {
+        setMfaState({
+          mfaToken: result.mfaToken,
+          methods: result.methods || [],
+          rememberMe: result.rememberMe,
+        });
+        return;
+      }
+
+      navigate(result?.roleSelectionRequired ? '/select-role' : from, { replace: true });
+      toast.success('Login successful!');
+    } catch (err) {
+      toast.error('Login failed!');
+      setError(err.response?.data?.error || err.message || 'Login failed');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function validateField(field, value) {
+    try {
+      await loginSchema.validateAt(field, { [field]: value });
+      setFieldErrors((prev) => ({ ...prev, [field]: '' }));
+    } catch (err) {
+      setFieldErrors((prev) => ({ ...prev, [field]: err.message }));
+    }
+  }
+
+  return (
+    <div className="mx-auto flex max-w-md items-center py-20">
+      <div className="w-full rounded-2xl border border-marquee-line bg-marquee-panel2 p-9">
+        {mfaState ? (
+          <MfaVerifyStep mfaState={mfaState} from={from} onBack={() => setMfaState(null)} />
+        ) : (
+          <>
+            <h1 className="mb-6 text-center font-serif text-3xl font-bold text-marquee-cream">
+              Welcome back
+            </h1>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Field
+                label="Email"
+                type="email"
+                value={email}
+                onChange={(value) => {
+                  setEmail(value);
+                  validateField('email', value);
+                }}
+                required
+                error={fieldErrors.email}
+              />
+
+              <PasswordField
+                value={password}
+                onChange={(value) => {
+                  setPassword(value);
+                  validateField('password', value);
+                }}
+                error={fieldErrors.password}
+              />
+
+              {fieldErrors.form && <p className="text-sm text-marquee-marquee">{fieldErrors.form}</p>}
+              {error && <p className="text-sm text-marquee-marquee">{error}</p>}
+
+              <div className="mt-4 flex items-center justify-between">
+                <RememberMeCheckbox
+                  checked={rememberMe}
+                  onChange={() => setRememberMe((prev) => !prev)}
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setIsForgotModalOpen(true)}
+                  className="text-sm text-marquee-gold hover:text-marquee-goldBright"
+                >
+                  Forgot password?
+                </button>
+              </div>
+
+              <button
+                type="submit"
+                disabled={submitting || !isFormValid}
+                className="w-full rounded-full bg-marquee-gold px-6 py-3 font-semibold text-marquee-bg transition hover:bg-marquee-goldBright disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {submitting ? 'Logging in...' : 'Login'}
+              </button>
+
+              <button
+                type="button"
+                onClick={handlePasskeyLogin}
+                disabled={submitting}
+                className="flex w-full items-center justify-center gap-2 rounded-full border border-marquee-line bg-marquee-panel px-6 py-3 font-semibold text-marquee-cream transition hover:border-marquee-gold disabled:opacity-40"
+              >
+                <KeyRound className="h-5 w-5 text-marquee-gold" />
+                Login with Passkey
+              </button>
+
+              <div className="relative flex py-2 items-center">
+                <div className="flex-grow border-t border-marquee-line"></div>
+                <span className="flex-shrink mx-4 text-xs text-marquee-muted uppercase">Or</span>
+                <div className="flex-grow border-t border-marquee-line"></div>
+              </div>
+
+              <SocialLoginButtons
+                googleBtnRef={googleBtnRef}
+                onFacebookLogin={handleFacebookLogin}
+                handleGithub={loginWithGithub}
+                disabled={submitting}
+              />
+            </form>
+
+            <p className="mt-6 text-left text-sm text-marquee-muted">
+              Don't have an account?{' '}
+              <Link to="/register" className="text-marquee-gold hover:text-marquee-goldBright">
+                Create an account
+              </Link>
+            </p>
+
+            <ForgotPasswordModal isOpen={isForgotModalOpen} onClose={() => setIsForgotModalOpen(false)} />
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
